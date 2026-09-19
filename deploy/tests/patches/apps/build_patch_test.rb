@@ -27,6 +27,18 @@ class AppsBuildPatchTest < Minitest::Test
     refute Apps::BuildPatch.needed?
   end
 
+  def test_uses_custom_bundle_identifier_build_setting
+    Apps.targets.fetch(0)[:bundleIdentifierBuildSetting] = "APP_BUNDLE_IDENTIFIER"
+    commands = []
+    Cmd.stubs(:local).with { |command| commands << command; true }.returns("Apple Development")
+
+    Apps::BuildPatch.apply
+
+    arguments = Shellwords.split(commands.find { |command| command.include?("xcodebuild") })
+    assert_includes arguments, "APP_BUNDLE_IDENTIFIER=org.example.app"
+    refute arguments.any? { |argument| argument.start_with?("PRODUCT_BUNDLE_IDENTIFIER=") }
+  end
+
   def test_enables_hardened_runtime_for_macos
     Apps.targets.fetch(0)[:platform] = "MAC_OS"
     command = nil

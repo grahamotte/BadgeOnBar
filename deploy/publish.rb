@@ -1,6 +1,11 @@
 require_relative "lib/require"
 
-Apps.submit_for_review = ENV.fetch("PUBLISH_NO_REVIEW", "false") != "true"
+if ENV.fetch("PUBLISH_STOP_BEFORE_PREPARE", "false") == "true"
+  Apps.prepare_for_review = false
+  Apps.submit_for_review = false
+elsif ENV.fetch("PUBLISH_STOP_BEFORE_SUBMISSION", "false") == "true"
+  Apps.submit_for_review = false
+end
 
 Apps::ValidationPatch.call
 Apps::BuildPatch.call

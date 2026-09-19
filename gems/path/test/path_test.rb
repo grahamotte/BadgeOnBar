@@ -598,6 +598,7 @@ class PathTest < Minitest::Test
   def test_mime_type_returns_correct_type_for_audio
     assert_equal "audio/mpeg", Path.mime_type("song.mp3")
     assert_equal "audio/flac", Path.mime_type("track.flac")
+    assert_equal "audio/quicktime", Path.mime_type("recording.qta")
   end
 
   def test_mime_type_returns_correct_type_for_documents
@@ -628,7 +629,6 @@ class PathTest < Minitest::Test
     assert_equal "video/avi", Path.mime_type("video.avi")
     assert_equal "video/flv", Path.mime_type("video.flv")
     assert_equal "video/mkv", Path.mime_type("video.mkv")
-    assert_equal "video/quicktime", Path.mime_type("audio.qta")
     assert_equal "video/webm", Path.mime_type("video.webm")
     assert_equal "video/wmv", Path.mime_type("video.wmv")
     assert_equal "video/m4v", Path.mime_type("video.m4v")

@@ -23,10 +23,18 @@ class AppsTest < Minitest::Test
   end
 
   def test_configures_review_submission
+    assert Apps.prepare_for_review?
     assert Apps.submit_for_review?
 
     Apps.submit_for_review = false
 
+    assert Apps.prepare_for_review?
+    refute Apps.submit_for_review?
+
+    Apps.submit_for_review = true
+    Apps.prepare_for_review = false
+
+    refute Apps.prepare_for_review?
     refute Apps.submit_for_review?
   end
 

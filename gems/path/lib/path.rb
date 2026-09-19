@@ -252,7 +252,6 @@ class Path
       when :flv then "video/flv"
       when :mkv then "video/mkv"
       when :mov then "video/quicktime"
-      when :qta then "video/quicktime"
       when :mp4 then "video/mp4"
       when :mpeg then "video/mpeg"
       when :mpg then "video/mpg"
@@ -264,6 +263,7 @@ class Path
       when :mp3 then "audio/mpeg"
       when :flac then "audio/flac"
       when :m4a then "audio/mp4"
+      when :qta then "audio/quicktime"
 
       when :txt, :text then "text/plain"
       when :html, :htm then "text/html"

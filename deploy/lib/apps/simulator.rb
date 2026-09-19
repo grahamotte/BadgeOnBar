@@ -12,7 +12,7 @@ module Apps
       def call(name)
         target, device = simulator(name)
         derived_data_path = File.join(Apps.tmp_root, "simulate", target.fetch(:name).to_s)
-        stop(target, device)
+        stop(target)
         build(target, derived_data_path)
         launch(target, device, derived_data_path)
       end
@@ -29,18 +29,11 @@ module Apps
         raise "Unknown simulator: #{name}. Choose #{choices}"
       end
 
-      def stop(target, device)
-        if target.fetch(:platform) == "MAC_OS"
-          process = File.basename(target.fetch(:simulatorProduct), ".app")
-          Cmd.local(Shellwords.join([ "pkill", "-x", process ])) rescue nil
-          return
-        end
+      def stop(target)
+        return unless target.fetch(:platform) == "MAC_OS"
 
-        devices = Cmd.local("xcrun simctl list devices available")
-        devices.lines.filter { |line| line.include?(device) && line.include?("(Booted)") }.each do |line|
-          udid = line.match(/[0-9A-F-]{36}/)&.to_s
-          Cmd.local(Shellwords.join([ "xcrun", "simctl", "shutdown", udid ])) if udid.present?
-        end
+        process = File.basename(target.fetch(:simulatorProduct), ".app")
+        Cmd.local(Shellwords.join([ "pkill", "-x", process ])) rescue nil
       end
 
       def build(target, derived_data_path)
@@ -57,7 +50,7 @@ module Apps
           "-derivedDataPath",
           derived_data_path,
           "build",
-          "PRODUCT_BUNDLE_IDENTIFIER=#{target.fetch(:bundleIdentifier)}",
+          "#{target.fetch(:bundleIdentifierBuildSetting, "PRODUCT_BUNDLE_IDENTIFIER")}=#{target.fetch(:bundleIdentifier)}",
         ]))
       end
 
@@ -65,15 +58,32 @@ module Apps
         app_path = product_path(target, derived_data_path)
         return Cmd.local(Shellwords.join([ "open", app_path ])) if target.fetch(:platform) == "MAC_OS"
 
+        udid, booted = available_simulator(device)
+        unless booted
+          Cmd.local(Shellwords.join([ "xcrun", "simctl", "boot", udid ])) rescue nil
+          Cmd.local(Shellwords.join([ "xcrun", "simctl", "bootstatus", udid, "-b" ]))
+        end
+        open_simulator(udid)
+        bundle_identifier = target.fetch(:bundleIdentifier)
+        Cmd.local(Shellwords.join([ "xcrun", "simctl", "terminate", udid, bundle_identifier ])) rescue nil
+        Cmd.local(Shellwords.join([ "xcrun", "simctl", "install", udid, app_path ]))
+        Cmd.local(Shellwords.join([ "xcrun", "simctl", "launch", udid, bundle_identifier ]))
+      end
+
+      def available_simulator(device)
         devices = Cmd.local("xcrun simctl list devices available")
-        udid = devices.lines.find { |line| line.include?(device) }&.match(/[0-9A-F-]{36}/)&.to_s
+        matching = devices.lines.filter { |line| line.include?(device) }
+        line = matching.find { |line| line.include?("(Booted)") } || matching.first
+        udid = line&.match(/[0-9A-F-]{36}/)&.to_s
         raise "No available #{device} simulator found" if udid.blank?
 
-        Cmd.local(Shellwords.join([ "xcrun", "simctl", "boot", udid ])) rescue nil
-        Cmd.local(Shellwords.join([ "xcrun", "simctl", "bootstatus", udid, "-b" ]))
+        [ udid, line.include?("(Booted)") ]
+      end
+
+      def open_simulator(udid)
+        Cmd.local("open -b com.apple.dt.Devices")
+      rescue StandardError
         Cmd.local(Shellwords.join([ "open", "-a", "Simulator", "--args", "-CurrentDeviceUDID", udid ]))
-        Cmd.local(Shellwords.join([ "xcrun", "simctl", "install", udid, app_path ]))
-        Cmd.local(Shellwords.join([ "xcrun", "simctl", "launch", udid, target.fetch(:bundleIdentifier) ]))
       end
 
       def product_path(target, derived_data_path)

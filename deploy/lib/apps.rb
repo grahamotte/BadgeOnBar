@@ -6,7 +6,7 @@ require "tempfile"
 
 module Apps
   class << self
-    attr_writer :root, :submit_for_review, :tmp_root
+    attr_writer :root, :prepare_for_review, :submit_for_review, :tmp_root
 
     def root = @root || File.join(Constants.local_root, "apps")
     def tmp_root = @tmp_root || File.join(Constants.local_root, "deploy", "tmp", "apps")
@@ -14,7 +14,8 @@ module Apps
     def version = config.fetch(:version)
     def build = config.fetch(:build)
     def skip_app_stores? = config.fetch(:skip_app_stores, false)
-    def submit_for_review? = @submit_for_review != false
+    def prepare_for_review? = @prepare_for_review != false
+    def submit_for_review? = prepare_for_review? && @submit_for_review != false
     def export_options_path = File.join(root, "apple", "App", "Config", "ExportOptions.plist")
 
     def targets
@@ -133,6 +134,7 @@ module Apps
       @private_key = nil
       @private_key_file = nil
       @root = nil
+      @prepare_for_review = nil
       @submit_for_review = nil
       @tmp_root = nil
     end

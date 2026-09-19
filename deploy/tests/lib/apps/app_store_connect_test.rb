@@ -1,8 +1,8 @@
 require_relative "../../test_helper"
 
 class AppsAppStoreConnectTest < Minitest::Test
-  def test_skips_app_store_changes_without_review
-    Apps.submit_for_review = false
+  def test_skips_app_store_changes_without_prepare
+    Apps.prepare_for_review = false
 
     status = Apps::AppStoreConnect.new.submit(Apps.targets.fetch(0))
 
@@ -81,6 +81,35 @@ class AppsAppStoreConnectTest < Minitest::Test
     version = Apps::AppStoreConnect.new.latest_approved_version(target)
 
     assert_nil version
+  end
+
+  def test_prepares_without_submitting
+    Apps.submit_for_review = false
+    target = Apps.targets.fetch(0)
+    requests = []
+    Req.expects(:call).times(14).with { |request| requests << request }.returns(
+      { data: [ { id: "app" } ] },
+      { data: [ { id: "version", attributes: { versionString: "1.2.3" } } ] },
+      {},
+      { data: [ { id: "localization", attributes: { locale: "en-US" } } ] },
+      {},
+      screenshot_sets,
+      screenshots,
+      { data: nil },
+      { data: { id: "review" } },
+      { included: [ { id: "build", attributes: { processingState: "VALID" } } ] },
+      {},
+      { data: [ { id: "submission", attributes: { state: "READY_FOR_REVIEW" } } ] },
+      { data: [] },
+      {},
+    )
+
+    assert_equal :prepared, Apps::AppStoreConnect.new.submit(target)
+
+    assert_request(requests, :post, "/v1/reviewSubmissionItems")
+    refute requests.any? { |request|
+      request[:payload].dig(:data, :attributes, :submitted) == true
+    }
   end
 
   def test_prepares_codemoto_without_submitting

@@ -264,12 +264,16 @@ run = "set -o pipefail && set -a && source .env.production && cd deploy && ruby 
 [tasks."deploy:publish"]
 alias = ["publish"]
 depends = ["deploy:push"]
-usage = 'flag "--no-review" help="Upload App Store builds for TestFlight without changing or submitting App Store versions"'
+usage = '''
+flag "--stop-before-submission" help="Prepare App Store versions for review without submitting"
+flag "--stop-before-prepare" help="Upload App Store builds for TestFlight without preparing or submitting versions"
+'''
 run = """
 set -o pipefail
 set -a
 source .env.production
-export PUBLISH_NO_REVIEW="${usage_no_review:-false}"
+export PUBLISH_STOP_BEFORE_SUBMISSION="${usage_stop_before_submission:-false}"
+export PUBLISH_STOP_BEFORE_PREPARE="${usage_stop_before_prepare:-false}"
 cd deploy
 ruby publish.rb 2>&1 | tee log/$(date +%Y-%m-%d-%H-%M-%S)_publish.log
 """

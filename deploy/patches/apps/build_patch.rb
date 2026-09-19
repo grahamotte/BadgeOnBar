@@ -31,7 +31,7 @@ module Apps
               "-allowProvisioningUpdates",
               "MARKETING_VERSION=#{Apps.version}",
               "CURRENT_PROJECT_VERSION=#{Apps.build}",
-              "PRODUCT_BUNDLE_IDENTIFIER=#{target.fetch(:bundleIdentifier)}",
+              "#{target.fetch(:bundleIdentifierBuildSetting, "PRODUCT_BUNDLE_IDENTIFIER")}=#{target.fetch(:bundleIdentifier)}",
               "DEVELOPMENT_TEAM=#{ENV.fetch("APPLE_TEAM_ID")}",
               "OTHER_CODE_SIGN_FLAGS=--keychain #{keychain}",
               *Apps.authentication_arguments,
