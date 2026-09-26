@@ -53,6 +53,20 @@ class Linear
       found
     end
 
+    def create(title, body, column)
+      graphql(
+        ISSUE_CREATE_MUTATION,
+        {
+          input: {
+            teamId: team_id,
+            title:,
+            description: body,
+            stateId: state_id(column),
+          }.compact,
+        },
+      ).fetch(:issueCreate).fetch(:issue)
+    end
+
     def comment(item, body)
       graphql(COMMENT_CREATE_MUTATION, { input: { issueId: item.fetch(:id), body: } })
     end
@@ -314,6 +328,19 @@ class Linear
                 name
               }
             }
+          }
+        }
+      }
+    GQL
+
+    ISSUE_CREATE_MUTATION = <<~GQL
+      mutation IssueCreate($input: IssueCreateInput!) {
+        issueCreate(input: $input) {
+          success
+          issue {
+            id
+            identifier
+            url
           }
         }
       }

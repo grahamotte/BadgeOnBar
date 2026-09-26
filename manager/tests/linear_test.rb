@@ -115,6 +115,41 @@ class LinearTest < Minitest::Test
     assert_empty calls.select { |call| graphql?(call, "query Issue(") }
   end
 
+  def test_create_issue
+    calls = stub_linear(
+      created: { id: "item-2", identifier: "MOTO-2", url: "https://linear.app/gotte/issue/MOTO-2" },
+    )
+
+    issue = Linear.create("New card", "Do the thing", "working")
+
+    assert_equal "MOTO-2", issue.fetch(:identifier)
+    assert_equal "https://linear.app/gotte/issue/MOTO-2", issue.fetch(:url)
+    payload = calls.find { |call| graphql?(call, "mutation IssueCreate") }
+    assert_equal(
+      {
+        input: {
+          teamId: "team-1",
+          title: "New card",
+          description: "Do the thing",
+          stateId: "s-working",
+        },
+      },
+      payload.dig(:payload, :variables),
+    )
+  end
+
+  def test_create_omits_blank_description
+    calls = stub_linear
+
+    Linear.create("New card", nil, "working")
+
+    payload = calls.find { |call| graphql?(call, "mutation IssueCreate") }
+    assert_equal(
+      { input: { teamId: "team-1", title: "New card", stateId: "s-working" } },
+      payload.dig(:payload, :variables),
+    )
+  end
+
   def test_comment_creates_comment
     calls = stub_linear
 
@@ -450,7 +485,7 @@ class LinearTest < Minitest::Test
     ]
   end
 
-  def stub_linear(organization: "gotte", teams: nil, states: nil, issues: nil, tags: nil, issue: nil, git_automations: nil)
+  def stub_linear(organization: "gotte", teams: nil, states: nil, issues: nil, tags: nil, issue: nil, created: nil, git_automations: nil)
     calls = []
     Req.stubs(:call).with do |*args, **kwargs|
       opts = req_opts(args, kwargs)
@@ -459,6 +494,22 @@ class LinearTest < Minitest::Test
       calls << opts
       true
     end.returns({ data: { issue: issue || { id: "item-1", identifier: "MOTO-1", team: { key: "MOTO" } } } })
+    Req.stubs(:call).with do |*args, **kwargs|
+      opts = req_opts(args, kwargs)
+      next false unless graphql?(opts, "mutation IssueCreate")
+
+      calls << opts
+      true
+    end.returns(
+      {
+        data: {
+          issueCreate: {
+            success: true,
+            issue: created || { id: "item-2", identifier: "MOTO-2", url: "https://linear.app/gotte/issue/MOTO-2" },
+          },
+        },
+      },
+    )
     Req.stubs(:call).with do |*args, **kwargs|
       opts = req_opts(args, kwargs)
       next false unless graphql?(opts, "mutation CommentCreate")

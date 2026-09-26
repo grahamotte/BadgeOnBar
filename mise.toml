@@ -404,6 +404,15 @@ run = "cd manager && bundle exec ruby goto_main_all.rb"
 # Linear
 #
 
+[tasks."linear:create"]
+depends = ["dependencies:manager"]
+usage = """
+arg "<title>" help="Card title"
+arg "<body>" help="Markdown description"
+flag "--column <column>" help="Column name" default="backlog" choices "backlog" "planned" "ready" "working" "review" "approved" "completed" "canceled"
+"""
+run = 'cd manager && bundle exec ruby card.rb create "$usage_title" "$usage_body" "$usage_column"'
+
 [tasks."linear:show"]
 depends = ["dependencies:manager"]
 usage = 'arg "<card>" help="Card identifier, e.g. MOTO-1"'
