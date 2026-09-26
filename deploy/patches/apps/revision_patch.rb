@@ -134,11 +134,11 @@ module Apps
         content = File.binread(Apps.revision_path(target))
         assets = release.fetch(:assets, [])
         obsolete_assets(assets, target, name).each do |item|
-          delete_asset(repository, release.fetch(:id), item.fetch(:id))
+          delete_asset(repository, item.fetch(:id))
         end
         asset = assets.find { |item| item.fetch(:name) == name }
         unless asset_matches?(repository, asset, content)
-          delete_asset(repository, release.fetch(:id), asset.fetch(:id)) if asset.present?
+          delete_asset(repository, asset.fetch(:id)) if asset.present?
           upload_asset(repository, release.fetch(:id), name, content)
         end
         Cache.set(cache_key(repository, target), "uploaded")
@@ -151,25 +151,23 @@ module Apps
 
       def asset_matches?(repository, asset, content)
         return false if asset.blank?
-        return asset.fetch(:digest, "") == "sha256:#{Digest::SHA256.hexdigest(content)}" if repository.fetch(:host) == "github.com"
 
-        asset.fetch(:size, 0) == content.bytesize
+        asset.fetch(:digest, "") == "sha256:#{Digest::SHA256.hexdigest(content)}"
       end
 
-      def delete_asset(repository, release_id, asset_id)
-        path = if repository.fetch(:host) == "github.com"
-          "repos/#{repository.fetch(:owner)}/#{repository.fetch(:name)}/releases/assets/#{asset_id}"
-        else
-          "repos/#{repository.fetch(:owner)}/#{repository.fetch(:name)}/releases/#{release_id}/assets/#{asset_id}"
-        end
-        Req.call(url: "#{repository.fetch(:api)}/#{path}", method: :delete, headers: headers(repository))
+      def delete_asset(repository, asset_id)
+        Req.call(
+          url: "#{repository.fetch(:api)}/repos/#{repository.fetch(:owner)}/#{repository.fetch(:name)}/releases/assets/#{asset_id}",
+          method: :delete,
+          headers: headers(repository),
+        )
       end
 
       def release(repository)
         release = Req.call(
           url: "#{repository.fetch(:api)}/repos/#{repository.fetch(:owner)}/#{repository.fetch(:name)}/releases",
           headers: headers(repository),
-          params: repository.fetch(:host) == "github.com" ? { per_page: 100 } : { limit: 50 },
+          params: { per_page: 100 },
         ).find { |item| item.fetch(:tag_name) == tag }
         return release if release.present?
 
@@ -182,37 +180,21 @@ module Apps
       end
 
       def upload_asset(repository, release_id, name, content)
-        if repository.fetch(:host) == "github.com"
-          Req.call(
-            url: "https://uploads.github.com/repos/#{repository.fetch(:owner)}/#{repository.fetch(:name)}/releases/#{release_id}/assets",
-            method: :post,
-            headers: headers(repository).merge("Content-Type" => "application/zip"),
-            params: { name: },
-            body: content,
-          )
-        else
-          boundary = "CodemotoRevision"
-          body = "--#{boundary}\r\nContent-Disposition: form-data; name=\"attachment\"; filename=\"#{name}\"\r\nContent-Type: application/zip\r\n\r\n".b
-          body << content << "\r\n--#{boundary}--\r\n".b
-          Req.call(
-            url: "#{repository.fetch(:api)}/repos/#{repository.fetch(:owner)}/#{repository.fetch(:name)}/releases/#{release_id}/assets",
-            method: :post,
-            headers: headers(repository).merge("Content-Type" => "multipart/form-data; boundary=#{boundary}"),
-            body:,
-          )
-        end
+        Req.call(
+          url: "https://uploads.github.com/repos/#{repository.fetch(:owner)}/#{repository.fetch(:name)}/releases/#{release_id}/assets",
+          method: :post,
+          headers: headers(repository).merge("Content-Type" => "application/zip"),
+          params: { name: },
+          body: content,
+        )
       end
 
       def headers(repository)
-        if repository.fetch(:host) == "github.com"
-          {
-            "Accept" => "application/vnd.github+json",
-            "Authorization" => "Bearer #{repository.fetch(:token)}",
-            "X-GitHub-Api-Version" => "2022-11-28",
-          }
-        else
-          { "Authorization" => "token #{repository.fetch(:token)}" }
-        end
+        {
+          "Accept" => "application/vnd.github+json",
+          "Authorization" => "Bearer #{repository.fetch(:token)}",
+          "X-GitHub-Api-Version" => "2022-11-28",
+        }
       end
 
       def tag = "v#{Apps.version}"

@@ -1,7 +1,7 @@
 require_relative "../../test_helper"
 
 class AppsRevisionPatchTest < Minitest::Test
-  def test_uploads_only_macos_to_both_repositories_once
+  def test_uploads_only_macos_to_github_once
     ios = Apps.targets.fetch(0)
     target = ios.merge(name: :macos, platform: "MAC_OS")
     Apps.targets << target
@@ -19,13 +19,13 @@ class AppsRevisionPatchTest < Minitest::Test
       end
       true
     end.returns("Developer ID Application\nstatus: Accepted")
-    Req.expects(:call).with { |request| request[:method].blank? }.twice.returns([])
+    Req.expects(:call).with { |request| request[:method].blank? }.once.returns([])
     Req.expects(:call).with { |request| request[:method] == :post && request[:payload].present? }
-      .twice
+      .once
       .returns(id: 1, assets: [])
     Req.expects(:call).with do |request|
       request[:method] == :post && request[:url].include?("/assets") && request[:body].include?("signed-app")
-    end.twice.returns({})
+    end.once.returns({})
 
     Apps::RevisionPatch.apply
     Apps::RevisionPatch.apply
@@ -94,7 +94,6 @@ class AppsRevisionPatchTest < Minitest::Test
     FileUtils.mkdir_p(Apps.archive_path(target))
     FileUtils.mkdir_p(File.dirname(Apps.revision_path(target)))
     File.write(Apps.revision_path(target), "new")
-    Cache.set("apps/#{Apps.version}/#{target.fetch(:name)}/revisions/v3/codeberg.org", "uploaded")
     Req.expects(:call).with { |request| request[:method].blank? }.returns([
       {
         id: 1,

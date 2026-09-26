@@ -8,7 +8,6 @@ class ConstantsTest < Minitest::Test
     assert_equal "/var/www/example.com/.env", Constants.remote_env_path
     assert_equal "/var/www/example.com/.env.production", Constants.remote_env_prod_path
     assert_equal File.join(Constants.local_root, ".env.production"), Constants.local_env_path
-    assert_equal "ssh://git@codeberg.org/example/app.git", Constants.codeberg_repo
     assert_equal "git@github.com:example/app.git", Constants.github_repo
   end
 end

@@ -79,7 +79,6 @@ class Spawner
   REQUIRED_KEYS = (
     ENVIRONMENT_KEYS +
     %w[
-      CODEBERG_REPO
       CRYPT_KEY
       DB_NAME
       DEPLOY_PASSWORD
@@ -150,7 +149,6 @@ class Spawner
     values = ENVIRONMENT_KEYS.to_h { |key| [ key, environment ] }
     values.merge(
       "PROJECT_DIR" => "#{target_dir}/",
-      "CODEBERG_REPO" => transformed_repo(defaults.fetch("CODEBERG_REPO")),
       "GITHUB_REPO" => transformed_repo(defaults.fetch("GITHUB_REPO")),
       "DOMAIN" => @app_name,
       "DB_NAME" => "#{database_name}_#{environment}",

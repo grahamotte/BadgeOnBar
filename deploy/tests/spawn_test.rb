@@ -119,12 +119,11 @@ class SpawnerTest < Minitest::Test
     assert_equal "development", development.fetch("RAILS_ENV")
     assert_equal "production", production.fetch("RAILS_ENV")
     assert_equal "#{target_dir}/", development.fetch("PROJECT_DIR")
-    assert_equal "ssh://git@codeberg.org/grahamotte/new-app.net.git", development.fetch("CODEBERG_REPO")
     assert_equal "git@github.com:grahamotte/new-app.net.git", production.fetch("GITHUB_REPO")
     assert_equal "new-app.net", development.fetch("DOMAIN")
     assert_equal "new_app_development", development.fetch("DB_NAME")
     assert_equal "new_app_production", production.fetch("DB_NAME")
-    assert_includes File.read(File.join(target_dir, ".env.production")), "OPENCODE_TOKEN=xxx\n"
+    assert_includes File.read(File.join(target_dir, ".env.production")), "OPENROUTER_TOKEN=xxx\n"
     assert_equal "password-1", development.fetch("DEPLOY_PASSWORD")
     assert_equal "password-2", production.fetch("DEPLOY_PASSWORD")
     assert_equal "private-key-1\nsecond-line", development.fetch("DEPLOY_SSH_KEY")

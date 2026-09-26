@@ -43,7 +43,7 @@ module Apps
     end
 
     def revision_repositories
-      [ Constants.codeberg_repo, Constants.github_repo ].map { |repo| revision_repository(repo) }
+      [ Constants.github_repo ].filter_map { |repo| revision_repository(repo) if repo.present? }
     end
 
     def project_path(target)
@@ -146,14 +146,9 @@ module Apps
       raise "Invalid revision repository #{repo}" if match.blank?
 
       host, owner, name = match.captures
-      case host
-      when "codeberg.org"
-        { api: "https://codeberg.org/api/v1", host:, name:, owner:, token: ENV.fetch("CODEBERG_TOKEN") }
-      when "github.com"
-        { api: "https://api.github.com", host:, name:, owner:, token: ENV.fetch("GITHUB_TOKEN") }
-      else
-        raise "Unsupported revision repository #{host}"
-      end
+      raise "Unsupported revision repository #{host}" unless host == "github.com"
+
+      { api: "https://api.github.com", host:, name:, owner:, token: ENV.fetch("GITHUB_TOKEN") }
     end
 
     def read_json(path)

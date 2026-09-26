@@ -8,6 +8,7 @@ gem "bootsnap", "1.25.0"
 gem "ostruct", "0.6.3"
 gem "timeout", "0.6.1"
 gem "solid_errors", "0.7.0"
+gem "path", "0.0.0", path: "../gems/path"
 
 group :development, :test do
   gem "annotaterb", "4.24.0"

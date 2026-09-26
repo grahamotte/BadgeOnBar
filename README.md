@@ -17,7 +17,7 @@ Tools:
 - `mise test` — run the complete app, web, deployment, and shared-gem test suite
 - `mise simulate macos` — build and launch the macOS app
 - `mise xcode` — open the Xcode project
-- `$publish` — version, test, push, sign, notarize, and publish to Codeberg and GitHub Releases
+- `$publish` — version, test, push, sign, notarize, and publish to GitHub Releases
 
 ## License
 

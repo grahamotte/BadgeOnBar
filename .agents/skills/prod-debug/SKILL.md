@@ -1,9 +1,9 @@
 ---
-name: debug
-description: Debugging tool reference for this project. Use only when the user explicitly invokes `$debug` or asks to use the debug skill by name.
+name: prod-debug
+description: Debugging tool reference for this project. Use only when the user explicitly invokes `$prod-debug` or asks to use the prod-debug skill by name.
 ---
 
-# Debug
+# Prod Debug
 
 Debug only. Do not make changes or fix code unless prompted. Ask clarifying questions to narrow the problem.
 

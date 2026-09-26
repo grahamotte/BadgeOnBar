@@ -21,8 +21,6 @@ module Apps
           APPLE_KEY_ID
           APPLE_KEY_SECRET_BASE64
           APPLE_TEAM_ID
-          CODEBERG_REPO
-          CODEBERG_TOKEN
           GITHUB_REPO
           GITHUB_TOKEN
         ]

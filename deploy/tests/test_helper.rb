@@ -7,6 +7,7 @@ require "test_safety"
 require "tmpdir"
 WebMock.disable_net_connect!
 def Minitest.parallel_fork_number = 4
+ENV["EDITOR"] ||= "vi"
 
 require_relative "../lib/require"
 
@@ -61,8 +62,6 @@ Net::SSH.define_singleton_method(:start) { |*, **| raise UnsafeTestOperation, "N
   "APPLE_MAC_INSTALLER_DISTRIBUTION_CERTIFICATE_BASE64" => [ developer_id_pkcs12.to_der ].pack("m0"),
   "APPLE_MAC_INSTALLER_DISTRIBUTION_CERTIFICATE_PASSWORD" => developer_id_password,
   "APPLE_TEAM_ID" => "team",
-  "CODEBERG_REPO" => "ssh://git@codeberg.org/example/app.git",
-  "CODEBERG_TOKEN" => "codeberg-token",
   "CLOUDFLARE_TOKEN" => "cloudflare-token",
   "DB_NAME" => "app",
   "DEPLOY_PASSWORD" => "password",
