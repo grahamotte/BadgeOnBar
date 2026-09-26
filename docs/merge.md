@@ -139,7 +139,7 @@ Copy the card title, user value, problem description, notes, and prompts into th
 With `LINEAR_*` set, this creates `planned` issues from `1 - Problems to Solve` using the manager's Linear client. Check the team has no matching issues first.
 
 ```sh
-cd manager && LANG=en_US.UTF-8 mise exec -- bundle exec ruby -e '
+cd manager && mise exec -- bundle exec ruby -e '
 require_relative "lib/require"
 team = Linear.send(:team_id)
 state = Linear.send(:state_id, "planned")
