@@ -8,7 +8,7 @@ deno = "2.9.5"
 [env]
 _.file = '.env.development'
 LANG = "{{ get_env(name='LANG', default='en_US.UTF-8') }}"
-GH_REPO = "{{ env.GITHUB_REPO | trim_start_matches(pat='git@github.com:') | trim_end_matches(pat='.git') }}"
+GH_REPO = "{{ env.GITHUB_REPO | default(value='') | trim_start_matches(pat='git@github.com:') | trim_end_matches(pat='.git') }}"
 
 #
 # Dependencies
