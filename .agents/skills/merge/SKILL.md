@@ -27,6 +27,10 @@ Check and report every item. Do not stop after the first failure. Abort the merg
 7. Merge the PR with `gh pr merge --merge --delete-branch`. Never squash or rebase it, never rebase the branch, and never force push; the merge commit must keep Code Moto's history.
 8. Report the completed merge, PR, conflict resolutions, merge commit, and test results.
 
+## Downstream notes
+
+- `Path.mv` and `Path.cp` raise if the destination already exists unless the caller passes `overwrite: true`. They never nest a source inside an existing destination directory. Downstream callers that intentionally overwrite must pass `overwrite: true`.
+
 ## Linear card
 
 When running for a Linear card, finish the card here instead of sending it to `review`:
