@@ -1,6 +1,9 @@
 require "bundler/setup"
 Bundler.require(:default)
 
+Encoding.default_external = Encoding::UTF_8
+ARGV.map! { |argument| argument.dup.force_encoding(Encoding::UTF_8) }
+
 $root_dir = File.dirname(__FILE__).then { |x| File.dirname(x) }
 
 require_relative "core_extensions"

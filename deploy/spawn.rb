@@ -8,6 +8,8 @@ require "securerandom"
 require "socket"
 require "tmpdir"
 
+Encoding.default_external = Encoding::UTF_8
+
 class SpawnShell
   def capture(*command)
     stdout, stderr, status = Open3.capture3(*command)
