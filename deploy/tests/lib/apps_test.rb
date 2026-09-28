@@ -72,7 +72,7 @@ class AppsTest < Minitest::Test
   end
 
   def test_reports_invalid_json
-    File.write(File.join(Apps.root, "config.json"), "{")
+    File.write(Constants.config_path, "{")
     Apps.reset
     Apps.root = File.join(@deploy_test_dir, "apps")
 

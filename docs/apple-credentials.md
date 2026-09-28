@@ -4,21 +4,23 @@
 
 ## Repository-only macOS releases
 
-Set `"skip_app_stores": true` at the top level of `apps/config.json` to publish only the macOS release to GitHub. The workflow still archives the app, signs it with Developer ID, notarizes and staples it, and uploads the installable zip to the repository. It skips App Store exports, uploads, metadata, screenshots, build attachment, and submission preparation.
+Set `"skip_app_stores": true` in the `apps` section of `config.json` to publish only the macOS release to GitHub. The workflow still archives the app, signs it with Developer ID, notarizes and staples it, and uploads the installable zip to the repository. It skips App Store exports, uploads, metadata, screenshots, build attachment, and submission preparation.
 
 Repository-only releases do not require the Apple Distribution or Mac Installer Distribution certificate variables. The Apple Development and Developer ID certificate variables, App Store Connect API key variables, Apple team ID, and GitHub credentials remain required for archiving, provisioning, notarization, and release uploads.
 
 ## App Review attachments
 
-Add an optional top-level `reviewAttachments` array to `apps/config.json` when App Review needs sample files, documentation, or videos to test the app:
+Add an optional `reviewAttachments` array to the `apps` section of `config.json` when App Review needs sample files, documentation, or videos to test the app:
 
 ```json
 {
-  "reviewAttachments": [
-    {
-      "path": "apps/review/sample.zip"
-    }
-  ]
+  "apps": {
+    "reviewAttachments": [
+      {
+        "path": "apps/review/sample.zip"
+      }
+    ]
+  }
 }
 ```
 

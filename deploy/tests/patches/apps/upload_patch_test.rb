@@ -31,11 +31,11 @@ class AppsUploadPatchTest < Minitest::Test
   def test_imports_installer_identity_for_macos
     root = Apps.root
     tmp_root = Apps.tmp_root
-    config_path = File.join(root, "config.json")
+    config_path = Constants.config_path
     config = JSON.parse(File.read(config_path))
-    target = config.fetch("targets").fetch("apple").delete("ios")
+    target = config.dig("apps", "targets", "apple").delete("ios")
     target["platform"] = "MAC_OS"
-    config.fetch("targets").fetch("apple")["macos"] = target
+    config.dig("apps", "targets", "apple")["macos"] = target
     File.write(config_path, JSON.generate(config))
     Apps.reset
     Apps.root = root

@@ -17,7 +17,7 @@ The request or card chooses the mode. Default to a full publish.
 
 ## Version
 
-1. Require a clean worktree. Run `git fetch origin` and create the version branch from `origin/master`. Read `apps/config.json` for the current version and configured targets.
+1. Require a clean worktree. Run `git fetch origin` and create the version branch from `origin/master`. Read the `apps` section of `config.json` for the current version and configured targets.
 2. Review the commits since the most recent commit named `Version` and choose the smallest appropriate semantic version bump from the current configured version: major for breaking changes, minor for new user-facing capabilities, and patch for everything else. Ask before a major bump. A publish request permits a patch release when there are no notable changes.
 3. Run `mise deploy:approved-version` to find the latest version actually approved by App Store Connect. Find the `Version` commit that set that approved version and review every subsequent change when writing `whatsNew`, including changes already included in newer unapproved versions. If no approved version exists, review changes from the beginning of the repository. Write a concise, user-facing summary based on that full range, using `Bug fixes.` when nothing user-facing is notable.
 4. Run `mise deploy:set-version <version>` and `mise test`, then commit only the version files with the message `Version`.

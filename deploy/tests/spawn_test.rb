@@ -95,6 +95,7 @@ class SpawnerTest < Minitest::Test
     @source_repo = File.join(@directory, "codemoto.org")
     FileUtils.mkdir_p(@source_repo)
     FileUtils.cp(File.expand_path("../../.env.default", __dir__), @source_repo)
+    FileUtils.cp(File.expand_path("../../config.json", __dir__), @source_repo)
     @shell = SpawnTestShell.new(@source_repo)
     @credentials = SpawnTestCredentials.new
     @output = StringIO.new
@@ -115,20 +116,28 @@ class SpawnerTest < Minitest::Test
     development = environment(File.join(target_dir, ".env.development"))
     production = environment(File.join(target_dir, ".env.production"))
 
+    config = JSON.parse(File.read(File.join(target_dir, "config.json")))
+    source_config = JSON.parse(File.read(File.join(@source_repo, "config.json")))
+
     assert_equal 2, @credentials.calls
     assert_equal "development", development.fetch("RAILS_ENV")
     assert_equal "production", production.fetch("RAILS_ENV")
-    assert_equal "#{target_dir}/", development.fetch("PROJECT_DIR")
-    assert_equal "git@github.com:grahamotte/new-app.net.git", production.fetch("GITHUB_REPO")
-    assert_equal "new-app.net", development.fetch("DOMAIN")
-    assert_equal "new_app_development", development.fetch("DB_NAME")
-    assert_equal "new_app_production", production.fetch("DB_NAME")
+    assert_equal "development", development.fetch("NODE_ENV")
+    assert_equal "production", production.fetch("NODE_ENV")
+    assert_equal "git@github.com:grahamotte/new-app.net.git", config.fetch("githubRepo")
+    assert_equal "new-app.net", config.fetch("domain")
+    assert_equal "new_app", config.fetch("database")
+    assert_equal source_config.fetch("instance"), config.fetch("instance")
+    assert_equal source_config.fetch("subdomains"), config.fetch("subdomains")
     assert_includes File.read(File.join(target_dir, ".env.production")), "OPENROUTER_TOKEN=xxx\n"
     assert_equal "password-1", development.fetch("DEPLOY_PASSWORD")
     assert_equal "password-2", production.fetch("DEPLOY_PASSWORD")
     assert_equal "private-key-1\nsecond-line", development.fetch("DEPLOY_SSH_KEY")
-    assert_equal "sfo3", production.fetch("INSTANCE_REGION")
     refute_equal development.fetch("JWT_SECRET"), production.fetch("JWT_SECRET")
+    assert_equal "public-key-2", production.fetch("DEPLOY_SSH_KEY_PUB")
+    assert_equal "fingerprint-2", production.fetch("DEPLOY_SSH_KEY_FINGERPRINT")
+    assert_equal "deploy", production.fetch("DEPLOY_USER")
+    refute config.key?("deploy")
     assert_includes @shell.commands, [ %w[git remote set-url origin git@github.com:grahamotte/new-app.net.git], target_dir ]
     assert_includes @shell.commands, [ %w[git config remote.origin.gh-resolved base], target_dir ]
     assert_includes @output.string, "Create git@github.com:grahamotte/new-app.net.git on GitHub, then run 'git push -u origin master' there."

@@ -3,7 +3,7 @@ require_relative "../../test_helper"
 class AppsVersionSetterTest < Minitest::Test
   def test_sets_config_and_every_unique_apple_project
     root = File.join(@deploy_test_dir, "root")
-    config_path = File.join(root, "apps", "config.json")
+    config_path = File.join(root, "config.json")
     first_project = File.join(root, "apps", "apple", "First.xcodeproj")
     second_project = File.join(root, "apps", "apple", "Second.xcodeproj")
     FileUtils.mkdir_p(first_project)
@@ -13,26 +13,30 @@ class AppsVersionSetterTest < Minitest::Test
     File.write(
       config_path,
       JSON.generate(
-        "build" => "456",
-        "targets" => {
-          "apple" => {
-            "ios" => { "project" => "apps/apple/First.xcodeproj" },
-            "macos" => { "project" => "apps/apple/First.xcodeproj" },
-            "tvos" => { "project" => "apps/apple/Second.xcodeproj" },
+        "domain" => "example.com",
+        "apps" => {
+          "build" => "456",
+          "targets" => {
+            "apple" => {
+              "ios" => { "project" => "apps/apple/First.xcodeproj" },
+              "macos" => { "project" => "apps/apple/First.xcodeproj" },
+              "tvos" => { "project" => "apps/apple/Second.xcodeproj" },
+            },
+            "android" => {},
           },
-          "android" => {},
+          "version" => "1.2.3",
+          "whatsNew" => "Changes",
         },
-        "version" => "1.2.3",
-        "whatsNew" => "Changes",
       ),
     )
 
     Apps::VersionSetter.call("2.0.1", root:)
 
     config = JSON.parse(File.read(config_path))
-    assert_equal "2.0.1", config.fetch("version")
-    assert_equal "2.0.1", config.fetch("build")
-    assert_equal "Changes", config.fetch("whatsNew")
+    assert_equal "example.com", config.fetch("domain")
+    assert_equal "2.0.1", config.dig("apps", "version")
+    assert_equal "2.0.1", config.dig("apps", "build")
+    assert_equal "Changes", config.dig("apps", "whatsNew")
     assert_equal "MARKETING_VERSION = 2.0.1; CURRENT_PROJECT_VERSION = 2.0.1;", File.read(File.join(first_project, "project.pbxproj"))
     assert_equal "CURRENT_PROJECT_VERSION = 2.0.1;\nMARKETING_VERSION = 2.0.1;", File.read(File.join(second_project, "project.pbxproj"))
   end
@@ -48,17 +52,18 @@ class AppsVersionSetterTest < Minitest::Test
 
   def test_rejects_configured_unsupported_targets
     root = File.join(@deploy_test_dir, "root")
-    config_path = File.join(root, "apps", "config.json")
+    config_path = File.join(root, "config.json")
     project = File.join(root, "apps", "apple", "App.xcodeproj")
-    FileUtils.mkdir_p(File.dirname(config_path))
     FileUtils.mkdir_p(project)
     File.write(File.join(project, "project.pbxproj"), "MARKETING_VERSION = 1.2.3;")
     File.write(
       config_path,
       JSON.generate(
-        "targets" => {
-          "apple" => { "ios" => { "project" => "apps/apple/App.xcodeproj" } },
-          "android" => { "phone" => {} },
+        "apps" => {
+          "targets" => {
+            "apple" => { "ios" => { "project" => "apps/apple/App.xcodeproj" } },
+            "android" => { "phone" => {} },
+          },
         },
       ),
     )

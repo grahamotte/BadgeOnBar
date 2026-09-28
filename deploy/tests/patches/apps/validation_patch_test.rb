@@ -25,6 +25,15 @@ class AppsValidationPatchTest < Minitest::Test
     ENV["APPLE_KEY_ID"] = value
   end
 
+  def test_rejects_missing_configuration
+    Constants.config[:githubRepo] = ""
+    Cmd.expects(:local).with("xcodebuild -version").returns("Xcode")
+
+    error = assert_raises(RuntimeError) { Apps::ValidationPatch.apply }
+
+    assert_equal "Missing githubRepo in config.json", error.message
+  end
+
   def test_rejects_missing_metadata
     Apps.config[:description] = ""
     Cmd.expects(:local).with("xcodebuild -version").returns("Xcode")
@@ -110,7 +119,7 @@ class AppsValidationPatchTest < Minitest::Test
   end
 
   def test_rejects_uncommitted_changes
-    Cmd.stubs(:local).with("git status --porcelain").returns(" M apps/config.json\n")
+    Cmd.stubs(:local).with("git status --porcelain").returns(" M config.json\n")
     Cmd.expects(:local).with("xcodebuild -version").returns("Xcode")
 
     error = assert_raises(RuntimeError) { Apps::ValidationPatch.apply }

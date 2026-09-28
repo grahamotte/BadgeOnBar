@@ -736,11 +736,11 @@ class Linear
     GQL
 
     def workspace
-      ENV.fetch("LINEAR_WORKSPACE")
+      Settings.all.dig(:linear, :workspace)
     end
 
     def team
-      @team_override.present? ? @team_override : ENV.fetch("LINEAR_TEAM")
+      @team_override.present? ? @team_override : Settings.all.dig(:linear, :team)
     end
 
     def headers

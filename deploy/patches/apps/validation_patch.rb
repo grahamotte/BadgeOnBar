@@ -30,7 +30,6 @@ module Apps
           APPLE_KEY_ID
           APPLE_KEY_SECRET_BASE64
           APPLE_TEAM_ID
-          GITHUB_REPO
           GITHUB_TOKEN
         ]
         unless Apps.skip_app_stores?
@@ -44,6 +43,7 @@ module Apps
         required.each do |name|
           raise "Missing #{name}" if ENV[name].blank?
         end
+        raise "Missing githubRepo in config.json" if Constants.github_repo.blank?
         Apps.revision_repositories
       end
 

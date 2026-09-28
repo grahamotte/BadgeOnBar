@@ -31,6 +31,8 @@ Check and report every item. Do not stop after the first failure. Abort the merg
 
 - `Path.mv` and `Path.cp` raise if the destination already exists unless the caller passes `overwrite: true`. They never nest a source inside an existing destination directory. Downstream callers that intentionally overwrite must pass `overwrite: true`.
 
+- Non-secret configuration moved from `.env.*` into the root `config.json`, which also absorbed `apps/config.json` (as `apps`) and `frontend/subdomains.json` (as `subdomains`). When merging this change, build the downstream `config.json` from the downstream's own `apps/config.json`, `subdomains.json`, and `.env.production` values instead of keeping Code Moto's, and set `database` to the downstream database name without its `_development`/`_production` suffix. `.env.*` files keep secrets plus the identifiers issued or rotated with them (Apple team/issuer/key IDs, deploy user and SSH public key/fingerprint, backup bucket/endpoint, dashboard username) and always set `RAILS_ENV`/`NODE_ENV`; `.env.default` is their template. Tell the user which settings keys they can remove from their local `.env.*` files.
+
 ## Piped mise tasks
 
 Code Moto sets `[task_config] shell = "bash -o errexit -o pipefail -c"` so inline mise tasks use bash with `errexit` and `pipefail`. After merging, piped tasks in the downstream repo fail if any command in the pipeline fails. That is intended; for example good.gratis `sync:mirror` and `sync:cookies` should fail when the Ruby script raises instead of when `tee` exits. Add `|| true` only when a pipeline is supposed to ignore a non-zero producer, such as `grep` with no matches or `head` closing early.

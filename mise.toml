@@ -8,7 +8,7 @@ deno = "2.9.5"
 [env]
 _.file = '.env.development'
 LANG = "{{ get_env(name='LANG', default='en_US.UTF-8') }}"
-GH_REPO = "{{ env.GITHUB_REPO | default(value='') | trim_start_matches(pat='git@github.com:') | trim_end_matches(pat='.git') }}"
+GH_REPO = "{{ read_file(path='config.json') | split(pat='\"githubRepo\": \"') | last | split(pat='\"') | first | trim_start_matches(pat='git@github.com:') | trim_end_matches(pat='.git') }}"
 
 [task_config]
 shell = "bash -o errexit -o pipefail -c"
@@ -137,16 +137,18 @@ depends = ["dependencies:frontend", "start:details"]
 run = '''
 node -e '
   const fs = require("fs");
-  const base = process.env.LOCAL_DOMAIN || process.env.DOMAIN.split(".")[0];
-  for (const subdomain of JSON.parse(fs.readFileSync("frontend/subdomains.json")).filter(({ backend }) => backend)) {
+  const config = JSON.parse(fs.readFileSync("config.json"));
+  const base = process.env.LOCAL_DOMAIN || config.domain.split(".")[0];
+  for (const subdomain of config.subdomains.filter(({ backend }) => backend)) {
     const prefix = subdomain.subdomains.includes("") ? "" : `${subdomain.subdomains[0]}.`;
     console.log(`${prefix}${base}`, 3000);
   }
 ' | xargs -n 2 sh -c 'pnpm --dir frontend exec portless alias "$1" "$2"' sh
 node -e '
   const fs = require("fs");
-  const base = process.env.LOCAL_DOMAIN || process.env.DOMAIN.split(".")[0];
-  for (const subdomain of JSON.parse(fs.readFileSync("frontend/subdomains.json")).filter(({ directory }) => directory)) {
+  const config = JSON.parse(fs.readFileSync("config.json"));
+  const base = process.env.LOCAL_DOMAIN || config.domain.split(".")[0];
+  for (const subdomain of config.subdomains.filter(({ directory }) => directory)) {
     const prefix = subdomain.subdomains.includes("") ? "" : `${subdomain.subdomains[0]}.`;
     console.log(subdomain.name, `${prefix}${base}`);
   }
@@ -158,8 +160,9 @@ depends = ["start:portless"]
 run = '''
 node <<'NODE'
 const fs = require("fs");
-const subdomains = JSON.parse(fs.readFileSync("frontend/subdomains.json"));
-const base = process.env.LOCAL_DOMAIN || process.env.DOMAIN.split(".")[0];
+const config = JSON.parse(fs.readFileSync("config.json"));
+const subdomains = config.subdomains;
+const base = process.env.LOCAL_DOMAIN || config.domain.split(".")[0];
 const rows = subdomains.map((subdomain) => {
   const prefix = subdomain.subdomains.includes("") ? "" : `${subdomain.subdomains[0]}.`;
   const label = subdomain.name.toUpperCase();
@@ -167,7 +170,7 @@ const rows = subdomains.map((subdomain) => {
 });
 rows.push(["API", "http://localhost:3000"]);
 const labelWidth = Math.max(...rows.map(([label]) => label.length));
-const lines = [`${process.env.DOMAIN} · Development`, ...rows.map(([label, url]) => `${label.padEnd(labelWidth)}  ${url}`)];
+const lines = [`${config.domain} · Development`, ...rows.map(([label, url]) => `${label.padEnd(labelWidth)}  ${url}`)];
 const width = Math.max(...lines.map((line) => line.length));
 console.log(`\n╔${"═".repeat(width + 2)}╗`);
 for (const line of lines) console.log(`║ ${line.padEnd(width)} ║`);

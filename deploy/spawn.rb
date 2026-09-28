@@ -2,6 +2,7 @@
 
 require "digest"
 require "fileutils"
+require "json"
 require "open3"
 require "securerandom"
 require "socket"
@@ -75,21 +76,17 @@ end
 
 class Spawner
   ENVIRONMENTS = %w[development production].freeze
-  ENVIRONMENT_KEYS = %w[ENV NODE_ENV VITE_ENV RAILS_ENV].freeze
+  ENVIRONMENT_KEYS = %w[NODE_ENV RAILS_ENV].freeze
   REQUIRED_KEYS = (
     ENVIRONMENT_KEYS +
     %w[
       CRYPT_KEY
-      DB_NAME
       DEPLOY_PASSWORD
       DEPLOY_SSH_KEY
       DEPLOY_SSH_KEY_FINGERPRINT
       DEPLOY_SSH_KEY_PUB
       DEPLOY_USER
-      DOMAIN
-      GITHUB_REPO
       JWT_SECRET
-      PROJECT_DIR
       SECRET_KEY_BASE
     ]
   ).freeze
@@ -110,7 +107,7 @@ class Spawner
     @output.puts "Cloning #{source_repo} to #{target_dir}..."
     @shell.run("git", "clone", source_repo, target_dir)
     create_environment_files(target_dir)
-    repo = transformed_repo(environment_values(File.read(File.join(target_dir, ".env.default"))).fetch("GITHUB_REPO"))
+    repo = write_config(target_dir)
     @shell.run("git", "remote", "set-url", "origin", repo, chdir: target_dir)
     @shell.run("git", "config", "remote.origin.gh-resolved", "base", chdir: target_dir)
 
@@ -133,10 +130,9 @@ class Spawner
 
   def create_environment_files(target_dir)
     template = File.read(File.join(target_dir, ".env.default"))
-    defaults = environment_values(template)
 
     ENVIRONMENTS.each do |environment|
-      overrides = transformed_values(defaults, target_dir, environment).merge(@credentials.call)
+      overrides = ENVIRONMENT_KEYS.to_h { |key| [ key, environment ] }.merge(@credentials.call)
       missing_keys = REQUIRED_KEYS - overrides.keys
       raise "Missing environment values: #{missing_keys.join(", ")}" unless missing_keys.length.zero?
 
@@ -148,14 +144,18 @@ class Spawner
     end
   end
 
-  def transformed_values(defaults, target_dir, environment)
-    values = ENVIRONMENT_KEYS.to_h { |key| [ key, environment ] }
-    values.merge(
-      "PROJECT_DIR" => "#{target_dir}/",
-      "GITHUB_REPO" => transformed_repo(defaults.fetch("GITHUB_REPO")),
-      "DOMAIN" => @app_name,
-      "DB_NAME" => "#{database_name}_#{environment}",
+  def write_config(target_dir)
+    path = File.join(target_dir, "config.json")
+    config = JSON.parse(File.read(path))
+    repo = transformed_repo(config.fetch("githubRepo"))
+    config.merge!(
+      "domain" => @app_name,
+      "githubRepo" => repo,
+      "database" => database_name,
     )
+    File.write(path, "#{JSON.pretty_generate(config)}\n")
+    @output.puts "Updated #{path}"
+    repo
   end
 
   def transformed_repo(repo)
@@ -164,16 +164,6 @@ class Spawner
 
   def database_name
     @app_name.split(".").first.downcase.gsub(/[^a-z0-9]+/, "_").gsub(/\A_+|_+\z/, "")
-  end
-
-  def environment_values(template)
-    records(template).filter_map do |key, raw_value, _record|
-      next unless key
-
-      value = raw_value.strip
-      value = value[1..-2] if value.start_with?("\"") && value.end_with?("\"")
-      [ key, value ]
-    end.to_h
   end
 
   def render(template, overrides)

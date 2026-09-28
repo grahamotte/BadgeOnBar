@@ -10,4 +10,18 @@ class ConstantsTest < Minitest::Test
     assert_equal File.join(Constants.local_root, ".env.production"), Constants.local_env_path
     assert_equal "git@github.com:example/app.git", Constants.github_repo
   end
+
+  def test_config_values
+    assert_equal File.join(@deploy_test_dir, "config.json"), Constants.config_path
+    assert_equal "example.com", Constants.domain
+    assert_equal "test-region", Constants.instance_region
+    assert_equal "test-size", Constants.instance_size
+    assert_equal "app_production", Constants.db_name
+  end
+
+  def test_default_config_path
+    Constants.config_path = nil
+
+    assert_equal File.join(Constants.local_root, "config.json"), Constants.config_path
+  end
 end
