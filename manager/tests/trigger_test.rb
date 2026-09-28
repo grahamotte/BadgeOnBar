@@ -191,10 +191,11 @@ class TriggerTest < Minitest::Test
 
     output, = capture_io { Trigger.call }
 
-    assert_equal "updated master\n", output
+    assert_equal "", output
     assert_empty issue_update_inputs(calls)
     refute calls.any? { |call| call[:prompt].to_s.include?("MOTO-4") }
     refute calls.any? { |call| call[:prompt].to_s.include?("MOTO-5") }
+    refute git_commands.any? { |command| command[1] == "pull" }
   end
 
   def test_removes_worktrees_for_completed_and_canceled_cards
@@ -243,6 +244,7 @@ class TriggerTest < Minitest::Test
   end
 
   def test_does_not_pull_master_for_canceled_cards
+    FileUtils.mkdir_p(Worktree.path_for({ identifier: "MOTO-5" }))
     calls = stub_manager(
       items: [
         { id: "item-5", identifier: "MOTO-5", url: "https://linear.app/gotte/issue/MOTO-5", state: { id: "s-canceled", name: "Canceled" } },
@@ -251,12 +253,14 @@ class TriggerTest < Minitest::Test
 
     output, = capture_io { Trigger.call }
 
-    assert_equal "", output
+    assert_equal "removed worktree for MOTO-5\n", output
     assert_empty issue_update_inputs(calls)
     refute git_commands.any? { |command| command[1] == "pull" }
   end
 
-  def test_pulls_master_once_for_completed_cards
+  def test_pulls_master_once_when_removing_completed_worktrees
+    FileUtils.mkdir_p(Worktree.path_for({ identifier: "MOTO-4" }))
+    FileUtils.mkdir_p(Worktree.path_for({ identifier: "MOTO-10" }))
     stub_manager(
       items: [
         { id: "item-4", identifier: "MOTO-4", url: "https://linear.app/gotte/issue/MOTO-4", state: { id: "s-completed", name: "Completed" } },
@@ -266,12 +270,13 @@ class TriggerTest < Minitest::Test
 
     output, = capture_io { Trigger.call }
 
-    assert_equal "updated master\n", output
+    assert_equal "removed worktree for MOTO-4\nremoved worktree for MOTO-10\nupdated master\n", output
     assert_equal 1, git_commands.count { |command| command == [ "git", "pull", "--ff-only", "origin", "master" ] }
     refute git_commands.any? { |command| command[1] == "checkout" }
   end
 
   def test_skips_master_pull_when_not_on_master_or_main
+    FileUtils.mkdir_p(Worktree.path_for({ identifier: "MOTO-4" }))
     stub_manager(
       items: [
         { id: "item-4", identifier: "MOTO-4", url: "https://linear.app/gotte/issue/MOTO-4", state: { id: "s-completed", name: "Completed" } },
@@ -283,11 +288,12 @@ class TriggerTest < Minitest::Test
 
     output, = capture_io { Trigger.call }
 
-    assert_equal "", output
+    assert_equal "removed worktree for MOTO-4\n", output
     refute git_commands.any? { |command| command[1] == "pull" }
   end
 
   def test_skips_master_pull_when_dirty
+    FileUtils.mkdir_p(Worktree.path_for({ identifier: "MOTO-4" }))
     stub_manager(
       items: [
         { id: "item-4", identifier: "MOTO-4", url: "https://linear.app/gotte/issue/MOTO-4", state: { id: "s-completed", name: "Completed" } },
@@ -299,11 +305,12 @@ class TriggerTest < Minitest::Test
 
     output, = capture_io { Trigger.call }
 
-    assert_equal "", output
+    assert_equal "removed worktree for MOTO-4\n", output
     refute git_commands.any? { |command| command[1] == "pull" }
   end
 
   def test_continues_when_master_pull_fails
+    FileUtils.mkdir_p(Worktree.path_for({ identifier: "MOTO-4" }))
     stub_manager(
       items: [
         { id: "item-4", identifier: "MOTO-4", url: "https://linear.app/gotte/issue/MOTO-4", state: { id: "s-completed", name: "Completed" } },
@@ -317,7 +324,7 @@ class TriggerTest < Minitest::Test
 
     output, = capture_io { Trigger.call }
 
-    assert_equal "failed to update master: git pull --ff-only origin master failed: network error\n", output
+    assert_equal "removed worktree for MOTO-4\nfailed to update master: git pull --ff-only origin master failed: network error\n", output
   end
 
   def test_starts_one_agent_per_step
@@ -336,7 +343,7 @@ class TriggerTest < Minitest::Test
 
     output, = capture_io { Trigger.call }
 
-    assert_equal "started working on MOTO-1\nmerging MOTO-3\nupdated master\n", output
+    assert_equal "started working on MOTO-1\nmerging MOTO-3\n", output
     assert_equal 3, calls.count { |call| graphql?(call, "mutation IssueUpdate") }
     refute calls.any? { |call| call[:prompt].to_s.include?("MOTO-8") }
     refute calls.any? { |call| call[:prompt].to_s.include?("MOTO-9") }

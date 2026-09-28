@@ -11,8 +11,8 @@ class Trigger
       Linear.issues.group_by { |item| Linear.column(item) }.each do |column, items|
         case column
         when COMPLETED, CANCELED
-          items.each { |item| cleanup_worktree(item) }
-          pull_master if column == COMPLETED
+          cleaned = items.select { |item| cleanup_worktree(item) }
+          pull_master if column == COMPLETED && cleaned.present?
           next
         end
 
@@ -44,9 +44,10 @@ class Trigger
     private
 
     def cleanup_worktree(item)
-      return unless Worktree.remove(item)
+      return false unless Worktree.remove(item)
 
       puts "removed worktree for #{Linear.identifier(item)}"
+      true
     end
 
     def pull_master
