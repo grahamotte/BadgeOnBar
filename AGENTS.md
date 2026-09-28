@@ -84,7 +84,7 @@ Open pull requests on GitHub with `gh`, using `GITHUB_TOKEN` from the environmen
 - `gems/` - Shared Ruby gems.
 - `manager/` - Linear issue polling, agent triggers, secrets, and spawning new apps.
 - `publish/` - Mobile app versioning, simulators, and App Store publishing.
-- `scripts/` - General-purpose scripts.
+- `scripts/` - General-purpose scripts. `scripts/mise/` holds the scripts behind multi-line `mise.toml` tasks.
 - `mise.toml` - Project tooling and task definitions.
 
 ## Repo Specific
