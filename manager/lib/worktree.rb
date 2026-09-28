@@ -36,9 +36,12 @@ class Worktree
     end
 
     def pull_master
-      run("git", "fetch", "origin")
-      run("git", "checkout", "master")
-      run("git", "pull", "--ff-only", "origin", "master")
+      branch = run("git", "branch", "--show-current").strip
+      return if branch != "master" && branch != "main"
+      return if run("git", "status", "--porcelain").present?
+
+      run("git", "pull", "--ff-only", "origin", branch)
+      branch
     end
 
     def path_for(item)

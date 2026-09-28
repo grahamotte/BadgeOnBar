@@ -50,8 +50,8 @@ class Trigger
     end
 
     def pull_master
-      Worktree.pull_master
-      puts "updated master"
+      branch = Worktree.pull_master
+      puts "updated #{branch}" if branch.present?
     rescue StandardError => error
       puts "failed to update master: #{error.message}"
     end
@@ -106,7 +106,7 @@ class Trigger
 
         1. Rebase the GitHub PR on the card. Resolve merge conflicts.
         2. Merge the PR with `gh pr merge` using `GITHUB_TOKEN`.
-        3. In the main checkout (the repo directory, not the card worktree), run `git fetch origin && git checkout master && git pull --ff-only origin master`.
+        3. If the main checkout is on master or main and has no uncommitted changes, run `git pull --ff-only` there. Do not switch branches.
         4. Move the card to completed.
         5. Remove the working tag.
       PROMPT

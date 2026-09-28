@@ -89,7 +89,7 @@ class TriggerTest < Minitest::Test
     assert_includes prompt, "Merge the PR with `gh pr merge` using `GITHUB_TOKEN`."
     assert_includes prompt, "Remove the working tag."
     assert_includes prompt, "Move the card to completed."
-    assert_includes prompt, "In the main checkout (the repo directory, not the card worktree), run `git fetch origin && git checkout master && git pull --ff-only origin master`."
+    assert_includes prompt, "If the main checkout is on master or main and has no uncommitted changes, run `git pull --ff-only` there. Do not switch branches."
     refute_includes prompt, "gotomain"
     refute_includes prompt, "Remove any worktrees created for this card."
     assert_equal Worktree.root, directory_for(calls, "MOTO-3")
@@ -267,9 +267,40 @@ class TriggerTest < Minitest::Test
     output, = capture_io { Trigger.call }
 
     assert_equal "updated master\n", output
-    assert_equal 1, git_commands.count { |command| command == [ "git", "fetch", "origin" ] }
-    assert_equal 1, git_commands.count { |command| command == [ "git", "checkout", "master" ] }
     assert_equal 1, git_commands.count { |command| command == [ "git", "pull", "--ff-only", "origin", "master" ] }
+    refute git_commands.any? { |command| command[1] == "checkout" }
+  end
+
+  def test_skips_master_pull_when_not_on_master_or_main
+    stub_manager(
+      items: [
+        { id: "item-4", identifier: "MOTO-4", url: "https://linear.app/gotte/issue/MOTO-4", state: { id: "s-completed", name: "Completed" } },
+      ],
+    )
+    ok = Object.new
+    ok.define_singleton_method(:success?) { true }
+    Open3.stubs(:capture3).with("git", "branch", "--show-current", chdir: Worktree.root).returns([ "moto-56\n", "", ok ])
+
+    output, = capture_io { Trigger.call }
+
+    assert_equal "", output
+    refute git_commands.any? { |command| command[1] == "pull" }
+  end
+
+  def test_skips_master_pull_when_dirty
+    stub_manager(
+      items: [
+        { id: "item-4", identifier: "MOTO-4", url: "https://linear.app/gotte/issue/MOTO-4", state: { id: "s-completed", name: "Completed" } },
+      ],
+    )
+    ok = Object.new
+    ok.define_singleton_method(:success?) { true }
+    Open3.stubs(:capture3).with("git", "status", "--porcelain", chdir: Worktree.root).returns([ " M file.rb\n", "", ok ])
+
+    output, = capture_io { Trigger.call }
+
+    assert_equal "", output
+    refute git_commands.any? { |command| command[1] == "pull" }
   end
 
   def test_continues_when_master_pull_fails
@@ -280,11 +311,13 @@ class TriggerTest < Minitest::Test
     )
     failed = Object.new
     failed.define_singleton_method(:success?) { false }
-    Open3.stubs(:capture3).with("git", "fetch", "origin", chdir: Worktree.root).returns([ "", "network error", failed ])
+    Open3.stubs(:capture3).with("git", "pull", "--ff-only", "origin", "master", chdir: Worktree.root).returns(
+      [ "", "network error", failed ],
+    )
 
     output, = capture_io { Trigger.call }
 
-    assert_equal "failed to update master: git fetch origin failed: network error\n", output
+    assert_equal "failed to update master: git pull --ff-only origin master failed: network error\n", output
   end
 
   def test_starts_one_agent_per_step
@@ -457,6 +490,9 @@ class TriggerTest < Minitest::Test
     ok = Object.new
     ok.define_singleton_method(:success?) { true }
     Open3.stubs(:capture3).with do |*args, **_kwargs|
+      next false if args == [ "git", "branch", "--show-current" ]
+      next false if args == [ "git", "status", "--porcelain" ]
+
       @git_commands << args
       if args[1] == "worktree" && args[2] == "add"
         path = args[3] == "-b" ? args[5] : args[3]
@@ -466,6 +502,8 @@ class TriggerTest < Minitest::Test
       end
       true
     end.returns([ "", "", ok ])
+    Open3.stubs(:capture3).with("git", "branch", "--show-current", chdir: Worktree.root).returns([ "master\n", "", ok ])
+    Open3.stubs(:capture3).with("git", "status", "--porcelain", chdir: Worktree.root).returns([ "", "", ok ])
     Req.stubs(:call).with do |*args, **kwargs|
       opts = req_opts(args, kwargs)
       next false unless opts[:url].to_s.end_with?("/api/openchamber/sessions")
