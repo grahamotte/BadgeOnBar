@@ -1,6 +1,6 @@
 # Apple credentials
 
-`mise deploy:publish` signs and publishes Apple apps without using an Xcode login or certificates from the login keychain. Keep every value below in the deployment environment. For local publishing, that is the gitignored `.env.production` file.
+`mise publish` signs and publishes Apple apps without using an Xcode login or certificates from the login keychain. Keep every value below in the deployment environment. For local publishing, that is the gitignored `.env.production` file.
 
 ## Repository-only macOS releases
 
@@ -135,7 +135,7 @@ Load `.env.production`, then run the command matching the rotated certificate. E
 set -a
 source .env.production
 set +a
-cd deploy
+cd publish
 
 bundle exec ruby -e 'require_relative "lib/require"; Apps.with_signing_certificate("Apple Development", "APPLE_DEVELOPMENT") { puts "Apple Development identity is valid" }'
 

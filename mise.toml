@@ -30,13 +30,11 @@ run = "cd deploy && mkdir -p log && bundle install"
 [tasks."dependencies:manager"]
 run = "cd manager && mkdir -p log && bundle install"
 
+[tasks."dependencies:publish"]
+run = "cd publish && mkdir -p log && bundle install"
+
 [tasks."dependencies:gems"]
-run = '''
-printf "%s\0" gems/*/ | xargs -0 -n 1 -P 4 sh -c '
-  cd "$1"
-  bundle install
-' sh
-'''
+run = "scripts/mise/dependencies_gems.sh"
 
 [tasks."dependencies:python"]
 run = [
@@ -46,22 +44,6 @@ run = [
 
 [tasks.dependencies]
 depends = ["dependencies:*"]
-
-#
-# Update
-#
-
-[tasks."update:backend"]
-run = "cd backend && bundle update"
-
-[tasks."update:frontend"]
-run = "cd frontend && pnpm update --latest --config.minimum-release-age=10080"
-
-[tasks."update:gems"]
-run = "for dir in gems/*/; do (cd \"$dir\" && bundle update); done"
-
-[tasks.update]
-depends = ["update:*"]
 
 #
 # Reset
@@ -135,49 +117,11 @@ run = "pnpm exec portless proxy start --https"
 
 [tasks."start:subdomains"]
 depends = ["dependencies:frontend", "start:details"]
-run = '''
-node -e '
-  const fs = require("fs");
-  const config = JSON.parse(fs.readFileSync("config.json"));
-  const base = process.env.LOCAL_DOMAIN || config.domain.split(".")[0];
-  for (const subdomain of config.subdomains.filter(({ backend }) => backend)) {
-    const prefix = subdomain.subdomains.includes("") ? "" : `${subdomain.subdomains[0]}.`;
-    console.log(`${prefix}${base}`, 3000);
-  }
-' | xargs -n 2 sh -c 'pnpm --dir frontend exec portless alias "$1" "$2"' sh
-node -e '
-  const fs = require("fs");
-  const config = JSON.parse(fs.readFileSync("config.json"));
-  const base = process.env.LOCAL_DOMAIN || config.domain.split(".")[0];
-  for (const subdomain of config.subdomains.filter(({ directory }) => directory)) {
-    const prefix = subdomain.subdomains.includes("") ? "" : `${subdomain.subdomains[0]}.`;
-    console.log(subdomain.name, `${prefix}${base}`);
-  }
-' | xargs -n 2 -P 0 sh -c 'VITE_SUBDOMAIN="$1" pnpm --dir frontend exec portless "$2" pnpm exec vite' sh
-'''
+run = "scripts/mise/start_subdomains.sh"
 
 [tasks."start:details"]
 depends = ["start:portless"]
-run = '''
-node <<'NODE'
-const fs = require("fs");
-const config = JSON.parse(fs.readFileSync("config.json"));
-const subdomains = config.subdomains;
-const base = process.env.LOCAL_DOMAIN || config.domain.split(".")[0];
-const rows = subdomains.map((subdomain) => {
-  const prefix = subdomain.subdomains.includes("") ? "" : `${subdomain.subdomains[0]}.`;
-  const label = subdomain.name.toUpperCase();
-  return [label, `https://${prefix}${base}.localhost`];
-});
-rows.push(["API", "http://localhost:3000"]);
-const labelWidth = Math.max(...rows.map(([label]) => label.length));
-const lines = [`${config.domain} · Development`, ...rows.map(([label, url]) => `${label.padEnd(labelWidth)}  ${url}`)];
-const width = Math.max(...lines.map((line) => line.length));
-console.log(`\n╔${"═".repeat(width + 2)}╗`);
-for (const line of lines) console.log(`║ ${line.padEnd(width)} ║`);
-console.log(`╚${"═".repeat(width + 2)}╝\n`);
-NODE
-'''
+run = "scripts/mise/start_details.js"
 
 [tasks.start]
 depends = [
@@ -231,8 +175,12 @@ run = 'cd deploy && bundle exec ruby -Itests -e "Dir.glob(\"tests/**/*_test.rb\"
 depends = ["dependencies:manager"]
 run = 'cd manager && bundle exec ruby -Itests -e "Dir.glob(\"tests/**/*_test.rb\").each { |f| require_relative f }"'
 
+[tasks."test:publish"]
+depends = ["dependencies:publish"]
+run = 'cd publish && bundle exec ruby -Itests -e "Dir.glob(\"tests/**/*_test.rb\").each { |f| require_relative f }"'
+
 [tasks."test:apps"]
-run = 'cd apps/apple && cp Tests/Package.swift Package.swift && trap "rm Package.swift" EXIT && swift test --quiet --scratch-path ../../deploy/tmp/apps/swift-tests'
+run = 'cd apps/apple && cp Tests/Package.swift Package.swift && trap "rm Package.swift" EXIT && swift test --quiet --scratch-path ../../publish/tmp/apps/swift-tests'
 
 [tasks.tsc]
 depends = ["dependencies:frontend"]
@@ -244,12 +192,7 @@ run = "cd frontend && pnpm test"
 
 [tasks."test:gems"]
 depends = ["dependencies:gems"]
-run = '''
-printf "%s\0" gems/*/ | xargs -0 -n 1 -P 4 sh -c '
-  cd "$1"
-  bundle exec ruby -Itest -e "Dir.glob(\"test/**/*_test.rb\").each { |f| require_relative f }"
-' sh
-'''
+run = "scripts/mise/test_gems.sh"
 
 [tasks."test"]
 depends = ["test:*"]
@@ -257,11 +200,6 @@ depends = ["test:*"]
 #
 # Deploy
 #
-
-[tasks."deploy:spawn"]
-alias = ["spawn"]
-usage = 'arg "<domain>" help="Website domain (e.g., example.com)"'
-run = 'cd deploy && ruby spawn.rb "$usage_domain"'
 
 [tasks."deploy"]
 depends = ["dependencies:deploy"]
@@ -271,26 +209,6 @@ run = "set -a && source .env.production && cd deploy && ruby deploy.rb 2>&1 | te
 alias = ["quick"]
 depends = ["dependencies:deploy"]
 run = "set -a && source .env.production && cd deploy && ruby quick.rb 2>&1 | tee log/$(date +%Y-%m-%d-%H-%M-%S)_quick.log"
-
-[tasks."deploy:publish"]
-alias = ["publish"]
-depends = ["dependencies:deploy"]
-usage = '''
-flag "--stop-before-submission" help="Prepare App Store versions for review without submitting"
-flag "--stop-before-prepare" help="Upload App Store builds for TestFlight without preparing or submitting versions"
-'''
-run = """
-set -a
-source .env.production
-export PUBLISH_STOP_BEFORE_SUBMISSION="${usage_stop_before_submission:-false}"
-export PUBLISH_STOP_BEFORE_PREPARE="${usage_stop_before_prepare:-false}"
-cd deploy
-ruby publish.rb 2>&1 | tee log/$(date +%Y-%m-%d-%H-%M-%S)_publish.log
-"""
-
-[tasks."deploy:approved-version"]
-depends = ["dependencies:deploy"]
-run = "set -a && source .env.production && cd deploy && ruby approved_version.rb"
 
 [tasks."deploy:patch"]
 depends = ["dependencies:deploy"]
@@ -339,59 +257,38 @@ alias = ["status"]
 depends = ["dependencies:deploy"]
 run = "set -a && source .env.production && cd deploy && ruby status.rb"
 
-[tasks."deploy:set-version"]
-depends = ["dependencies:deploy"]
+#
+# Publish
+#
+
+[tasks.publish]
+depends = ["dependencies:publish"]
+usage = 'arg "[mode]" help="Where to stop publishing" choices "stop_before_prepare" "stop_before_submit"'
+run = 'set -a && source .env.production && cd publish && ruby publish.rb ${usage_mode:-} 2>&1 | tee log/$(date +%Y-%m-%d-%H-%M-%S)_publish.log'
+
+[tasks."publish:stop_before_prepare"]
+depends = ["publish stop_before_prepare"]
+
+[tasks."publish:stop_before_submit"]
+depends = ["publish stop_before_submit"]
+
+[tasks."publish:approved_version"]
+depends = ["dependencies:publish"]
+run = "set -a && source .env.production && cd publish && ruby approved_version.rb"
+
+[tasks."publish:set_version"]
+depends = ["dependencies:publish"]
 usage = 'arg "<version>" help="Semantic version (e.g., 1.1.1)"'
-run = 'cd deploy && ruby set_version.rb "$usage_version"'
+run = 'cd publish && ruby set_version.rb "$usage_version"'
 
-#
-# Other
-#
-
-[tasks.merge]
-usage = 'arg "[branch]" help="Branch to merge into, created from origin/master" default="codemoto-merge"'
-run = '''
-set -e
-if [ -n "$(git status --porcelain)" ]; then echo 'Error: You have uncommitted changes. Please commit or stash them before merging.'; exit 1; fi
-git fetch origin master
-if git show-ref --verify --quiet "refs/heads/$usage_branch"; then git checkout "$usage_branch"; else git checkout -b "$usage_branch" --no-track origin/master; fi
-echo "Merge recovery point: $(git rev-parse HEAD)"
-if git remote get-url upstream >/dev/null 2>&1; then git remote set-url upstream git@github.com:grahamotte/codemoto.org.git; else git remote add upstream git@github.com:grahamotte/codemoto.org.git; fi
-git config remote.upstream.tagOpt --no-tags
-git config remote.origin.gh-resolved base
-git fetch --no-tags upstream master
-git ls-remote --tags upstream | { grep -v "\^{}$" || true; } | while read -r sha ref; do tag="${ref#refs/tags/}"; if [ "$(git rev-parse -q --verify "refs/tags/$tag")" = "$sha" ]; then git tag -d "$tag"; fi; done
-if ! git merge-base HEAD upstream/master >/dev/null; then echo 'Error: This repository does not share history with Code Moto.'; exit 1; fi
-git merge --no-edit --no-ff upstream/master
-'''
-
-[tasks.secrets]
-run = '''
-service_file=".env.service"
-if [ ! -f "$service_file" ]; then service_file="$HOME/.config/projects/.env.service"; fi
-if [ ! -f "$service_file" ]; then echo 'Error: Missing .env.service in the repository or ~/.config/projects/.env.service.'; exit 1; fi
-set -a
-source "$service_file"
-set +a
-export OP_SERVICE_ACCOUNT_TOKEN="$SERVICE_ACCOUNT_TOKEN"
-trap 'rm -f "${file:-}"' EXIT
-for environment in development production; do
-  reference="$(node -p "require('./config.json').secrets?.$environment ?? ''")"
-  if [ -z "$reference" ]; then echo "Skipping .env.$environment: secrets.$environment is not set in config.json."; continue; fi
-  file="$(mktemp ".env.$environment.XXXXXX")"
-  chmod 600 "$file"
-  op read "$reference" > "$file"
-  mv "$file" ".env.$environment"
-  echo "Wrote .env.$environment"
-done
-'''
-
-[tasks.simulate]
-depends = ["dependencies:deploy"]
+[tasks."publish:simulate"]
+alias = ["simulate"]
+depends = ["dependencies:publish"]
 usage = 'arg "<target>" help="Device to launch" choices "iphone" "phone" "ipad" "tablet" "mac" "macos" "osx" "tv" "tvos"'
-run = 'cd deploy && ruby simulate.rb "$usage_target"'
+run = 'cd publish && ruby simulate.rb "$usage_target"'
 
-[tasks.xcode]
+[tasks."publish:xcode"]
+alias = ["xcode"]
 run = "open apps/apple/App.xcodeproj"
 
 #
@@ -406,17 +303,27 @@ run = "cd manager && bundle exec ruby trigger.rb"
 depends = ["dependencies:manager"]
 run = "cd manager && bundle exec ruby trigger_all.rb"
 
-[tasks."manager:sync"]
+[tasks."manager:linear_sync"]
 depends = ["dependencies:manager"]
-run = "cd manager && bundle exec ruby sync.rb"
+run = "cd manager && bundle exec ruby linear_sync.rb"
 
-[tasks."manager:syncall"]
+[tasks."manager:linear_syncall"]
 depends = ["dependencies:manager"]
-run = "cd manager && bundle exec ruby sync_all.rb"
+run = "cd manager && bundle exec ruby linear_sync_all.rb"
 
-[tasks."manager:watch"]
+[tasks."manager:secrets"]
+run = "scripts/mise/manager_secrets.sh"
+
+[tasks."manager:spawn"]
+alias = ["spawn"]
 depends = ["dependencies:manager"]
-run = "cd manager && bundle exec ruby watch.rb"
+usage = 'arg "<domain>" help="Website domain (e.g., example.com)"'
+run = 'cd manager && bundle exec ruby spawn.rb "$usage_domain"'
+
+[tasks."manager:merge"]
+alias = ["merge"]
+usage = 'arg "[branch]" help="Branch to merge into, created from origin/master" default="codemoto-merge"'
+run = "scripts/mise/manager_merge.sh"
 
 #
 # Linear

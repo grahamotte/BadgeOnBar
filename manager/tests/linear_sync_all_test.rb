@@ -1,23 +1,23 @@
 require_relative "test_helper"
 
-class TriggerAllTest < Minitest::Test
-  def test_triggers_current_repo_and_siblings_with_the_task
+class LinearSyncAllTest < Minitest::Test
+  def test_syncs_current_repo_and_siblings_with_the_task
     current = add_repo(File.basename(Worktree.root))
     other = add_repo("other.org")
     FileUtils.mkdir_p(File.join(parent, "plain"))
     commands = stub_mise
 
-    output, = capture_io { TriggerAll.call }
+    output, = capture_io { LinearSyncAll.call }
 
     assert_equal [ current, other ].sort, commands.map { |command| command[:directory] }
     assert_equal "", output
-    assert commands.all? { |command| command[:args] == [ "mise", "manager:trigger" ] }
+    assert commands.all? { |command| command[:args] == [ "mise", "manager:linear_sync" ] }
   end
 
-  def test_skips_repos_without_manager_trigger
+  def test_skips_repos_without_manager_sync
     add_repo("app.org", toml: "[tasks.\"manager:other\"]\nrun = \"true\"\n")
     commands = stub_mise
-    capture_io { TriggerAll.call }
+    capture_io { LinearSyncAll.call }
 
     assert_empty commands
   end
@@ -27,7 +27,7 @@ class TriggerAllTest < Minitest::Test
     add_worktree("app.org-moto-1")
     commands = stub_mise
 
-    capture_io { TriggerAll.call }
+    capture_io { LinearSyncAll.call }
 
     assert_equal [ File.join(parent, "app.org") ], commands.map { |command| command[:directory] }
   end
@@ -37,28 +37,28 @@ class TriggerAllTest < Minitest::Test
     add_repo("alpha.org")
     commands = stub_mise
 
-    capture_io { TriggerAll.call }
+    capture_io { LinearSyncAll.call }
 
     assert_equal [ "alpha.org", "zeta.org" ], commands.map { |command| File.basename(command[:directory]) }
   end
 
-  def test_prints_trigger_output
+  def test_prints_sync_output
     add_repo("app.org")
-    stub_mise(stdout: "started working on APP-1\n")
+    stub_mise(stdout: "created Working\n")
 
-    output, = capture_io { TriggerAll.call }
+    output, = capture_io { LinearSyncAll.call }
 
-    assert_equal "started working on APP-1\n", output
+    assert_equal "created Working\n", output
   end
 
-  def test_raises_when_trigger_fails
+  def test_raises_when_sync_fails
     add_repo("alpha.org")
     add_repo("zeta.org")
     commands = stub_mise(stderr: "boom", success: false)
 
-    error = assert_raises(RuntimeError) { capture_io { TriggerAll.call } }
+    error = assert_raises(RuntimeError) { capture_io { LinearSyncAll.call } }
 
-    assert_equal "mise manager:trigger failed in #{File.join(parent, "alpha.org")}: boom", error.message
+    assert_equal "mise manager:linear_sync failed in #{File.join(parent, "alpha.org")}: boom", error.message
     assert_equal [ "alpha.org" ], commands.map { |command| File.basename(command[:directory]) }
   end
 
@@ -66,18 +66,18 @@ class TriggerAllTest < Minitest::Test
     add_repo("app.org")
     stub_mise(stdout: "failed", success: false)
 
-    error = assert_raises(RuntimeError) { capture_io { TriggerAll.call } }
+    error = assert_raises(RuntimeError) { capture_io { LinearSyncAll.call } }
 
-    assert_equal "mise manager:trigger failed in #{File.join(parent, "app.org")}: failed", error.message
+    assert_equal "mise manager:linear_sync failed in #{File.join(parent, "app.org")}: failed", error.message
   end
 
-  def test_directories_lists_triggerable_repos
+  def test_directories_lists_syncable_repos
     current = add_repo(File.basename(Worktree.root))
     other = add_repo("other.org")
     add_repo("skip.org", toml: "")
     add_worktree("other.org-moto-1")
 
-    assert_equal [ current, other ].sort, TriggerAll.directories
+    assert_equal [ current, other ].sort, LinearSyncAll.directories
   end
 
   private
@@ -86,7 +86,7 @@ class TriggerAllTest < Minitest::Test
     File.expand_path("..", Worktree.root)
   end
 
-  def add_repo(name, toml: "[tasks.\"manager:trigger\"]\nrun = \"true\"\n")
+  def add_repo(name, toml: "[tasks.\"manager:linear_sync\"]\nrun = \"true\"\n")
     path = File.join(parent, name)
     FileUtils.mkdir_p(File.join(path, ".git"))
     File.write(File.join(path, "mise.toml"), toml)
