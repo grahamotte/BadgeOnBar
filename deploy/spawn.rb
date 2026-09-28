@@ -76,11 +76,13 @@ end
 
 class Spawner
   ENVIRONMENTS = %w[development production].freeze
-  CONFIG_KEYS = %w[DEPLOY_USER DEPLOY_SSH_KEY_PUB DEPLOY_SSH_KEY_FINGERPRINT].freeze
   REQUIRED_KEYS = %w[
     CRYPT_KEY
     DEPLOY_PASSWORD
     DEPLOY_SSH_KEY
+    DEPLOY_SSH_KEY_FINGERPRINT
+    DEPLOY_SSH_KEY_PUB
+    DEPLOY_USER
     JWT_SECRET
     SECRET_KEY_BASE
   ].freeze
@@ -100,8 +102,8 @@ class Spawner
 
     @output.puts "Cloning #{source_repo} to #{target_dir}..."
     @shell.run("git", "clone", source_repo, target_dir)
-    credentials = create_environment_files(target_dir)
-    repo = write_config(target_dir, credentials)
+    create_environment_files(target_dir)
+    repo = write_config(target_dir)
     @shell.run("git", "remote", "set-url", "origin", repo, chdir: target_dir)
     @shell.run("git", "config", "remote.origin.gh-resolved", "base", chdir: target_dir)
 
@@ -125,9 +127,8 @@ class Spawner
   def create_environment_files(target_dir)
     template = File.read(File.join(target_dir, ".env.default"))
 
-    ENVIRONMENTS.map do |environment|
-      credentials = @credentials.call
-      overrides = credentials.except(*CONFIG_KEYS)
+    ENVIRONMENTS.each do |environment|
+      overrides = @credentials.call
       missing_keys = REQUIRED_KEYS - overrides.keys
       raise "Missing environment values: #{missing_keys.join(", ")}" unless missing_keys.length.zero?
 
@@ -136,11 +137,10 @@ class Spawner
         file.write(render(template, overrides))
       end
       @output.puts "Created #{path}"
-      credentials
-    end.last
+    end
   end
 
-  def write_config(target_dir, credentials)
+  def write_config(target_dir)
     path = File.join(target_dir, "config.json")
     config = JSON.parse(File.read(path))
     repo = transformed_repo(config.fetch("githubRepo"))
@@ -148,11 +148,6 @@ class Spawner
       "domain" => @app_name,
       "githubRepo" => repo,
       "database" => database_name,
-    )
-    config["deploy"] = config.fetch("deploy", {}).merge(
-      "user" => credentials.fetch("DEPLOY_USER"),
-      "sshKeyPub" => credentials.fetch("DEPLOY_SSH_KEY_PUB"),
-      "sshKeyFingerprint" => credentials.fetch("DEPLOY_SSH_KEY_FINGERPRINT"),
     )
     File.write(path, "#{JSON.pretty_generate(config)}\n")
     @output.puts "Updated #{path}"

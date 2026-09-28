@@ -46,8 +46,8 @@ class AppsTest < Minitest::Test
   def test_builds_authentication_arguments
     arguments = Apps.authentication_arguments
 
-    assert_includes arguments, Constants.apple_key_id
-    assert_includes arguments, Constants.apple_issuer_id
+    assert_includes arguments, ENV.fetch("APPLE_KEY_ID")
+    assert_includes arguments, ENV.fetch("APPLE_ISSUER_ID")
     assert File.file?(Apps.private_key_path)
     assert_equal 0600, File.stat(Apps.private_key_path).mode & 0777
     assert_equal ENV.fetch("APPLE_KEY_SECRET_BASE64").unpack1("m0"), File.binread(Apps.private_key_path)

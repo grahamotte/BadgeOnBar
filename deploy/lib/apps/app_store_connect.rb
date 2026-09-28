@@ -557,9 +557,9 @@ module Apps
 
     def token
       now = Time.now.to_i
-      header = encode(alg: "ES256", kid: Constants.apple_key_id, typ: "JWT")
+      header = encode(alg: "ES256", kid: ENV.fetch("APPLE_KEY_ID"), typ: "JWT")
       payload = encode(
-        iss: Constants.apple_issuer_id,
+        iss: ENV.fetch("APPLE_ISSUER_ID"),
         iat: now,
         exp: now + 1_200,
         aud: "appstoreconnect-v1",

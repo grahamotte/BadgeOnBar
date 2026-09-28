@@ -14,17 +14,9 @@ class ConstantsTest < Minitest::Test
   def test_config_values
     assert_equal File.join(@deploy_test_dir, "config.json"), Constants.config_path
     assert_equal "example.com", Constants.domain
-    assert_equal "deploy", Constants.deploy_user
-    assert_equal "fingerprint", Constants.ssh_key_fingerprint
-    assert_equal "public-key", Constants.ssh_key_pub
     assert_equal "test-region", Constants.instance_region
     assert_equal "test-size", Constants.instance_size
     assert_equal "app_production", Constants.db_name
-    assert_equal "backups", Constants.backup_bucket
-    assert_equal "https://storage.example.com", Constants.backup_endpoint
-    assert_equal "team", Constants.apple_team_id
-    assert_equal "issuer", Constants.apple_issuer_id
-    assert_equal "key", Constants.apple_key_id
   end
 
   def test_default_config_path

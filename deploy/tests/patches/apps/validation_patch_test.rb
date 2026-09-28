@@ -15,23 +15,23 @@ class AppsValidationPatchTest < Minitest::Test
   end
 
   def test_rejects_missing_credentials
-    value = ENV.delete("APPLE_KEY_SECRET_BASE64")
+    value = ENV.delete("APPLE_KEY_ID")
     Cmd.expects(:local).with("xcodebuild -version").returns("Xcode")
 
     error = assert_raises(RuntimeError) { Apps::ValidationPatch.apply }
 
-    assert_equal "Missing APPLE_KEY_SECRET_BASE64", error.message
+    assert_equal "Missing APPLE_KEY_ID", error.message
   ensure
-    ENV["APPLE_KEY_SECRET_BASE64"] = value
+    ENV["APPLE_KEY_ID"] = value
   end
 
   def test_rejects_missing_configuration
-    Constants.config[:apple][:keyId] = ""
+    Constants.config[:githubRepo] = ""
     Cmd.expects(:local).with("xcodebuild -version").returns("Xcode")
 
     error = assert_raises(RuntimeError) { Apps::ValidationPatch.apply }
 
-    assert_equal "Missing apple.keyId in config.json", error.message
+    assert_equal "Missing githubRepo in config.json", error.message
   end
 
   def test_rejects_missing_metadata

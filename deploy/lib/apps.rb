@@ -77,9 +77,9 @@ module Apps
         "-authenticationKeyPath",
         private_key_path,
         "-authenticationKeyID",
-        Constants.apple_key_id,
+        ENV.fetch("APPLE_KEY_ID"),
         "-authenticationKeyIssuerID",
-        Constants.apple_issuer_id,
+        ENV.fetch("APPLE_ISSUER_ID"),
       ]
     end
 

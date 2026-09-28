@@ -14,7 +14,7 @@ class AppsAppStoreConnectTest < Minitest::Test
     header, payload, signature = token.split(".")
 
     assert_equal "ES256", decode(header).fetch("alg")
-    assert_equal Constants.apple_issuer_id, decode(payload).fetch("iss")
+    assert_equal ENV.fetch("APPLE_ISSUER_ID"), decode(payload).fetch("iss")
     assert signature.present?
   end
 

@@ -123,7 +123,6 @@ class SpawnerTest < Minitest::Test
     assert_equal "git@github.com:grahamotte/new-app.net.git", config.fetch("githubRepo")
     assert_equal "new-app.net", config.fetch("domain")
     assert_equal "new_app", config.fetch("database")
-    assert_equal({ "user" => "deploy", "sshKeyPub" => "public-key-2", "sshKeyFingerprint" => "fingerprint-2" }, config.fetch("deploy"))
     assert_equal source_config.fetch("instance"), config.fetch("instance")
     assert_equal source_config.fetch("subdomains"), config.fetch("subdomains")
     assert_includes File.read(File.join(target_dir, ".env.production")), "OPENROUTER_TOKEN=xxx\n"
@@ -131,8 +130,10 @@ class SpawnerTest < Minitest::Test
     assert_equal "password-2", production.fetch("DEPLOY_PASSWORD")
     assert_equal "private-key-1\nsecond-line", development.fetch("DEPLOY_SSH_KEY")
     refute_equal development.fetch("JWT_SECRET"), production.fetch("JWT_SECRET")
-    refute_includes File.read(File.join(target_dir, ".env.production")), "DEPLOY_SSH_KEY_PUB"
-    refute_includes File.read(File.join(target_dir, ".env.production")), "DEPLOY_USER"
+    assert_equal "public-key-2", production.fetch("DEPLOY_SSH_KEY_PUB")
+    assert_equal "fingerprint-2", production.fetch("DEPLOY_SSH_KEY_FINGERPRINT")
+    assert_equal "deploy", production.fetch("DEPLOY_USER")
+    refute config.key?("deploy")
     assert_includes @shell.commands, [ %w[git remote set-url origin git@github.com:grahamotte/new-app.net.git], target_dir ]
     assert_includes @shell.commands, [ %w[git config remote.origin.gh-resolved base], target_dir ]
     assert_includes @output.string, "Create git@github.com:grahamotte/new-app.net.git on GitHub, then run 'git push -u origin master' there."

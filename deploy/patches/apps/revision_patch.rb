@@ -43,9 +43,9 @@ module Apps
           "--key",
           Apps.private_key_path,
           "--key-id",
-          Constants.apple_key_id,
+          ENV.fetch("APPLE_KEY_ID"),
           "--issuer",
-          Constants.apple_issuer_id,
+          ENV.fetch("APPLE_ISSUER_ID"),
           "--wait",
         ]))
         raise "Notarization failed for #{target.fetch(:name)}" unless result.include?("status: Accepted")
@@ -110,7 +110,7 @@ module Apps
             <key>signingStyle</key>
             <string>automatic</string>
             <key>teamID</key>
-            <string>#{Constants.apple_team_id}</string>
+            <string>#{ENV.fetch("APPLE_TEAM_ID")}</string>
           </dict>
           </plist>
         PLIST
