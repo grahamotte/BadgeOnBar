@@ -1,0 +1,85 @@
+{
+  "domain": "badgeonbar.com",
+  "githubRepo": "git@github.com:grahamotte/badgeonbar.com.git",
+  "database": "badgeonbar",
+  "site": {
+    "title": "Badge On Bar",
+    "description": "Mirror macOS Dock badge counts in your menu bar.",
+    "themeColor": "oklch(0 0 0)"
+  },
+  "subdomains": [
+    {
+      "name": "www",
+      "subdomains": [
+        "",
+        "www"
+      ],
+      "directory": "frontend/subdomains/www"
+    },
+    {
+      "name": "hc",
+      "subdomains": [
+        "hc"
+      ],
+      "directory": "frontend/subdomains/hc"
+    },
+    {
+      "name": "jobs",
+      "subdomains": [
+        "jobs"
+      ],
+      "backend": true
+    },
+    {
+      "name": "errors",
+      "subdomains": [
+        "errors"
+      ],
+      "backend": true
+    }
+  ],
+  "instance": {
+    "region": "sfo3",
+    "size": "s-1vcpu-2gb"
+  },
+  "secrets": {
+    "development": "op://Projects/Badge On Bar Development/notesPlain",
+    "production": "op://Projects/Badge On Bar Production/notesPlain"
+  },
+  "linear": {
+    "workspace": "gotte",
+    "team": "BOB"
+  },
+  "agent": {
+    "runner": "openchamber",
+    "model": "xai/grok-4.6",
+    "variant": "medium"
+  },
+  "apps": {
+    "build": "0.6.1",
+    "description": "Badge On Bar mirrors selected macOS Dock badge counts into separate menu bar items.",
+    "marketingUrl": "https://badgeonbar.com",
+    "name": "Badge On Bar",
+    "skip_app_stores": true,
+    "supportUrl": "https://badgeonbar.com",
+    "targets": {
+      "apple": {
+        "macos": {
+          "archiveDestination": "generic/platform=macOS",
+          "bundleIdentifier": "com.grahamotte.badgeonbar2",
+          "platform": "MAC_OS",
+          "project": "apps/apple/App.xcodeproj",
+          "scheme": "BadgeOnBar",
+          "simulatorDestination": "platform=macOS",
+          "simulatorProduct": "Debug/BadgeOnBar.app",
+          "simulators": {
+            "macos": "Mac"
+          }
+        }
+      },
+      "android": {}
+    },
+    "version": "0.6.1",
+    "whatsNew": "Bug fixes."
+  }
+}
