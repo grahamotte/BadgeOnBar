@@ -1,11 +1,10 @@
 require_relative "lib/require"
 
-if ENV.fetch("PUBLISH_STOP_BEFORE_PREPARE", "false") == "true"
-  Apps.prepare_for_review = false
-  Apps.submit_for_review = false
-elsif ENV.fetch("PUBLISH_STOP_BEFORE_SUBMIT", "false") == "true"
-  Apps.submit_for_review = false
-end
+mode = ARGV.first
+raise "Unknown publish mode: #{mode}" unless [ nil, "stop_before_prepare", "stop_before_submit" ].include?(mode)
+
+Apps.prepare_for_review = false if mode == "stop_before_prepare"
+Apps.submit_for_review = false if mode.present?
 
 Apps::ValidationPatch.call
 Apps::BuildPatch.call

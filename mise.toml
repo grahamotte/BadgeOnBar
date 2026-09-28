@@ -311,17 +311,14 @@ run = "set -a && source .env.production && cd deploy && ruby status.rb"
 
 [tasks.publish]
 depends = ["dependencies:publish"]
-run = "set -a && source .env.production && cd publish && ruby publish.rb 2>&1 | tee log/$(date +%Y-%m-%d-%H-%M-%S)_publish.log"
+usage = 'arg "[mode]" help="Where to stop publishing" choices "stop_before_prepare" "stop_before_submit"'
+run = 'set -a && source .env.production && cd publish && ruby publish.rb ${usage_mode:-} 2>&1 | tee log/$(date +%Y-%m-%d-%H-%M-%S)_publish.log'
 
 [tasks."publish:stop_before_prepare"]
-depends = ["dependencies:publish"]
-env = { PUBLISH_STOP_BEFORE_PREPARE = "true" }
-run = "set -a && source .env.production && cd publish && ruby publish.rb 2>&1 | tee log/$(date +%Y-%m-%d-%H-%M-%S)_publish.log"
+depends = ["publish stop_before_prepare"]
 
 [tasks."publish:stop_before_submit"]
-depends = ["dependencies:publish"]
-env = { PUBLISH_STOP_BEFORE_SUBMIT = "true" }
-run = "set -a && source .env.production && cd publish && ruby publish.rb 2>&1 | tee log/$(date +%Y-%m-%d-%H-%M-%S)_publish.log"
+depends = ["publish stop_before_submit"]
 
 [tasks."publish:approved_version"]
 depends = ["dependencies:publish"]
@@ -381,8 +378,9 @@ done
 
 [tasks."manager:spawn"]
 alias = ["spawn"]
+depends = ["dependencies:manager"]
 usage = 'arg "<domain>" help="Website domain (e.g., example.com)"'
-run = 'cd manager && ruby spawn.rb "$usage_domain"'
+run = 'cd manager && bundle exec ruby spawn.rb "$usage_domain"'
 
 #
 # Linear

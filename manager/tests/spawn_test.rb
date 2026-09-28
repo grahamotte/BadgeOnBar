@@ -1,9 +1,5 @@
-require "fileutils"
-require "minitest/autorun"
+require_relative "test_helper"
 require "stringio"
-require "tmpdir"
-
-require_relative "../spawn"
 
 class SpawnTestShell
   attr_reader :commands
