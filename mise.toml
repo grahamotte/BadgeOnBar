@@ -8,6 +8,7 @@ deno = "2.9.5"
 [env]
 _.file = '.env.development'
 LANG = "{{ get_env(name='LANG', default='en_US.UTF-8') }}"
+GH_REPO = "{{ read_file(path='config.json') | split(pat='\"githubRepo\": \"') | last | split(pat='\"') | first | trim_start_matches(pat='git@github.com:') | trim_end_matches(pat='.git') }}"
 
 [task_config]
 shell = "bash -o errexit -o pipefail -c"
