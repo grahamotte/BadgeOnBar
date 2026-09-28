@@ -1,4 +1,4 @@
-require_relative "../../test_helper"
+require_relative "../test_helper"
 
 class AppsBuildPatchTest < Minitest::Test
   def test_builds_missing_archives

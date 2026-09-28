@@ -1,4 +1,4 @@
-class Sync
+class LinearSync
   class << self
     def call
       Linear.sync_statuses

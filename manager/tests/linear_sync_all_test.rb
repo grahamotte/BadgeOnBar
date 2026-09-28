@@ -1,23 +1,23 @@
 require_relative "test_helper"
 
-class SyncAllTest < Minitest::Test
+class LinearSyncAllTest < Minitest::Test
   def test_syncs_current_repo_and_siblings_with_the_task
     current = add_repo(File.basename(Worktree.root))
     other = add_repo("other.org")
     FileUtils.mkdir_p(File.join(parent, "plain"))
     commands = stub_mise
 
-    output, = capture_io { SyncAll.call }
+    output, = capture_io { LinearSyncAll.call }
 
     assert_equal [ current, other ].sort, commands.map { |command| command[:directory] }
     assert_equal "", output
-    assert commands.all? { |command| command[:args] == [ "mise", "manager:sync" ] }
+    assert commands.all? { |command| command[:args] == [ "mise", "manager:linear_sync" ] }
   end
 
   def test_skips_repos_without_manager_sync
     add_repo("app.org", toml: "[tasks.\"manager:watch\"]\nrun = \"true\"\n")
     commands = stub_mise
-    capture_io { SyncAll.call }
+    capture_io { LinearSyncAll.call }
 
     assert_empty commands
   end
@@ -27,7 +27,7 @@ class SyncAllTest < Minitest::Test
     add_worktree("app.org-moto-1")
     commands = stub_mise
 
-    capture_io { SyncAll.call }
+    capture_io { LinearSyncAll.call }
 
     assert_equal [ File.join(parent, "app.org") ], commands.map { |command| command[:directory] }
   end
@@ -37,7 +37,7 @@ class SyncAllTest < Minitest::Test
     add_repo("alpha.org")
     commands = stub_mise
 
-    capture_io { SyncAll.call }
+    capture_io { LinearSyncAll.call }
 
     assert_equal [ "alpha.org", "zeta.org" ], commands.map { |command| File.basename(command[:directory]) }
   end
@@ -46,7 +46,7 @@ class SyncAllTest < Minitest::Test
     add_repo("app.org")
     stub_mise(stdout: "created Working\n")
 
-    output, = capture_io { SyncAll.call }
+    output, = capture_io { LinearSyncAll.call }
 
     assert_equal "created Working\n", output
   end
@@ -56,9 +56,9 @@ class SyncAllTest < Minitest::Test
     add_repo("zeta.org")
     commands = stub_mise(stderr: "boom", success: false)
 
-    error = assert_raises(RuntimeError) { capture_io { SyncAll.call } }
+    error = assert_raises(RuntimeError) { capture_io { LinearSyncAll.call } }
 
-    assert_equal "mise manager:sync failed in #{File.join(parent, "alpha.org")}: boom", error.message
+    assert_equal "mise manager:linear_sync failed in #{File.join(parent, "alpha.org")}: boom", error.message
     assert_equal [ "alpha.org" ], commands.map { |command| File.basename(command[:directory]) }
   end
 
@@ -66,9 +66,9 @@ class SyncAllTest < Minitest::Test
     add_repo("app.org")
     stub_mise(stdout: "failed", success: false)
 
-    error = assert_raises(RuntimeError) { capture_io { SyncAll.call } }
+    error = assert_raises(RuntimeError) { capture_io { LinearSyncAll.call } }
 
-    assert_equal "mise manager:sync failed in #{File.join(parent, "app.org")}: failed", error.message
+    assert_equal "mise manager:linear_sync failed in #{File.join(parent, "app.org")}: failed", error.message
   end
 
   def test_directories_lists_syncable_repos
@@ -77,7 +77,7 @@ class SyncAllTest < Minitest::Test
     add_repo("skip.org", toml: "")
     add_worktree("other.org-moto-1")
 
-    assert_equal [ current, other ].sort, SyncAll.directories
+    assert_equal [ current, other ].sort, LinearSyncAll.directories
   end
 
   private
@@ -86,7 +86,7 @@ class SyncAllTest < Minitest::Test
     File.expand_path("..", Worktree.root)
   end
 
-  def add_repo(name, toml: "[tasks.\"manager:sync\"]\nrun = \"true\"\n")
+  def add_repo(name, toml: "[tasks.\"manager:linear_sync\"]\nrun = \"true\"\n")
     path = File.join(parent, name)
     FileUtils.mkdir_p(File.join(path, ".git"))
     File.write(File.join(path, "mise.toml"), toml)

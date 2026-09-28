@@ -1,4 +1,4 @@
-require_relative "../../test_helper"
+require_relative "../test_helper"
 
 class AppsRevisionPatchTest < Minitest::Test
   def test_uploads_only_macos_to_github_once

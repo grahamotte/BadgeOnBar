@@ -105,8 +105,8 @@ class AppsSimulatorTest < Minitest::Test
     }
     File.write(config_path, JSON.generate(config))
     Apps.reset
-    Apps.root = File.join(@deploy_test_dir, "apps")
-    Apps.tmp_root = File.join(@deploy_test_dir, "artifacts")
+    Apps.root = File.join(@publish_test_dir, "apps")
+    Apps.tmp_root = File.join(@publish_test_dir, "artifacts")
     commands = []
     Cmd.stubs(:local).with { |command| commands << command; true }.returns("")
 
@@ -133,8 +133,8 @@ class AppsSimulatorTest < Minitest::Test
     }
     File.write(config_path, JSON.generate(config))
     Apps.reset
-    Apps.root = File.join(@deploy_test_dir, "apps")
-    Apps.tmp_root = File.join(@deploy_test_dir, "artifacts")
+    Apps.root = File.join(@publish_test_dir, "apps")
+    Apps.tmp_root = File.join(@publish_test_dir, "artifacts")
     Cmd.stubs(:local).returns("Apple TV 4K (00000000-0000-0000-0000-000000000000) (Shutdown)")
 
     [ "tv", "tvos" ].each { |name| Apps::Simulator.call(name) }

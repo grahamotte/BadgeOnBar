@@ -2,7 +2,7 @@ require_relative "../../test_helper"
 
 class AppsVersionSetterTest < Minitest::Test
   def test_sets_config_and_every_unique_apple_project
-    root = File.join(@deploy_test_dir, "root")
+    root = File.join(@publish_test_dir, "root")
     config_path = File.join(root, "config.json")
     first_project = File.join(root, "apps", "apple", "First.xcodeproj")
     second_project = File.join(root, "apps", "apple", "Second.xcodeproj")
@@ -42,7 +42,7 @@ class AppsVersionSetterTest < Minitest::Test
   end
 
   def test_rejects_invalid_versions_before_writing
-    root = File.join(@deploy_test_dir, "root")
+    root = File.join(@publish_test_dir, "root")
 
     error = assert_raises(RuntimeError) { Apps::VersionSetter.call("1.2", root:) }
 
@@ -51,7 +51,7 @@ class AppsVersionSetterTest < Minitest::Test
   end
 
   def test_rejects_configured_unsupported_targets
-    root = File.join(@deploy_test_dir, "root")
+    root = File.join(@publish_test_dir, "root")
     config_path = File.join(root, "config.json")
     project = File.join(root, "apps", "apple", "App.xcodeproj")
     FileUtils.mkdir_p(project)

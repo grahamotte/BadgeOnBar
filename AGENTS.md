@@ -58,7 +58,7 @@ Tags (pass them by id, not name, since Linearis does not resolve tag names per t
 
 When the user hands you a Linear card, use the `interactive-card` skill, unless the prompt says the manager runs the card.
 
-Operations are skills, and their cards name the skill to run: `deploy`, `merge`, and `publish`. Each skill finishes its own card and merges its own PRs; `mise deploy`, `mise merge`, and `mise deploy:publish` all work from `origin/master`.
+Operations are skills, and their cards name the skill to run: `deploy`, `merge`, and `publish`. Each skill finishes its own card and merges its own PRs; `mise deploy`, `mise merge`, and `mise publish` all work from `origin/master`.
 
 ## GitHub
 
@@ -73,16 +73,17 @@ Open pull requests on GitHub with `gh`, using `GITHUB_TOKEN` from the environmen
 - `.claude/skills` - Symlink to `.agents/skills/` for Claude Code.
 - `.env.default` - Template for the `.env.*` secret files.
 - `.env.*` - Gitignored secrets, identifiers issued or rotated with them, and `RAILS_ENV`/`NODE_ENV`. Do not expose secret values.
-- `.env.service` - Gitignored 1Password service account token (`SERVICE_ACCOUNT_TOKEN`), read from the repository root or, if absent, `~/.config/projects/.env.service`. `mise secrets` uses it to pull each env file from the `op://` secure note reference in `secrets` in `config.json`.
+- `.env.service` - Gitignored 1Password service account token (`SERVICE_ACCOUNT_TOKEN`), read from the repository root or, if absent, `~/.config/projects/.env.service`. `mise manager:secrets` uses it to pull each env file from the `op://` secure note reference in `secrets` in `config.json`.
 - `apps/` - Mobile apps for iOS and Android.
 - `assets/` - Shared images and media.
 - `backend/` - Ruby on Rails API server.
 - `config.json` - Non-secret configuration, including mobile app release (`apps`) and website subdomain (`subdomains`) settings. Code reads it directly instead of `ENV`.
-- `deploy/` - Backend, frontend, and mobile app deployment tooling.
+- `deploy/` - Backend and frontend deployment tooling.
 - `docs/` - Project documentation in Markdown.
 - `frontend/` - React website.
 - `gems/` - Shared Ruby gems.
-- `manager/` - Linear issue polling and agent triggers.
+- `manager/` - Linear issue polling, agent triggers, secrets, and spawning new apps.
+- `publish/` - Mobile app versioning, simulators, and App Store publishing.
 - `scripts/` - General-purpose scripts.
 - `mise.toml` - Project tooling and task definitions.
 

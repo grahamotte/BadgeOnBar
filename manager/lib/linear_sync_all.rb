@@ -1,7 +1,7 @@
 require "open3"
 
-class SyncAll
-  TASK = '[tasks."manager:sync"]'
+class LinearSyncAll
+  TASK = '[tasks."manager:linear_sync"]'
 
   class << self
     def call
@@ -33,14 +33,14 @@ class SyncAll
     end
 
     def sync(directory)
-      stdout, stderr, status = Open3.capture3("mise", "manager:sync", chdir: directory)
+      stdout, stderr, status = Open3.capture3("mise", "manager:linear_sync", chdir: directory)
       $stdout.print(stdout)
       $stderr.print(stderr) if stderr.present?
       return if status.success?
 
       message = stderr.strip
       message = stdout.strip if message.blank?
-      raise "mise manager:sync failed in #{directory}: #{message}"
+      raise "mise manager:linear_sync failed in #{directory}: #{message}"
     end
   end
 end

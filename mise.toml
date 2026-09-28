@@ -30,6 +30,9 @@ run = "cd deploy && mkdir -p log && bundle install"
 [tasks."dependencies:manager"]
 run = "cd manager && mkdir -p log && bundle install"
 
+[tasks."dependencies:publish"]
+run = "cd publish && mkdir -p log && bundle install"
+
 [tasks."dependencies:gems"]
 run = '''
 printf "%s\0" gems/*/ | xargs -0 -n 1 -P 4 sh -c '
@@ -46,22 +49,6 @@ run = [
 
 [tasks.dependencies]
 depends = ["dependencies:*"]
-
-#
-# Update
-#
-
-[tasks."update:backend"]
-run = "cd backend && bundle update"
-
-[tasks."update:frontend"]
-run = "cd frontend && pnpm update --latest --config.minimum-release-age=10080"
-
-[tasks."update:gems"]
-run = "for dir in gems/*/; do (cd \"$dir\" && bundle update); done"
-
-[tasks.update]
-depends = ["update:*"]
 
 #
 # Reset
@@ -231,8 +218,12 @@ run = 'cd deploy && bundle exec ruby -Itests -e "Dir.glob(\"tests/**/*_test.rb\"
 depends = ["dependencies:manager"]
 run = 'cd manager && bundle exec ruby -Itests -e "Dir.glob(\"tests/**/*_test.rb\").each { |f| require_relative f }"'
 
+[tasks."test:publish"]
+depends = ["dependencies:publish"]
+run = 'cd publish && bundle exec ruby -Itests -e "Dir.glob(\"tests/**/*_test.rb\").each { |f| require_relative f }"'
+
 [tasks."test:apps"]
-run = 'cd apps/apple && cp Tests/Package.swift Package.swift && trap "rm Package.swift" EXIT && swift test --quiet --scratch-path ../../deploy/tmp/apps/swift-tests'
+run = 'cd apps/apple && cp Tests/Package.swift Package.swift && trap "rm Package.swift" EXIT && swift test --quiet --scratch-path ../../publish/tmp/apps/swift-tests'
 
 [tasks.tsc]
 depends = ["dependencies:frontend"]
@@ -258,11 +249,6 @@ depends = ["test:*"]
 # Deploy
 #
 
-[tasks."deploy:spawn"]
-alias = ["spawn"]
-usage = 'arg "<domain>" help="Website domain (e.g., example.com)"'
-run = 'cd deploy && ruby spawn.rb "$usage_domain"'
-
 [tasks."deploy"]
 depends = ["dependencies:deploy"]
 run = "set -a && source .env.production && cd deploy && ruby deploy.rb 2>&1 | tee log/$(date +%Y-%m-%d-%H-%M-%S)_deploy.log"
@@ -271,26 +257,6 @@ run = "set -a && source .env.production && cd deploy && ruby deploy.rb 2>&1 | te
 alias = ["quick"]
 depends = ["dependencies:deploy"]
 run = "set -a && source .env.production && cd deploy && ruby quick.rb 2>&1 | tee log/$(date +%Y-%m-%d-%H-%M-%S)_quick.log"
-
-[tasks."deploy:publish"]
-alias = ["publish"]
-depends = ["dependencies:deploy"]
-usage = '''
-flag "--stop-before-submission" help="Prepare App Store versions for review without submitting"
-flag "--stop-before-prepare" help="Upload App Store builds for TestFlight without preparing or submitting versions"
-'''
-run = """
-set -a
-source .env.production
-export PUBLISH_STOP_BEFORE_SUBMISSION="${usage_stop_before_submission:-false}"
-export PUBLISH_STOP_BEFORE_PREPARE="${usage_stop_before_prepare:-false}"
-cd deploy
-ruby publish.rb 2>&1 | tee log/$(date +%Y-%m-%d-%H-%M-%S)_publish.log
-"""
-
-[tasks."deploy:approved-version"]
-depends = ["dependencies:deploy"]
-run = "set -a && source .env.production && cd deploy && ruby approved_version.rb"
 
 [tasks."deploy:patch"]
 depends = ["dependencies:deploy"]
@@ -339,10 +305,91 @@ alias = ["status"]
 depends = ["dependencies:deploy"]
 run = "set -a && source .env.production && cd deploy && ruby status.rb"
 
-[tasks."deploy:set-version"]
-depends = ["dependencies:deploy"]
+#
+# Publish
+#
+
+[tasks.publish]
+depends = ["dependencies:publish"]
+run = "set -a && source .env.production && cd publish && ruby publish.rb 2>&1 | tee log/$(date +%Y-%m-%d-%H-%M-%S)_publish.log"
+
+[tasks."publish:stop_before_prepare"]
+depends = ["dependencies:publish"]
+env = { PUBLISH_STOP_BEFORE_PREPARE = "true" }
+run = "set -a && source .env.production && cd publish && ruby publish.rb 2>&1 | tee log/$(date +%Y-%m-%d-%H-%M-%S)_publish.log"
+
+[tasks."publish:stop_before_submit"]
+depends = ["dependencies:publish"]
+env = { PUBLISH_STOP_BEFORE_SUBMIT = "true" }
+run = "set -a && source .env.production && cd publish && ruby publish.rb 2>&1 | tee log/$(date +%Y-%m-%d-%H-%M-%S)_publish.log"
+
+[tasks."publish:approved_version"]
+depends = ["dependencies:publish"]
+run = "set -a && source .env.production && cd publish && ruby approved_version.rb"
+
+[tasks."publish:set_version"]
+depends = ["dependencies:publish"]
 usage = 'arg "<version>" help="Semantic version (e.g., 1.1.1)"'
-run = 'cd deploy && ruby set_version.rb "$usage_version"'
+run = 'cd publish && ruby set_version.rb "$usage_version"'
+
+[tasks."publish:simulate"]
+alias = ["simulate"]
+depends = ["dependencies:publish"]
+usage = 'arg "<target>" help="Device to launch" choices "iphone" "phone" "ipad" "tablet" "mac" "macos" "osx" "tv" "tvos"'
+run = 'cd publish && ruby simulate.rb "$usage_target"'
+
+#
+# Manager
+#
+
+[tasks."manager:trigger"]
+depends = ["dependencies:manager"]
+run = "cd manager && bundle exec ruby trigger.rb"
+
+[tasks."manager:triggerall"]
+depends = ["dependencies:manager"]
+run = "cd manager && bundle exec ruby trigger_all.rb"
+
+[tasks."manager:linear_sync"]
+depends = ["dependencies:manager"]
+run = "cd manager && bundle exec ruby linear_sync.rb"
+
+[tasks."manager:linear_syncall"]
+depends = ["dependencies:manager"]
+run = "cd manager && bundle exec ruby linear_sync_all.rb"
+
+[tasks."manager:secrets"]
+run = '''
+service_file=".env.service"
+if [ ! -f "$service_file" ]; then service_file="$HOME/.config/projects/.env.service"; fi
+if [ ! -f "$service_file" ]; then echo 'Error: Missing .env.service in the repository or ~/.config/projects/.env.service.'; exit 1; fi
+set -a
+source "$service_file"
+set +a
+export OP_SERVICE_ACCOUNT_TOKEN="$SERVICE_ACCOUNT_TOKEN"
+trap 'rm -f "${file:-}"' EXIT
+for environment in development production; do
+  reference="$(node -p "require('./config.json').secrets?.$environment ?? ''")"
+  if [ -z "$reference" ]; then echo "Skipping .env.$environment: secrets.$environment is not set in config.json."; continue; fi
+  file="$(mktemp ".env.$environment.XXXXXX")"
+  chmod 600 "$file"
+  op read "$reference" > "$file"
+  mv "$file" ".env.$environment"
+  echo "Wrote .env.$environment"
+done
+'''
+
+[tasks."manager:spawn"]
+alias = ["spawn"]
+usage = 'arg "<domain>" help="Website domain (e.g., example.com)"'
+run = 'cd manager && ruby spawn.rb "$usage_domain"'
+
+#
+# Linear
+#
+
+[tasks.linear]
+run = 'LINEAR_API_TOKEN="$LINEAR_TOKEN" linearis'
 
 #
 # Other
@@ -365,62 +412,5 @@ if ! git merge-base HEAD upstream/master >/dev/null; then echo 'Error: This repo
 git merge --no-edit --no-ff upstream/master
 '''
 
-[tasks.secrets]
-run = '''
-service_file=".env.service"
-if [ ! -f "$service_file" ]; then service_file="$HOME/.config/projects/.env.service"; fi
-if [ ! -f "$service_file" ]; then echo 'Error: Missing .env.service in the repository or ~/.config/projects/.env.service.'; exit 1; fi
-set -a
-source "$service_file"
-set +a
-export OP_SERVICE_ACCOUNT_TOKEN="$SERVICE_ACCOUNT_TOKEN"
-trap 'rm -f "${file:-}"' EXIT
-for environment in development production; do
-  reference="$(node -p "require('./config.json').secrets?.$environment ?? ''")"
-  if [ -z "$reference" ]; then echo "Skipping .env.$environment: secrets.$environment is not set in config.json."; continue; fi
-  file="$(mktemp ".env.$environment.XXXXXX")"
-  chmod 600 "$file"
-  op read "$reference" > "$file"
-  mv "$file" ".env.$environment"
-  echo "Wrote .env.$environment"
-done
-'''
-
-[tasks.simulate]
-depends = ["dependencies:deploy"]
-usage = 'arg "<target>" help="Device to launch" choices "iphone" "phone" "ipad" "tablet" "mac" "macos" "osx" "tv" "tvos"'
-run = 'cd deploy && ruby simulate.rb "$usage_target"'
-
 [tasks.xcode]
 run = "open apps/apple/App.xcodeproj"
-
-#
-# Manager
-#
-
-[tasks."manager:trigger"]
-depends = ["dependencies:manager"]
-run = "cd manager && bundle exec ruby trigger.rb"
-
-[tasks."manager:triggerall"]
-depends = ["dependencies:manager"]
-run = "cd manager && bundle exec ruby trigger_all.rb"
-
-[tasks."manager:sync"]
-depends = ["dependencies:manager"]
-run = "cd manager && bundle exec ruby sync.rb"
-
-[tasks."manager:syncall"]
-depends = ["dependencies:manager"]
-run = "cd manager && bundle exec ruby sync_all.rb"
-
-[tasks."manager:watch"]
-depends = ["dependencies:manager"]
-run = "cd manager && bundle exec ruby watch.rb"
-
-#
-# Linear
-#
-
-[tasks.linear]
-run = 'LINEAR_API_TOKEN="$LINEAR_TOKEN" linearis'

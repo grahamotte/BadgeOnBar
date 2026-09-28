@@ -1,10 +1,10 @@
 require_relative "test_helper"
 
-class SyncTest < Minitest::Test
+class LinearSyncTest < Minitest::Test
   def test_syncs_statuses_and_tags_without_triggering
     calls = stub_sync(states: unsynced_states, tags: [], git_automations: default_git_automations)
 
-    output, = capture_io { Sync.call }
+    output, = capture_io { LinearSync.call }
 
     assert calls.any? { |call| graphql?(call, "query Workspace") }
     assert calls.any? { |call| graphql?(call, "query States") }
@@ -26,7 +26,7 @@ class SyncTest < Minitest::Test
   def test_is_noop_when_already_synced
     calls = stub_sync
 
-    output, = capture_io { Sync.call }
+    output, = capture_io { LinearSync.call }
 
     assert_equal "", output
     assert_empty calls.select { |call| graphql?(call, "mutation WorkflowState") }
@@ -40,7 +40,7 @@ class SyncTest < Minitest::Test
   def test_reraises_http_errors
     Req.stubs(:call).raises(Faraday::ConnectionFailed.new("Failed to open TCP connection to api.linear.app"))
 
-    error = assert_raises(Faraday::ConnectionFailed) { Sync.call }
+    error = assert_raises(Faraday::ConnectionFailed) { LinearSync.call }
 
     assert_equal "Failed to open TCP connection to api.linear.app", error.message
   end

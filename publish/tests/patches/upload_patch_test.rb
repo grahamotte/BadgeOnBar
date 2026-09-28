@@ -1,4 +1,4 @@
-require_relative "../../test_helper"
+require_relative "../test_helper"
 
 class AppsUploadPatchTest < Minitest::Test
   def test_skips_app_store_uploads

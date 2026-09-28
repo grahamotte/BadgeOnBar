@@ -8,9 +8,9 @@ class AppsTest < Minitest::Test
     assert_equal "Changes", Apps.config.fetch(:whatsNew)
     refute Apps.skip_app_stores?
     assert_equal :ios, Apps.targets.fetch(0).fetch(:name)
-    assert_equal File.join(@deploy_test_dir, "artifacts", "1.2.3", "ios.xcarchive"), Apps.archive_path(Apps.targets.fetch(0))
+    assert_equal File.join(@publish_test_dir, "artifacts", "1.2.3", "ios.xcarchive"), Apps.archive_path(Apps.targets.fetch(0))
     Apps.config[:name] = "Example App"
-    assert_equal File.join(@deploy_test_dir, "artifacts", "1.2.3", "revisions", "Example-App-ios-1.2.3.ipa"), Apps.revision_path(Apps.targets.fetch(0))
+    assert_equal File.join(@publish_test_dir, "artifacts", "1.2.3", "revisions", "Example-App-ios-1.2.3.ipa"), Apps.revision_path(Apps.targets.fetch(0))
     assert_equal "github.com", Apps.revision_repositories.fetch(0).fetch(:host)
     assert_equal "app", Apps.revision_repositories.fetch(0).fetch(:name)
   end
@@ -74,7 +74,7 @@ class AppsTest < Minitest::Test
   def test_reports_invalid_json
     File.write(Constants.config_path, "{")
     Apps.reset
-    Apps.root = File.join(@deploy_test_dir, "apps")
+    Apps.root = File.join(@publish_test_dir, "apps")
 
     error = assert_raises(RuntimeError) { Apps.config }
 
