@@ -47,43 +47,11 @@ The "Repo Specific" section blow contains rules specific to this repo only.
 
 ## Linear
 
-Work items are cards in Linear. Use `mise linear`, which runs the [Linearis](https://github.com/linearis-oss/linearis) CLI with `LINEAR_TOKEN` from the environment. Do not use Linear MCP tools. Refer to cards by identifier, for example `MOTO-1`; take it from the card URL if given one. Run `mise linear usage` or `mise linear <domain> usage` for the full command reference.
-
-Output is JSON. Global flags go before the domain: `--fields identifier,title,state.name` limits output (list results nest under `nodes.`), and `--compact` prints one line.
-
-The default team is `linear.team` in `config.json`. Cards in any team of the workspace can be read and updated by identifier; commands that need a team take `--team <key>`, so pass the default team or another team explicitly.
-
-Wherever a command takes a tag, pass its id, not its name. Each team has its own tags with the same names, and Linearis does not resolve tag names per team. Find team tags such as `interactive` with `mise linear --fields nodes.id,nodes.name labels list --team MOTO`, and workspace tags such as `working` with `mise linear --fields nodes.id,nodes.name labels list --scope workspace`.
+Work items are cards in Linear. Use `mise linear <args>`, which runs the [Linearis](https://github.com/linearis-oss/linearis) CLI with `LINEAR_TOKEN`; see `mise linear usage` for commands. Do not use Linear MCP tools. Refer to cards by identifier, for example `MOTO-1`. The default team is `linear.team` in `config.json`; pass `--team <key>` where a command needs one.
 
 Columns, in order: `Backlog`, `Planned`, `Ready`, `Working`, `Review`, `Approved`, `Completed`, `Canceled`.
 
-- Create a card: `mise linear issues create "<title>" --team MOTO --status Backlog --description "<markdown>" [--parent-ticket MOTO-1]`
-- Read a card: `mise linear issues read MOTO-1 --with-comment-threads --with-attachments`
-- Print only the description: `mise linear --fields description issues read MOTO-1`
-- List relations: `mise linear issues relations list MOTO-1`
-- List cards: `mise linear issues list --team MOTO [--status Ready] [--label <tag-id>]`
-- Search cards: `mise linear issues search "<query>" --team MOTO [--status Backlog]`
-- Move a card: `mise linear issues update MOTO-1 --status Review`
-- Edit fields: `mise linear issues update MOTO-1 [--title "<t>"] [--description "<markdown>"] [--priority 1-4] [--estimate 3] [--assignee me] [--due-date 2026-10-01] [--project "<name>"] [--parent-ticket MOTO-2]`
-- Clear fields: `mise linear issues update MOTO-1 --clear-estimate --clear-assignee --clear-due-date --clear-project --clear-parent-ticket`
-- Comment: `mise linear issues discuss MOTO-1 --body "<markdown>"`
-- List comment threads and their ids: `mise linear issues discussions MOTO-1`
-- Reply to a thread: `mise linear issues reply <thread-id> --body "<markdown>"`
-- Edit your comment: `mise linear issues edit <comment-id> --body "<markdown>"`
-- Delete your comment: `mise linear issues delete-comment <comment-id>`
-- Link a PR: `mise linear attachments create MOTO-1 --url <url> --title "<title>"` (updates the existing link if the URL is already attached)
-- Remove a link: find its id with `mise linear attachments list MOTO-1`, then `mise linear attachments delete <id>`
-- Tag or untag a card: `mise linear issues update MOTO-1 --labels <tag-id> --label-mode add` (or `remove`)
-- Relations: `mise linear issues update MOTO-1 --blocks MOTO-2` (`--blocks`, `--blocked-by`, `--relates-to`, `--duplicate-of`)
-- Remove a relation: `mise linear issues update MOTO-1 --remove-relation MOTO-2`
-
-Description updates replace the whole description. Read it right before editing and keep the rest intact. Pass long markdown from a file, `--description "$(cat <path>)"`, so the shell does not mangle it.
-
-Linear normalizes markdown on write: `* [ ]` becomes `- [ ]`, bare domains are autolinked, and `~~` around code spans can be mangled. After an edit, check the stored description rather than assuming byte equality with what you sent.
-
-Only edit or delete comments you wrote, and only work on cards outside the default team when the task calls for it.
-
-Tags:
+Tags (pass them by id, not name, since Linearis does not resolve tag names per team):
 
 - `working`: the manager's agent is processing the card. Only add or remove it when a manager prompt tells you to.
 - `interactive`: the card is worked with the user instead of by the manager. The manager does not pick it up from `ready`, but still merges it from `approved`.
