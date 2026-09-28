@@ -123,6 +123,29 @@ class WorktreeTest < Minitest::Test
     assert_equal [], git_commands
   end
 
+  def test_pulls_master
+    stub_git
+
+    Worktree.pull_master
+
+    assert_equal(
+      [
+        [ "git", "fetch", "origin" ],
+        [ "git", "checkout", "master" ],
+        [ "git", "pull", "--ff-only", "origin", "master" ],
+      ],
+      git_commands,
+    )
+  end
+
+  def test_raises_when_pull_master_fails
+    Open3.stubs(:capture3).returns([ "", "network error", status(false) ])
+
+    error = assert_raises(RuntimeError) { Worktree.pull_master }
+
+    assert_equal "git fetch origin failed: network error", error.message
+  end
+
   def test_raises_when_remove_fails
     item = { identifier: "MOTO-17" }
     path = Worktree.path_for(item)

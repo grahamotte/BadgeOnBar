@@ -12,6 +12,7 @@ class Trigger
         case column
         when COMPLETED, CANCELED
           items.each { |item| cleanup_worktree(item) }
+          pull_master if column == COMPLETED
           next
         end
 
@@ -46,6 +47,13 @@ class Trigger
       return unless Worktree.remove(item)
 
       puts "removed worktree for #{Linear.identifier(item)}"
+    end
+
+    def pull_master
+      Worktree.pull_master
+      puts "updated master"
+    rescue StandardError => error
+      puts "failed to update master: #{error.message}"
     end
 
     def start_agent(item, prompt, directory:)
@@ -98,7 +106,7 @@ class Trigger
 
         1. Rebase the GitHub PR on the card. Resolve merge conflicts.
         2. Merge the PR with `gh pr merge` using `GITHUB_TOKEN`.
-        3. If this session is in the main checkout rather than a worktree, run `git checkout master` and `git pull --ff-only origin master`.
+        3. In the main checkout (the repo directory, not the card worktree), run `git fetch origin && git checkout master && git pull --ff-only origin master`.
         4. Move the card to completed.
         5. Remove the working tag.
       PROMPT

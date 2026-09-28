@@ -35,6 +35,12 @@ class Worktree
       true
     end
 
+    def pull_master
+      run("git", "fetch", "origin")
+      run("git", "checkout", "master")
+      run("git", "pull", "--ff-only", "origin", "master")
+    end
+
     def path_for(item)
       File.expand_path("../#{File.basename(root)}-#{branch_for(item)}", root)
     end
