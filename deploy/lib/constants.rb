@@ -1,6 +1,6 @@
 class Constants
   class << self
-    attr_writer :config_path
+    attr_writer :config_path, :local_env_path
 
     def local_root = File.dirname(File.dirname(File.dirname(__FILE__)))
     def config_path = @config_path || File.join(local_root, "config.json")
@@ -19,7 +19,7 @@ class Constants
     def instance_size = config.dig(:instance, :size)
     def remote_env_path = File.join(remote_root, ".env")
     def remote_env_prod_path = File.join(remote_root, ".env.production")
-    def local_env_path = File.join(local_root, ".env.production")
+    def local_env_path = @local_env_path || File.join(local_root, ".env.production")
     def db_name = "#{config.fetch(:database)}_production"
     def backup_access_key_id = ENV.fetch("BACKUP_ACCESS_KEY_ID")
     def backup_secret_access_key = ENV.fetch("BACKUP_SECRET_ACCESS_KEY")

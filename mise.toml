@@ -364,6 +364,26 @@ if ! git merge-base HEAD upstream/master >/dev/null; then echo 'Error: This repo
 git merge --no-edit --no-ff upstream/master
 '''
 
+[tasks.secrets]
+run = '''
+if [ ! -f .env.service ]; then echo 'Error: Missing .env.service.'; exit 1; fi
+set -a
+source .env.service
+set +a
+export OP_SERVICE_ACCOUNT_TOKEN="$SERVICE_ACCOUNT_TOKEN"
+trap 'rm -f "${file:-}"' EXIT
+for environment in development production; do
+  reference_name="$(echo "$environment" | tr '[:lower:]' '[:upper:]')_ENV_REF"
+  reference="${!reference_name:-}"
+  if [ -z "$reference" ]; then echo "Skipping .env.$environment: $reference_name is not set in .env.service."; continue; fi
+  file="$(mktemp ".env.$environment.XXXXXX")"
+  chmod 600 "$file"
+  op read "$reference" > "$file"
+  mv "$file" ".env.$environment"
+  echo "Wrote .env.$environment"
+done
+'''
+
 [tasks.simulate]
 depends = ["dependencies:deploy"]
 usage = 'arg "<target>" help="Device to launch" choices "iphone" "phone" "ipad" "tablet" "mac" "macos" "osx" "tv" "tvos"'
