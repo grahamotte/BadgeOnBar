@@ -42,6 +42,10 @@
     "region": "sfo3",
     "size": "s-1vcpu-2gb"
   },
+  "secrets": {
+    "development": "op://Projects/Code Moto Development/notesPlain",
+    "production": "op://Projects/Code Moto Production/notesPlain"
+  },
   "linear": {
     "workspace": "gotte",
     "team": "MOTO"

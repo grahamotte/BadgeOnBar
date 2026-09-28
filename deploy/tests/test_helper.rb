@@ -91,6 +91,7 @@ module DeployTestIsolation
     FileUtils.rm_rf(@deploy_test_dir)
     Apps.reset
     Constants.config_path = nil
+    Constants.local_env_path = nil
     Constants.instance_variable_set(:@config, nil)
     super
   end
@@ -107,6 +108,8 @@ module DeployTestIsolation
     File.write(screenshot_path, "screenshot")
     Constants.config_path = File.join(@deploy_test_dir, "config.json")
     Constants.instance_variable_set(:@config, nil)
+    Constants.local_env_path = File.join(@deploy_test_dir, ".env.production")
+    File.write(Constants.local_env_path, "RAILS_ENV=production\nNODE_ENV=production\n")
     File.write(
       Constants.config_path,
       JSON.generate(

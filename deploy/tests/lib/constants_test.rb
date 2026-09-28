@@ -7,7 +7,7 @@ class ConstantsTest < Minitest::Test
     assert_equal "/home/deploy/example.com.git", Constants.remote_git_dir
     assert_equal "/var/www/example.com/.env", Constants.remote_env_path
     assert_equal "/var/www/example.com/.env.production", Constants.remote_env_prod_path
-    assert_equal File.join(Constants.local_root, ".env.production"), Constants.local_env_path
+    assert_equal File.join(@deploy_test_dir, ".env.production"), Constants.local_env_path
     assert_equal "git@github.com:example/app.git", Constants.github_repo
   end
 
@@ -23,5 +23,11 @@ class ConstantsTest < Minitest::Test
     Constants.config_path = nil
 
     assert_equal File.join(Constants.local_root, "config.json"), Constants.config_path
+  end
+
+  def test_default_local_env_path
+    Constants.local_env_path = nil
+
+    assert_equal File.join(Constants.local_root, ".env.production"), Constants.local_env_path
   end
 end

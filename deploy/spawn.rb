@@ -152,6 +152,7 @@ class Spawner
       "domain" => @app_name,
       "githubRepo" => repo,
       "database" => database_name,
+      "secrets" => config.fetch("secrets", {}).transform_values { "" },
     )
     File.write(path, "#{JSON.pretty_generate(config)}\n")
     @output.puts "Updated #{path}"
