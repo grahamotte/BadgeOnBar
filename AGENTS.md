@@ -47,7 +47,7 @@ The "Repo Specific" section blow contains rules specific to this repo only.
 
 ## Linear
 
-Work items are cards in Linear. Use the `mise linear:*` tasks, which call the Linear API with `LINEAR_TOKEN`, `LINEAR_WORKSPACE`, and `LINEAR_TEAM` from the environment. Do not use Linear MCP tools. Refer to cards by identifier, for example `MOTO-1`; take it from the card URL if given one.
+Work items are cards in Linear. Use the `mise linear:*` tasks, which call the Linear API with `LINEAR_TOKEN` from the environment and the `linear.workspace` and `linear.team` values in `config.json`. Do not use Linear MCP tools. Refer to cards by identifier, for example `MOTO-1`; take it from the card URL if given one.
 
 Columns, in order: `backlog`, `planned`, `ready`, `working`, `review`, `approved`, `completed`, `canceled`.
 
@@ -67,7 +67,7 @@ Columns, in order: `backlog`, `planned`, `ready`, `working`, `review`, `approved
 - Untag a card: `mise linear:untag MOTO-1 <tag>`
 - Relations: `mise linear:relate MOTO-1 blocks MOTO-2` (`blocks`, `blocked-by`, `related`, `duplicate`)
 - Remove a relation: `mise linear:unrelate MOTO-1 MOTO-2`
-- Other team in this workspace: pass `--team ME` instead of changing `LINEAR_TEAM`. Without it, cards outside `LINEAR_TEAM` are refused.
+- Other team in this workspace: pass `--team ME` instead of changing `linear.team`. Without it, cards outside `linear.team` are refused.
 
 When updating a description, pass `--expect-file` (the previous `linear:show --raw` output) or `--expect-hash` (the `Description hash` from `linear:show`). The edit is refused if the card description changed since that read.
 
@@ -84,7 +84,7 @@ Operations are skills, and their cards name the skill to run: `deploy`, `merge`,
 
 ## GitHub
 
-Open pull requests on GitHub with `gh`, using `GITHUB_TOKEN` from the environment. `gh` targets `origin`, the app repo from `GITHUB_REPO`, never `upstream`: `mise merge` sets `origin` as the `gh` default, and the `mise` env exports it as `GH_REPO`.
+Open pull requests on GitHub with `gh`, using `GITHUB_TOKEN` from the environment. `gh` targets `origin`, the app repo from `githubRepo` in `config.json`, never `upstream`: `mise merge` sets `origin` as the `gh` default, and the `mise` env exports it as `GH_REPO`.
 
 - Push the branch, then `gh pr create`.
 - Merge with `gh pr merge`.
@@ -93,15 +93,15 @@ Open pull requests on GitHub with `gh`, using `GITHUB_TOKEN` from the environmen
 
 - `.agents/skills/` - Project-specific agent skills.
 - `.claude/skills` - Symlink to `.agents/skills/` for Claude Code.
-- `.env.*` - Environment configuration and secrets. Do not expose secret values.
+- `.env.default` - Template for the `.env.*` secret files.
+- `.env.*` - Gitignored secrets only. Do not expose secret values.
 - `apps/` - Mobile apps for iOS and Android.
-- `apps/config.json` - Mobile app release configuration.
 - `assets/` - Shared images and media.
 - `backend/` - Ruby on Rails API server.
+- `config.json` - Non-secret configuration, including mobile app release (`apps`) and website subdomain (`subdomains`) settings. Code reads it directly instead of `ENV`.
 - `deploy/` - Backend, frontend, and mobile app deployment tooling.
 - `docs/` - Project documentation in Markdown.
 - `frontend/` - React website.
-- `frontend/subdomains.json` - Website subdomain configuration.
 - `gems/` - Shared Ruby gems.
 - `manager/` - Linear issue polling and agent triggers.
 - `scripts/` - General-purpose scripts.

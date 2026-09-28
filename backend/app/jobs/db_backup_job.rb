@@ -175,10 +175,10 @@ class DbBackupJob < ApplicationJob
     }
   end
 
-  def db_name = ENV.fetch("DB_NAME")
-  def deploy_user = ENV.fetch("DEPLOY_USER")
-  def endpoint = ENV.fetch("BACKUP_ENDPOINT")
-  def bucket = ENV.fetch("BACKUP_BUCKET")
+  def db_name = ActiveRecord::Base.connection_db_config.database
+  def deploy_user = Settings.all.dig(:deploy, :user)
+  def endpoint = Settings.all.dig(:backup, :endpoint)
+  def bucket = Settings.all.dig(:backup, :bucket)
 
   def backup_directory
     ENV.fetch("BACKUP_LOCAL_DIR", File.join("/home", deploy_user, "backups"))

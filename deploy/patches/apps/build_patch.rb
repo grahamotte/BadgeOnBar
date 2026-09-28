@@ -32,7 +32,7 @@ module Apps
               "MARKETING_VERSION=#{Apps.version}",
               "CURRENT_PROJECT_VERSION=#{Apps.build}",
               "#{target.fetch(:bundleIdentifierBuildSetting, "PRODUCT_BUNDLE_IDENTIFIER")}=#{target.fetch(:bundleIdentifier)}",
-              "DEVELOPMENT_TEAM=#{ENV.fetch("APPLE_TEAM_ID")}",
+              "DEVELOPMENT_TEAM=#{Constants.apple_team_id}",
               "OTHER_CODE_SIGN_FLAGS=--keychain #{keychain}",
               *Apps.authentication_arguments,
               *(target.fetch(:platform) == "MAC_OS" ? [ "ENABLE_HARDENED_RUNTIME=YES" ] : []),

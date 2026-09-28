@@ -1,0 +1,157 @@
+{
+  "domain": "codemoto.org",
+  "githubRepo": "git@github.com:grahamotte/codemoto.org.git",
+  "database": "codemoto",
+  "site": {
+    "title": "Code Moto",
+    "description": "code moto is the base for other projects",
+    "themeColor": "oklch(0 0 0)"
+  },
+  "instance": {
+    "region": "sfo3",
+    "size": "s-1vcpu-2gb"
+  },
+  "deploy": {
+    "user": "deploy",
+    "sshKeyPub": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCp8F+Y76/rSke1dSPtLq/YDTxnGDb7lyfRVfoutv3mBjOHEZBQ+HjUJeJOkkUWS8a611NFn+Ubq21kWM0XrNKhW/kbee+nqeMf8rI51nsFlYmz/mAGMzPaWBtE5HfNEBlNIuogfbFHl2hCyUO0jf4FwBjAGRdcBCytqc/1Ez6PEiS06s3BXdBVrPU7Wf0fGLKGhFnj1fv7zZNGnXs5HWkn/zx4N65Ws05K2k3etnRoHS6y0r2lQijcO2Sy5pC8HIsWFoixFtrdHpxryXgoUmr9LqqS8zjHObCAPk1Vsg47VUktROHNlPWmhPiFCX277XJhLUhUZtvgIXPTFz8lvKVShbxzY8U1KqqNG3uXMLqNW1rge7zSOCyeGUsCz9EAZRTtfWkM/H0vGFCMF1vt43eQAY3/0s/9Tu0aUydXSJgJpl0KQrM4z7XRLLWhNKaP5fY4aa+Aqger0hc+mzaKgP3hUS+2tBx09Hfgc/yy1z7D1ArzsWBeppM9MPSXk3RitbWJW9njC5JmDukU7cwHK1U0hZDU5hgU1SD2wz2ws5jai4pr4IRv7kaSRQV6LpJRvh9veXopjzNKDz/MbwGb33t9vaCHJyqgs1MJTkRIIWXj60GFo3Kq7QyiJV16AbLbkWWVD1vLiMgfyuMS47DubEdEOavf4j1ZKXI3e8kfALK5Dw== deploy@Gimlet",
+    "sshKeyFingerprint": "bf:31:8f:91:95:b9:d8:46:e5:60:fd:0b:26:05:9f:19"
+  },
+  "backup": {
+    "bucket": "databases-a59ffa28",
+    "endpoint": "https://s3.us-west-002.backblazeb2.com"
+  },
+  "dashboard": {
+    "username": "admin"
+  },
+  "linear": {
+    "workspace": "gotte",
+    "team": "MOTO"
+  },
+  "agent": {
+    "runner": "openchamber",
+    "model": "xai/grok-4.6",
+    "variant": "medium"
+  },
+  "apple": {
+    "teamId": "3QCHM255VF",
+    "issuerId": "e793992f-76b7-4334-a59f-93297f96b6b7",
+    "keyId": "6Y5BX3HF4G"
+  },
+  "apps": {
+    "build": "0.2.0",
+    "contactEmail": "go@graham.lol",
+    "contactFirstName": "Graham",
+    "contactLastName": "Otte",
+    "contactPhone": "+1 202 555 0100",
+    "copyright": "2026 Graham Otte",
+    "demoAccountName": "",
+    "demoAccountPassword": "",
+    "demoAccountRequired": false,
+    "description": "Code Moto helps developers build momentum with focused coding sessions. Name what you're working on, choose a session length, and track completed sessions entirely on your device.",
+    "keywords": "focus,timer,coding,developer,productivity,session,momentum,work",
+    "marketingUrl": "https://codemoto.org",
+    "name": "Code Moto",
+    "notes": "Code Moto does not require an account or sign-in. All session data is stored locally on the device.",
+    "primaryLocale": "en-US",
+    "promotionalText": "Build momentum with focused coding sessions and keep a private record of completed work.",
+    "releaseType": "AFTER_APPROVAL",
+    "supportUrl": "https://codemoto.org",
+    "targets": {
+      "apple": {
+        "ios": {
+          "archiveDestination": "generic/platform=iOS",
+          "bundleIdentifier": "com.grahamotte.codemoto",
+          "platform": "IOS",
+          "project": "apps/apple/App.xcodeproj",
+          "scheme": "App",
+          "screenshots": [
+            {
+              "displayType": "APP_IPHONE_65",
+              "path": "apps/screenshots/ios-iphone-1.jpeg"
+            },
+            {
+              "displayType": "APP_IPAD_PRO_3GEN_129",
+              "path": "apps/screenshots/ios-ipad-1.jpeg"
+            }
+          ],
+          "simulatorDestination": "generic/platform=iOS Simulator",
+          "simulatorProduct": "Debug-iphonesimulator/App.app",
+          "simulators": {
+            "ipad": "iPad",
+            "iphone": "iPhone"
+          }
+        },
+        "macos": {
+          "archiveDestination": "generic/platform=macOS",
+          "bundleIdentifier": "com.grahamotte.codemoto",
+          "platform": "MAC_OS",
+          "project": "apps/apple/App.xcodeproj",
+          "scheme": "App-macOS",
+          "screenshots": [
+            {
+              "displayType": "APP_DESKTOP",
+              "path": "apps/screenshots/macos-1.jpeg"
+            }
+          ],
+          "simulatorDestination": "platform=macOS",
+          "simulatorProduct": "Debug/App-macOS.app",
+          "simulators": {
+            "macos": "Mac"
+          }
+        },
+        "tvos": {
+          "archiveDestination": "generic/platform=tvOS",
+          "bundleIdentifier": "com.grahamotte.codemoto",
+          "platform": "TV_OS",
+          "project": "apps/apple/App.xcodeproj",
+          "scheme": "App-tvOS",
+          "screenshots": [
+            {
+              "displayType": "APP_APPLE_TV",
+              "path": "apps/screenshots/tvos-1.jpeg"
+            }
+          ],
+          "simulatorDestination": "generic/platform=tvOS Simulator",
+          "simulatorProduct": "Debug-appletvsimulator/App-tvOS.app",
+          "simulators": {
+            "tv": "Apple TV"
+          }
+        }
+      },
+      "android": {}
+    },
+    "version": "0.2.0",
+    "whatsNew": "Added repository-only macOS publishing and improved release reliability."
+  },
+  "subdomains": [
+    {
+      "name": "www",
+      "subdomains": [
+        "",
+        "www"
+      ],
+      "directory": "frontend/subdomains/www"
+    },
+    {
+      "name": "hc",
+      "subdomains": [
+        "hc"
+      ],
+      "directory": "frontend/subdomains/hc"
+    },
+    {
+      "name": "jobs",
+      "subdomains": [
+        "jobs"
+      ],
+      "backend": true
+    },
+    {
+      "name": "errors",
+      "subdomains": [
+        "errors"
+      ],
+      "backend": true
+    }
+  ]
+}

@@ -91,9 +91,9 @@ class AppsSimulatorTest < Minitest::Test
   end
 
   def test_builds_and_launches_macos_app
-    config_path = File.join(Apps.root, "config.json")
+    config_path = Constants.config_path
     config = JSON.parse(File.read(config_path))
-    config.fetch("targets").fetch("apple")["macos"] = {
+    config.dig("apps", "targets", "apple")["macos"] = {
       archiveDestination: "generic/platform=macOS",
       bundleIdentifier: "org.example.app",
       platform: "MAC_OS",
@@ -119,9 +119,9 @@ class AppsSimulatorTest < Minitest::Test
   end
 
   def test_accepts_tv_aliases
-    config_path = File.join(Apps.root, "config.json")
+    config_path = Constants.config_path
     config = JSON.parse(File.read(config_path))
-    config.fetch("targets").fetch("apple")["tvos"] = {
+    config.dig("apps", "targets", "apple")["tvos"] = {
       archiveDestination: "generic/platform=tvOS",
       bundleIdentifier: "org.example.tv-app",
       platform: "TV_OS",

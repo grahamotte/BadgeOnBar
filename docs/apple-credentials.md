@@ -1,24 +1,26 @@
 # Apple credentials
 
-`mise deploy:publish` signs and publishes Apple apps without using an Xcode login or certificates from the login keychain. Keep every value below in the deployment environment. For local publishing, that is the gitignored `.env.production` file.
+`mise deploy:publish` signs and publishes Apple apps without using an Xcode login or certificates from the login keychain. Keep the secret values below in the deployment environment. For local publishing, that is the gitignored `.env.production` file. The team, issuer, and key IDs are not secret and live in the `apple` section of `config.json`.
 
 ## Repository-only macOS releases
 
-Set `"skip_app_stores": true` at the top level of `apps/config.json` to publish only the macOS release to GitHub. The workflow still archives the app, signs it with Developer ID, notarizes and staples it, and uploads the installable zip to the repository. It skips App Store exports, uploads, metadata, screenshots, build attachment, and submission preparation.
+Set `"skip_app_stores": true` in the `apps` section of `config.json` to publish only the macOS release to GitHub. The workflow still archives the app, signs it with Developer ID, notarizes and staples it, and uploads the installable zip to the repository. It skips App Store exports, uploads, metadata, screenshots, build attachment, and submission preparation.
 
 Repository-only releases do not require the Apple Distribution or Mac Installer Distribution certificate variables. The Apple Development and Developer ID certificate variables, App Store Connect API key variables, Apple team ID, and GitHub credentials remain required for archiving, provisioning, notarization, and release uploads.
 
 ## App Review attachments
 
-Add an optional top-level `reviewAttachments` array to `apps/config.json` when App Review needs sample files, documentation, or videos to test the app:
+Add an optional `reviewAttachments` array to the `apps` section of `config.json` when App Review needs sample files, documentation, or videos to test the app:
 
 ```json
 {
-  "reviewAttachments": [
-    {
-      "path": "apps/review/sample.zip"
-    }
-  ]
+  "apps": {
+    "reviewAttachments": [
+      {
+        "path": "apps/review/sample.zip"
+      }
+    ]
+  }
 }
 ```
 
@@ -26,11 +28,11 @@ Paths are resolved from the repository root. Publishing validates each file, upl
 
 ## Credentials
 
-| Environment variable | Purpose | Normal rotation |
+| Setting | Purpose | Normal rotation |
 | --- | --- | --- |
-| `APPLE_TEAM_ID` | Selects the Apple Developer team for archives, exports, profiles, and notarization. | Never, unless the app changes teams. |
-| `APPLE_ISSUER_ID` | Identifies the issuer of the App Store Connect team API key. | Rotate with the API key if Apple supplies a different issuer. |
-| `APPLE_KEY_ID` | Identifies the App Store Connect team API key. | Rotate with the API key. |
+| `apple.teamId` in `config.json` | Selects the Apple Developer team for archives, exports, profiles, and notarization. | Never, unless the app changes teams. |
+| `apple.issuerId` in `config.json` | Identifies the issuer of the App Store Connect team API key. | Rotate with the API key if Apple supplies a different issuer. |
+| `apple.keyId` in `config.json` | Identifies the App Store Connect team API key. | Rotate with the API key. |
 | `APPLE_KEY_SECRET_BASE64` | Base64-encoded `.p8` private key used for App Store Connect, Xcode provisioning, uploads, and notarization. | Rotate with the API key. |
 | `APPLE_DEVELOPMENT_CERTIFICATE_BASE64` | Base64-encoded Apple Development identity used to create Xcode archives. | Before expiry or after private-key compromise. |
 | `APPLE_DEVELOPMENT_CERTIFICATE_PASSWORD` | Password for the Apple Development `.p12`. | Rotate with that `.p12`. |
@@ -84,7 +86,7 @@ The workflow needs a **team API key with Admin access**. Individual API keys do 
    base64 -i AuthKey_<KEY_ID>.p8
    ```
 
-6. Update `APPLE_ISSUER_ID`, `APPLE_KEY_ID`, and `APPLE_KEY_SECRET_BASE64` together.
+6. Update `apple.issuerId` and `apple.keyId` in `config.json` and `APPLE_KEY_SECRET_BASE64` together.
 7. Load the new environment and verify authentication without publishing:
 
    ```sh
@@ -95,7 +97,9 @@ The workflow needs a **team API key with Admin access**. Individual API keys do 
    trap 'rm -f "$key_file"' EXIT
    printf "%s" "$APPLE_KEY_SECRET_BASE64" | base64 -D > "$key_file"
    chmod 600 "$key_file"
-   xcrun notarytool history --key "$key_file" --key-id "$APPLE_KEY_ID" --issuer "$APPLE_ISSUER_ID"
+   key_id="$(node -p 'require("./config.json").apple.keyId')"
+   issuer_id="$(node -p 'require("./config.json").apple.issuerId')"
+   xcrun notarytool history --key "$key_file" --key-id "$key_id" --issuer "$issuer_id"
    ```
 
 8. Run the next end-to-end publish while the old key remains active.

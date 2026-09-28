@@ -8,7 +8,7 @@ class SecretsPatchTest < Minitest::Test
     SecretsPatch.always
     SecretsPatch.always
 
-    content = File.read(Constants.local_env_path)
+    content = "#{File.read(Constants.local_env_path).chomp}\nRAILS_ENV=production\nNODE_ENV=production\n"
     assert_equal(
       [
         [ Constants.remote_env_path, content ],

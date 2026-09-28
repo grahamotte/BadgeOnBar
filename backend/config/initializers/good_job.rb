@@ -1,4 +1,4 @@
-dashboard_username = ENV.fetch("DASHBOARD_USERNAME", "admin")
+dashboard_username = Settings.all.dig(:dashboard, :username) || "admin"
 dashboard_password = ENV.fetch("DASHBOARD_PASSWORD", "coolbeans")
 
 GoodJob::Engine.middleware.use(Rack::Auth::Basic) do |username, password|

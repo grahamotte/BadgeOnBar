@@ -11,10 +11,6 @@ class DbBackupJobTest < ActiveSupport::TestCase
     ENV["BACKUP_ACCESS_KEY_ID"] = "test_access_key"
     ENV["BACKUP_SECRET_ACCESS_KEY"] = "test_secret_key"
     ENV["BACKUP_LOCAL_DIR"] = @backup_directory
-    ENV["DB_NAME"] = "test_db"
-    ENV["DEPLOY_USER"] = "deploy"
-    ENV["BACKUP_ENDPOINT"] = "https://s3.example.com"
-    ENV["BACKUP_BUCKET"] = "test-bucket"
   end
 
   def teardown
@@ -23,16 +19,12 @@ class DbBackupJobTest < ActiveSupport::TestCase
       BACKUP_ACCESS_KEY_ID
       BACKUP_SECRET_ACCESS_KEY
       BACKUP_LOCAL_DIR
-      DB_NAME
-      DEPLOY_USER
-      BACKUP_ENDPOINT
-      BACKUP_BUCKET
     ].each { |key| ENV.delete(key) }
   end
 
   def test_perform_uploads_verifies_and_prunes_backups
-    outdated = "test_db_#{61.days.ago.to_i}.sql"
-    recent = "test_db_#{1.day.ago.to_i}.sql"
+    outdated = "#{db_name}_#{61.days.ago.to_i}.sql"
+    recent = "#{db_name}_#{1.day.ago.to_i}.sql"
     job, commands = build_job do |_, command|
       if command.first == "/usr/bin/pg_dump"
         File.binwrite(command.fetch(command.index("--file") + 1), "database dump")
@@ -50,11 +42,11 @@ class DbBackupJobTest < ActiveSupport::TestCase
     dump = commands.find { |_, command| command.first == "/usr/bin/pg_dump" }.last
     upload = commands.find { |_, command| command.each_cons(2).any? { |items| items == [ "s3", "cp" ] } }.last
     key = File.basename(upload.fetch(-2))
-    assert_equal [ "-U", "deploy", "--clean" ], dump.slice(1, 3)
-    assert_equal [ "#{@backup_directory}/#{key}", "s3://test-bucket/#{key}" ], upload.last(2)
-    assert commands.any? { |_, command| command.last(4) == [ "--bucket", "test-bucket", "--key", key ] }
-    assert commands.any? { |_, command| command.last == "s3://test-bucket/#{outdated}" }
-    refute commands.any? { |_, command| command.last == "s3://test-bucket/#{recent}" }
+    assert_equal [ "-U", Settings.all.dig(:deploy, :user), "--clean" ], dump.slice(1, 3)
+    assert_equal [ "#{@backup_directory}/#{key}", "s3://#{bucket}/#{key}" ], upload.last(2)
+    assert commands.any? { |_, command| command.last(4) == [ "--bucket", bucket, "--key", key ] }
+    assert commands.any? { |_, command| command.last == "s3://#{bucket}/#{outdated}" }
+    refute commands.any? { |_, command| command.last == "s3://#{bucket}/#{recent}" }
     assert_empty Dir.children(@backup_directory)
 
     storage_environment = commands.find { |_, command| command.first == "aws" }.first
@@ -142,7 +134,7 @@ class DbBackupJobTest < ActiveSupport::TestCase
   end
 
   def test_new_scheduled_execution_preserves_a_new_dump_during_an_outage
-    pending_path = File.join(@backup_directory, "test_db_previous-job_#{1.day.ago.to_i}.sql")
+    pending_path = File.join(@backup_directory, "#{db_name}_previous-job_#{1.day.ago.to_i}.sql")
     File.binwrite(pending_path, "previous dump")
     job, = build_job do |_, command|
       if command.first == "/usr/bin/pg_dump"
@@ -160,6 +152,9 @@ class DbBackupJobTest < ActiveSupport::TestCase
   end
 
   private
+
+  def db_name = ActiveRecord::Base.connection_db_config.database
+  def bucket = Settings.all.dig(:backup, :bucket)
 
   def build_job(&response)
     commands = []

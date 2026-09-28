@@ -10,7 +10,7 @@ module Apps
 
     def root = @root || File.join(Constants.local_root, "apps")
     def tmp_root = @tmp_root || File.join(Constants.local_root, "deploy", "tmp", "apps")
-    def config = @config ||= read_json(File.join(root, "config.json"))
+    def config = @config ||= read_json(Constants.config_path).fetch(:apps)
     def version = config.fetch(:version)
     def build = config.fetch(:build)
     def skip_app_stores? = config.fetch(:skip_app_stores, false)
@@ -77,9 +77,9 @@ module Apps
         "-authenticationKeyPath",
         private_key_path,
         "-authenticationKeyID",
-        ENV.fetch("APPLE_KEY_ID"),
+        Constants.apple_key_id,
         "-authenticationKeyIssuerID",
-        ENV.fetch("APPLE_ISSUER_ID"),
+        Constants.apple_issuer_id,
       ]
     end
 
