@@ -373,9 +373,8 @@ set +a
 export OP_SERVICE_ACCOUNT_TOKEN="$SERVICE_ACCOUNT_TOKEN"
 trap 'rm -f "${file:-}"' EXIT
 for environment in development production; do
-  reference_name="$(echo "$environment" | tr '[:lower:]' '[:upper:]')_ENV_REF"
-  reference="${!reference_name:-}"
-  if [ -z "$reference" ]; then echo "Skipping .env.$environment: $reference_name is not set in .env.service."; continue; fi
+  reference="$(node -p "require('./config.json').secrets?.$environment ?? ''")"
+  if [ -z "$reference" ]; then echo "Skipping .env.$environment: secrets.$environment is not set in config.json."; continue; fi
   file="$(mktemp ".env.$environment.XXXXXX")"
   chmod 600 "$file"
   op read "$reference" > "$file"

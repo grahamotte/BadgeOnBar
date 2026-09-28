@@ -127,6 +127,7 @@ class SpawnerTest < Minitest::Test
     assert_equal "git@github.com:grahamotte/new-app.net.git", config.fetch("githubRepo")
     assert_equal "new-app.net", config.fetch("domain")
     assert_equal "new_app", config.fetch("database")
+    assert_equal({ "development" => "", "production" => "" }, config.fetch("secrets"))
     assert_equal source_config.fetch("instance"), config.fetch("instance")
     assert_equal source_config.fetch("subdomains"), config.fetch("subdomains")
     assert_includes File.read(File.join(target_dir, ".env.production")), "OPENROUTER_TOKEN=xxx\n"
