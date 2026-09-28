@@ -243,7 +243,7 @@ class LinearTest < Minitest::Test
     assert_equal "#26b5ce", updates.find { |variables| variables[:id] == "s-progress" }.dig(:input, :color)
     assert_equal "Completed", updates.find { |variables| variables[:id] == "s-done" }.dig(:input, :name)
     assert_equal [ "Working", "Review", "Approved" ], creates.map { |input| input[:name] }
-    assert_equal [ 3.0, 4.0, 5.0 ], creates.map { |input| input[:position] }
+    assert_equal [ 1000.0, 2000.0, 3000.0 ], creates.map { |input| input[:position] }
     refute updates.any? { |variables| variables.dig(:input, :position).present? }
     assert_equal [ "s-groom" ], archives
     assert_includes output, "renamed Todo to Planned"
@@ -294,17 +294,49 @@ class LinearTest < Minitest::Test
   end
 
   def test_sync_statuses_reorders_started_group
-    calls = stub_linear(states: ranked_started_states(ready: 0.0, working: 3000.0, review: 2000.0, approved: 1000.0))
+    states = ranked_started_states(ready: 0.0, working: 3000.0, review: 2000.0, approved: 1000.0)
+    states << { id: "s-dup", name: "Duplicate", type: "duplicate", color: "#95a2b3", position: 9000.0 }
+    calls = stub_linear(states:)
 
     output, = capture_io { Linear.sync_statuses }
 
     updates = calls.select { |call| graphql?(call, "mutation WorkflowStateUpdate") }.map { |call| call.dig(:payload, :variables) }
     assert_equal [
-      { id: "s-working", input: { position: 1.0 } },
-      { id: "s-review", input: { position: 2.0 } },
-      { id: "s-approved", input: { position: 3.0 } },
+      { id: "s-ready", input: { position: 10000.0 } },
+      { id: "s-working", input: { position: 11000.0 } },
+      { id: "s-review", input: { position: 12000.0 } },
+      { id: "s-approved", input: { position: 13000.0 } },
     ], updates
     assert_equal "", output
+  end
+
+  def test_sync_statuses_reorders_tied_positions
+    calls = stub_linear(states: ranked_started_states(ready: 0.0, working: 0.0, review: 0.0, approved: 0.0))
+
+    capture_io { Linear.sync_statuses }
+
+    updates = calls.select { |call| graphql?(call, "mutation WorkflowStateUpdate") }.map { |call| call.dig(:payload, :variables) }
+    assert_equal [
+      { id: "s-ready", input: { position: 1000.0 } },
+      { id: "s-working", input: { position: 2000.0 } },
+      { id: "s-review", input: { position: 3000.0 } },
+      { id: "s-approved", input: { position: 4000.0 } },
+    ], updates
+  end
+
+  def test_sync_statuses_clears_descriptions
+    states = synced_states.map do |status|
+      description = status[:name] == "Ready" ? "Pull request is being reviewed" : ""
+      status.merge(description:)
+    end
+    calls = stub_linear(states:)
+
+    capture_io { Linear.sync_statuses }
+
+    updates = calls.select { |call| graphql?(call, "mutation WorkflowStateUpdate") }.map { |call| call.dig(:payload, :variables) }
+    assert_equal Linear::STATUSES.map { |status|
+      { id: "s-#{status[:name].downcase}", input: { description: nil } }
+    }, updates
   end
 
   def test_sync_statuses_uses_token_workspace_and_team
