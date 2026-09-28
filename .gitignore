@@ -39,8 +39,8 @@ yarn-debug.log*
 public/compiled
 frontend/dist
 .env
-.env.production
-.env.development
+.env.*
+!.env.default
 .ruby-lsp
 .mise.local.toml
 /.netrc
