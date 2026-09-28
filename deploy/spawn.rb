@@ -8,8 +8,6 @@ require "securerandom"
 require "socket"
 require "tmpdir"
 
-Encoding.default_external = Encoding::UTF_8
-
 class SpawnShell
   def capture(*command)
     stdout, stderr, status = Open3.capture3(*command)
@@ -78,16 +76,20 @@ end
 
 class Spawner
   ENVIRONMENTS = %w[development production].freeze
-  REQUIRED_KEYS = %w[
-    CRYPT_KEY
-    DEPLOY_PASSWORD
-    DEPLOY_SSH_KEY
-    DEPLOY_SSH_KEY_FINGERPRINT
-    DEPLOY_SSH_KEY_PUB
-    DEPLOY_USER
-    JWT_SECRET
-    SECRET_KEY_BASE
-  ].freeze
+  ENVIRONMENT_KEYS = %w[NODE_ENV RAILS_ENV].freeze
+  REQUIRED_KEYS = (
+    ENVIRONMENT_KEYS +
+    %w[
+      CRYPT_KEY
+      DEPLOY_PASSWORD
+      DEPLOY_SSH_KEY
+      DEPLOY_SSH_KEY_FINGERPRINT
+      DEPLOY_SSH_KEY_PUB
+      DEPLOY_USER
+      JWT_SECRET
+      SECRET_KEY_BASE
+    ]
+  ).freeze
 
   def initialize(app_name, shell: SpawnShell.new, credentials: SpawnCredentials.new, output: $stdout)
     @app_name = app_name
@@ -130,7 +132,7 @@ class Spawner
     template = File.read(File.join(target_dir, ".env.default"))
 
     ENVIRONMENTS.each do |environment|
-      overrides = @credentials.call
+      overrides = ENVIRONMENT_KEYS.to_h { |key| [ key, environment ] }.merge(@credentials.call)
       missing_keys = REQUIRED_KEYS - overrides.keys
       raise "Missing environment values: #{missing_keys.join(", ")}" unless missing_keys.length.zero?
 

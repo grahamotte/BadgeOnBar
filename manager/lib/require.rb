@@ -1,9 +1,6 @@
 require "bundler/setup"
 Bundler.require(:default)
 
-Encoding.default_external = Encoding::UTF_8
-ARGV.map! { |argument| argument.dup.force_encoding(Encoding::UTF_8) }
-
 require "digest"
 require "json"
 

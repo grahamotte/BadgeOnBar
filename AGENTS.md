@@ -94,7 +94,7 @@ Open pull requests on GitHub with `gh`, using `GITHUB_TOKEN` from the environmen
 - `.agents/skills/` - Project-specific agent skills.
 - `.claude/skills` - Symlink to `.agents/skills/` for Claude Code.
 - `.env.default` - Template for the `.env.*` secret files.
-- `.env.*` - Gitignored secrets, plus identifiers issued or rotated with them. Do not expose secret values.
+- `.env.*` - Gitignored secrets, identifiers issued or rotated with them, and `RAILS_ENV`/`NODE_ENV`. Do not expose secret values.
 - `apps/` - Mobile apps for iOS and Android.
 - `assets/` - Shared images and media.
 - `backend/` - Ruby on Rails API server.

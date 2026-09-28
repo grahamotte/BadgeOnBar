@@ -120,6 +120,10 @@ class SpawnerTest < Minitest::Test
     source_config = JSON.parse(File.read(File.join(@source_repo, "config.json")))
 
     assert_equal 2, @credentials.calls
+    assert_equal "development", development.fetch("RAILS_ENV")
+    assert_equal "production", production.fetch("RAILS_ENV")
+    assert_equal "development", development.fetch("NODE_ENV")
+    assert_equal "production", production.fetch("NODE_ENV")
     assert_equal "git@github.com:grahamotte/new-app.net.git", config.fetch("githubRepo")
     assert_equal "new-app.net", config.fetch("domain")
     assert_equal "new_app", config.fetch("database")
