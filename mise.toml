@@ -366,9 +366,11 @@ git merge --no-edit --no-ff upstream/master
 
 [tasks.secrets]
 run = '''
-if [ ! -f .env.service ]; then echo 'Error: Missing .env.service.'; exit 1; fi
+service_file=".env.service"
+if [ ! -f "$service_file" ]; then service_file="$HOME/.config/projects/.env.service"; fi
+if [ ! -f "$service_file" ]; then echo 'Error: Missing .env.service in the repository or ~/.config/projects/.env.service.'; exit 1; fi
 set -a
-source .env.service
+source "$service_file"
 set +a
 export OP_SERVICE_ACCOUNT_TOKEN="$SERVICE_ACCOUNT_TOKEN"
 trap 'rm -f "${file:-}"' EXIT
