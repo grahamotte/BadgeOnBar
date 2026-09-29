@@ -116,6 +116,56 @@ class LinearTest < Minitest::Test
     assert_includes output, "created model: xai/grok-4.7 tag"
   end
 
+  def test_sync_tags_removes_unknown_team_and_workspace_tags
+    calls = stub_linear(tags: synced_tags + [
+      { id: "old", name: "old model", team: { id: "team-1" } },
+      { id: "shared", name: "shared", team: nil },
+      { id: "other", name: "other team", team: { id: "team-2" } },
+    ])
+
+    output, = capture_io { Linear.sync_tags }
+
+    deletes = calls.select { |call| graphql?(call, "mutation IssueLabelDelete") }
+    assert_equal [ "old", "shared" ], deletes.map { |call| call.dig(:payload, :variables, :id) }
+    assert_includes output, "removed old model tag"
+  end
+
+  def test_sync_tags_matches_names_case_insensitively
+    calls = stub_linear(tags: synced_tags.map { |tag| tag.merge(name: tag[:name].upcase) })
+
+    output, = capture_io { Linear.sync_tags }
+
+    assert_empty calls.select { |call| graphql?(call, "mutation") }
+    assert_equal "", output
+  end
+
+  def test_sync_tags_paginates_before_removing_unknown_tags
+    calls = stub_linear
+    pages = [
+      { nodes: synced_tags, pageInfo: { hasNextPage: true, endCursor: "next" } },
+      { nodes: [ { id: "old", name: "old", team: { id: "team-1" } } ], pageInfo: { hasNextPage: false } },
+    ]
+    Req.stubs(:call).with do |*args, **kwargs|
+      opts = req_opts(args, kwargs)
+      next false unless graphql?(opts, "query Tags")
+
+      calls << opts
+      true
+    end.returns(*pages.map { |page| { data: { team: { labels: page } } } })
+
+    capture_io { Linear.sync_tags }
+
+    queries = calls.select { |call| graphql?(call, "query Tags") }
+    assert_equal [ { teamId: "team-1" }, { teamId: "team-1", after: "next" } ], queries.map { |call| call.dig(:payload, :variables) }.uniq
+    assert calls.any? { |call| graphql?(call, "mutation IssueLabelDelete") && call.dig(:payload, :variables, :id) == "old" }
+  end
+
+  def test_runner_from_label_and_missing_runner
+    assert_equal "t3", Linear.runner({ labels: { nodes: [ { name: "Runner: t3" } ] } })
+    assert_nil Linear.runner({})
+    assert_nil Linear.runner({ labels: { nodes: [ { name: "runner:" } ] } })
+  end
+
   def test_sync_tags_is_noop_when_already_synced
     calls = stub_linear
 
@@ -539,6 +589,13 @@ class LinearTest < Minitest::Test
       calls << opts
       true
     end.returns({ data: { issueLabelUpdate: { success: true } } })
+    Req.stubs(:call).with do |*args, **kwargs|
+      opts = req_opts(args, kwargs)
+      next false unless graphql?(opts, "mutation IssueLabelDelete")
+
+      calls << opts
+      true
+    end.returns({ data: { issueLabelDelete: { success: true } } })
     Req.stubs(:call).with do |*args, **kwargs|
       opts = req_opts(args, kwargs)
       next false unless graphql?(opts, "query GitAutomationStates")

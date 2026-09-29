@@ -13,11 +13,44 @@ class Linear
   TAGS = [
     { name: "working", color: "#f2c94c" },
     { name: "interactive", color: "#bb87fc" },
+    { name: "runner: openchamber", color: "#bb87fc" },
+    { name: "runner: t3", color: "#bb87fc" },
     { name: "variant: low", color: "#4cb782" },
     { name: "variant: medium", color: "#4cb782" },
     { name: "variant: high", color: "#4cb782" },
     { name: "variant: xhigh", color: "#4cb782" },
+    { name: "variant: max", color: "#4cb782" },
+    { name: "variant: ultra", color: "#4cb782" },
+    { name: "variant: ultrathink", color: "#4cb782" },
+    { name: "model: openai/gpt-6.1-sol", color: "#26b5ce" },
+    { name: "model: openai/gpt-6-astra", color: "#26b5ce" },
+    { name: "model: openai/gpt-6-sol", color: "#26b5ce" },
+    { name: "model: openai/gpt-6-luna", color: "#26b5ce" },
+    { name: "model: openai/gpt-5.6-sol", color: "#26b5ce" },
+    { name: "model: openai/gpt-5.6-terra", color: "#26b5ce" },
+    { name: "model: openai/gpt-5.6-luna", color: "#26b5ce" },
+    { name: "model: openai/gpt-5.5", color: "#26b5ce" },
+    { name: "model: anthropic/claude-opus-5-5", color: "#26b5ce" },
+    { name: "model: anthropic/claude-sonnet-5-5", color: "#26b5ce" },
+    { name: "model: anthropic/claude-fable-5-1", color: "#26b5ce" },
+    { name: "model: anthropic/claude-fable-5", color: "#26b5ce" },
+    { name: "model: anthropic/claude-opus-5", color: "#26b5ce" },
+    { name: "model: anthropic/claude-opus-4-8", color: "#26b5ce" },
+    { name: "model: anthropic/claude-sonnet-5", color: "#26b5ce" },
+    { name: "model: anthropic/claude-haiku-4-5", color: "#26b5ce" },
     { name: "model: xai/grok-4.7", color: "#26b5ce" },
+    { name: "model: xai/grok-4.6", color: "#26b5ce" },
+    { name: "model: xai/grok-4.5", color: "#26b5ce" },
+    { name: "model: google/gemini-3.8-flash", color: "#26b5ce" },
+    { name: "model: google/gemini-3.7-flash", color: "#26b5ce" },
+    { name: "model: google/gemini-3.1-pro", color: "#26b5ce" },
+    { name: "model: cursor/auto-smart", color: "#26b5ce" },
+    { name: "model: cursor/composer-2.5", color: "#26b5ce" },
+    { name: "model: cursor/grok-4.7", color: "#26b5ce" },
+    { name: "model: cursor/claude-opus-5-5", color: "#26b5ce" },
+    { name: "model: cursor/claude-sonnet-5-5", color: "#26b5ce" },
+    { name: "model: cursor/gpt-5.6-sol", color: "#26b5ce" },
+    { name: "model: cursor/gemini-3.8-flash", color: "#26b5ce" },
   ].freeze
 
   class << self
@@ -86,6 +119,10 @@ class Linear
 
     def url(item)
       item.fetch(:url)
+    end
+
+    def runner(item)
+      labeled(item, "runner")
     end
 
     def model(item)
@@ -169,6 +206,13 @@ class Linear
           )
           puts "created #{want[:name]} tag"
         end
+      end
+      current.each do |tag|
+        next if TAGS.any? { |want| want[:name].casecmp?(tag[:name].to_s) }
+        next if tag[:team].present? && tag.dig(:team, :id) != team_id
+
+        graphql(TAG_DELETE_MUTATION, { id: tag.fetch(:id) })
+        puts "removed #{tag[:name]} tag"
       end
       @tags = nil
     end
@@ -296,13 +340,20 @@ class Linear
     GQL
 
     TAGS_QUERY = <<~GQL
-      query Tags($teamId: String!) {
+      query Tags($teamId: String!, $after: String) {
         team(id: $teamId) {
-          labels {
+          labels(first: 100, after: $after) {
             nodes {
               id
               name
               color
+              team {
+                id
+              }
+            }
+            pageInfo {
+              hasNextPage
+              endCursor
             }
           }
         }
@@ -320,6 +371,14 @@ class Linear
     TAG_UPDATE_MUTATION = <<~GQL
       mutation IssueLabelUpdate($id: String!, $input: IssueLabelUpdateInput!) {
         issueLabelUpdate(id: $id, input: $input) {
+          success
+        }
+      }
+    GQL
+
+    TAG_DELETE_MUTATION = <<~GQL
+      mutation IssueLabelDelete($id: String!) {
+        issueLabelDelete(id: $id) {
           success
         }
       }
@@ -401,7 +460,17 @@ class Linear
     end
 
     def tag_nodes
-      graphql(TAGS_QUERY, { teamId: team_id }).fetch(:team).fetch(:labels).fetch(:nodes)
+      nodes = []
+      after = nil
+      loop do
+        page = graphql(TAGS_QUERY, { teamId: team_id, after: }.compact).fetch(:team).fetch(:labels)
+        nodes.concat(page.fetch(:nodes))
+        break unless page.dig(:pageInfo, :hasNextPage)
+
+        after = page.dig(:pageInfo, :endCursor)
+        raise "Linear labels pagination cursor is missing" if after.blank?
+      end
+      nodes
     end
 
     def git_automation_nodes

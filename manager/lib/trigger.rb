@@ -60,11 +60,24 @@ class Trigger
     def start_agent(item, prompt, directory:)
       Linear.tag(item, WORKING)
       begin
+        selections = {
+          runner: Linear.runner(item),
+          model: Linear.model(item),
+          variant: Linear.variant(item),
+        }
+        selections.each do |key, value|
+          next if value.present?
+
+          default = Settings.all.dig(:agent, key)
+          next if default.blank?
+
+          Linear.tag(item, "#{key}: #{default}")
+          selections[key] = default
+        end
         Agent.start(
           prompt,
           directory:,
-          model: Linear.model(item),
-          variant: Linear.variant(item),
+          **selections,
         )
       rescue StandardError
         Linear.untag(item, WORKING)

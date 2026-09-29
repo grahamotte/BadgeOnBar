@@ -16,6 +16,7 @@ class TriggerTest < Minitest::Test
       [
         { stateId: "s-working" },
         { addedLabelIds: [ "l-working" ] },
+        *default_label_inputs,
       ],
       issue_update_inputs(calls),
     )
@@ -68,6 +69,70 @@ class TriggerTest < Minitest::Test
     assert_equal "medium", session.fetch(:variant)
   end
 
+  def test_preserves_preset_labels_and_records_only_missing_defaults
+    calls = stub_manager(items: [
+      {
+        id: "item-1", identifier: "MOTO-1", url: "https://linear.app/gotte/issue/MOTO-1",
+        state: { name: "Ready" },
+        labels: { nodes: [ { name: "runner: openchamber" }, { name: "model: anthropic/claude-sonnet-5-5" }, { name: "variant: medium" } ] },
+      },
+    ])
+
+    capture_io { Trigger.call }
+
+    assert_equal [ { stateId: "s-working" }, { addedLabelIds: [ "l-working" ] } ], issue_update_inputs(calls)
+    assert_equal "anthropic/claude-sonnet-5-5", session_for(calls, "MOTO-1")[:model]
+    assert_equal "medium", session_for(calls, "MOTO-1")[:variant]
+  end
+
+  def test_omits_blank_default_variant_tag
+    Settings.all[:agent][:variant] = ""
+    calls = stub_manager(items: [
+      { id: "item-1", identifier: "MOTO-1", url: "https://linear.app/gotte/issue/MOTO-1", state: { name: "Ready" } },
+    ])
+
+    capture_io { Trigger.call }
+
+    labels = issue_update_inputs(calls).filter_map { |input| input[:addedLabelIds] }.flatten
+    assert_equal [ "l-working", "l-runner: openchamber", "l-model: xai/grok-4.7" ], labels
+    refute session_for(calls, "MOTO-1").key?(:variant) && session_for(calls, "MOTO-1")[:variant].present?
+  end
+
+  def test_preset_t3_runner_reaches_t3_transport
+    calls = stub_manager(items: [
+      {
+        id: "item-1", identifier: "MOTO-1", url: "https://linear.app/gotte/issue/MOTO-1", state: { name: "Ready" },
+        labels: { nodes: [ { name: "runner: t3" }, { name: "model: openai/gpt-6.1-sol" } ] },
+      },
+    ])
+    home = File.join(@worktree_test_dir, "t3")
+    FileUtils.mkdir_p(File.join(home, "caches"))
+    File.write(File.join(home, "caches/codex.json"), JSON.generate(
+      instanceId: "codex", enabled: true, status: "ready",
+      models: [ { slug: "gpt-6.1-sol", capabilities: { optionDescriptors: [ { id: "reasoningEffort", options: [ { id: "high" } ] } ] } } ],
+    ))
+    Settings.all[:agent][:t3] = { home:, command: [ "t3" ] }
+    status = Object.new
+    status.define_singleton_method(:success?) { true }
+    Open3.stubs(:capture3).with { |*args| args[1] == "t3" }.returns([ JSON.generate(token: "token", sessionId: "session"), "", status ])
+    requests = []
+    Req.stubs(:call).with do |*args, **kwargs|
+      opts = req_opts(args, kwargs)
+      next false unless opts[:url].start_with?("http://127.0.0.1:3773/")
+
+      requests << opts
+      true
+    end.returns({ projects: [], sequence: 1 })
+
+    capture_io { Trigger.call }
+
+    assert_equal [ { stateId: "s-working" }, { addedLabelIds: [ "l-working" ] }, { addedLabelIds: [ "l-variant: high" ] } ], issue_update_inputs(calls)
+    turn = requests.find { |item| item.dig(:payload, :type) == "thread.turn.start" }
+    assert_includes turn.dig(:payload, :message, :text), "MOTO-1"
+    assert_equal "codex", turn.dig(:payload, :modelSelection, :instanceId)
+    assert_nil session_for(calls, "MOTO-1")
+  end
+
   def test_starts_merge_agent_for_approved_cards
     calls = stub_manager(
       items: [
@@ -79,7 +144,7 @@ class TriggerTest < Minitest::Test
 
     assert_equal "merging MOTO-3\n", output
     assert_equal(
-      [ { addedLabelIds: [ "l-working" ] } ],
+      [ { addedLabelIds: [ "l-working" ] }, *default_label_inputs ],
       issue_update_inputs(calls),
     )
     prompt = prompt_for(calls, "MOTO-3")
@@ -147,6 +212,7 @@ class TriggerTest < Minitest::Test
       [
         { stateId: "s-working" },
         { addedLabelIds: [ "l-working" ] },
+        *default_label_inputs,
         { removedLabelIds: [ "l-working" ] },
         { stateId: "s-ready" },
       ],
@@ -175,6 +241,7 @@ class TriggerTest < Minitest::Test
     assert_equal(
       [
         { addedLabelIds: [ "l-working" ] },
+        *default_label_inputs,
         { removedLabelIds: [ "l-working" ] },
       ],
       issue_update_inputs(calls),
@@ -344,7 +411,7 @@ class TriggerTest < Minitest::Test
     output, = capture_io { Trigger.call }
 
     assert_equal "started working on MOTO-1\nmerging MOTO-3\n", output
-    assert_equal 3, calls.count { |call| graphql?(call, "mutation IssueUpdate") }
+    assert_equal 9, calls.count { |call| graphql?(call, "mutation IssueUpdate") }
     refute calls.any? { |call| call[:prompt].to_s.include?("MOTO-8") }
     refute calls.any? { |call| call[:prompt].to_s.include?("MOTO-9") }
     refute calls.any? { |call| call[:prompt].to_s.include?("MOTO-10") }
@@ -366,7 +433,7 @@ class TriggerTest < Minitest::Test
     output, = capture_io { Trigger.call }
 
     assert_equal "started working on MOTO-1\nmerging MOTO-3\n", output
-    assert_equal 3, calls.count { |call| graphql?(call, "mutation IssueUpdate") }
+    assert_equal 9, calls.count { |call| graphql?(call, "mutation IssueUpdate") }
     assert_includes prompt_for(calls, "MOTO-1"), "This session is already in the card worktree. Env files and schema.rb were copied from the main checkout."
     assert_includes prompt_for(calls, "MOTO-1"), "Rebase onto the current origin main, or merge it instead if the branch has merge commits. Do not hard-reset; keep existing commits."
     assert_includes prompt_for(calls, "MOTO-3"), "Rebase the GitHub PR on the card."
@@ -459,7 +526,7 @@ class TriggerTest < Minitest::Test
     assert_equal "merging MOTO-9\n", output
     refute calls.any? { |call| call[:prompt].to_s.include?("MOTO-3") }
     assert_equal(
-      [ { addedLabelIds: [ "l-working" ] } ],
+      [ { addedLabelIds: [ "l-working" ] }, *default_label_inputs ],
       issue_update_inputs(calls),
     )
     assert_equal "item-9", calls.find { |call| graphql?(call, "mutation IssueUpdate") }.dig(:payload, :variables, :id)
@@ -588,7 +655,7 @@ class TriggerTest < Minitest::Test
         data: {
           team: {
             labels: {
-              nodes: [ { id: "l-working", name: "working" } ],
+              nodes: Linear::TAGS.map { |tag| { id: "l-#{tag[:name]}", **tag } },
             },
           },
         },
@@ -602,6 +669,14 @@ class TriggerTest < Minitest::Test
       true
     end.returns({ data: { issueUpdate: { success: true } } })
     calls
+  end
+
+  def default_label_inputs
+    [
+      { addedLabelIds: [ "l-runner: openchamber" ] },
+      { addedLabelIds: [ "l-model: xai/grok-4.7" ] },
+      { addedLabelIds: [ "l-variant: high" ] },
+    ]
   end
 
   def issue_update_inputs(calls)
