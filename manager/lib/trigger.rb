@@ -18,7 +18,7 @@ class Trigger
 
         item = items.find do |candidate|
           next false if Linear.tagged?(candidate, WORKING)
-          next false if column == READY && Linear.tagged?(candidate, INTERACTIVE)
+          next false if column == READY && (Linear.tagged?(candidate, "runner: #{INTERACTIVE}") || Linear.tagged?(candidate, INTERACTIVE))
 
           true
         end
@@ -60,11 +60,25 @@ class Trigger
     def start_agent(item, prompt, directory:)
       Linear.tag(item, WORKING)
       begin
+        selections = {
+          runner: Linear.runner(item),
+          model: Linear.model(item),
+          variant: Linear.variant(item),
+        }
+        selections[:runner] = Settings.all.dig(:agent, :runner) if selections[:runner].to_s.casecmp?(INTERACTIVE)
+        selections.each do |key, value|
+          next if value.present?
+
+          default = Settings.all.dig(:agent, key)
+          next if default.blank?
+
+          Linear.tag(item, "#{key}: #{default}")
+          selections[key] = default
+        end
         Agent.start(
           prompt,
           directory:,
-          model: Linear.model(item),
-          variant: Linear.variant(item),
+          **selections,
         )
       rescue StandardError
         Linear.untag(item, WORKING)
