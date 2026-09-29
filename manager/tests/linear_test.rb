@@ -116,6 +116,29 @@ class LinearTest < Minitest::Test
     assert_includes output, "created model: xai/grok-4.7 tag"
   end
 
+  def test_sync_tags_renames_interactive_in_place_without_removing_assignments
+    tags = synced_tags.map do |tag|
+      tag[:name] == "runner: interactive" ? tag.merge(id: "existing-interactive", name: "interactive") : tag
+    end
+    calls = stub_linear(tags:)
+
+    output, = capture_io { Linear.sync_tags }
+
+    updates = calls.select { |call| graphql?(call, "mutation IssueLabelUpdate") }
+    assert_equal [ { id: "existing-interactive", input: { name: "runner: interactive" } } ], updates.map { |call| call.dig(:payload, :variables) }
+    assert_empty calls.select { |call| graphql?(call, "mutation IssueLabelCreate") || graphql?(call, "mutation IssueLabelDelete") }
+    assert_includes output, "renamed interactive to runner: interactive"
+  end
+
+  def test_sync_tags_rejects_conflicting_interactive_labels_before_mutating
+    calls = stub_linear(tags: synced_tags + [ { id: "legacy", name: "interactive", team: { id: "team-1" } } ])
+
+    error = assert_raises(RuntimeError) { Linear.sync_tags }
+
+    assert_includes error.message, "Merge the interactive and runner: interactive labels"
+    assert_empty calls.select { |call| graphql?(call, "mutation") }
+  end
+
   def test_sync_tags_removes_unknown_team_and_workspace_tags
     calls = stub_linear(tags: synced_tags + [
       { id: "old", name: "old model", team: { id: "team-1" } },

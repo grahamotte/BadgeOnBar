@@ -472,10 +472,21 @@ class TriggerTest < Minitest::Test
     assert_equal path, directory_for(calls, "MOTO-3")
   end
 
+  def test_skips_legacy_interactive_cards_before_label_migration
+    calls = stub_manager(items: [
+      { id: "item-1", identifier: "MOTO-1", url: "https://linear.app/gotte/issue/MOTO-1", state: { name: "Ready" }, labels: { nodes: [ { name: "interactive" } ] } },
+    ])
+
+    output, = capture_io { Trigger.call }
+
+    assert_equal "", output
+    assert_empty issue_update_inputs(calls)
+  end
+
   def test_skips_interactive_cards_in_ready
     calls = stub_manager(
       items: [
-        { id: "item-1", identifier: "MOTO-1", url: "https://linear.app/gotte/issue/MOTO-1", state: { id: "s-ready", name: "Ready" }, labels: { nodes: [ { id: "l-interactive", name: "interactive" } ] } },
+        { id: "item-1", identifier: "MOTO-1", url: "https://linear.app/gotte/issue/MOTO-1", state: { id: "s-ready", name: "Ready" }, labels: { nodes: [ { id: "l-interactive", name: "runner: interactive" } ] } },
         { id: "item-2", identifier: "MOTO-2", url: "https://linear.app/gotte/issue/MOTO-2", state: { id: "s-ready", name: "Ready" } },
       ],
     )
@@ -490,7 +501,7 @@ class TriggerTest < Minitest::Test
   def test_skips_ready_column_when_all_cards_are_interactive
     calls = stub_manager(
       items: [
-        { id: "item-1", identifier: "MOTO-1", url: "https://linear.app/gotte/issue/MOTO-1", state: { id: "s-ready", name: "Ready" }, labels: { nodes: [ { id: "l-interactive", name: "interactive" } ] } },
+        { id: "item-1", identifier: "MOTO-1", url: "https://linear.app/gotte/issue/MOTO-1", state: { id: "s-ready", name: "Ready" }, labels: { nodes: [ { id: "l-interactive", name: "RUNNER: INTERACTIVE" } ] } },
       ],
     )
 
@@ -503,7 +514,7 @@ class TriggerTest < Minitest::Test
   def test_merges_interactive_cards_when_approved
     calls = stub_manager(
       items: [
-        { id: "item-3", identifier: "MOTO-3", url: "https://linear.app/gotte/issue/MOTO-3", state: { id: "s-approved", name: "Approved" }, labels: { nodes: [ { id: "l-interactive", name: "interactive" } ] } },
+        { id: "item-3", identifier: "MOTO-3", url: "https://linear.app/gotte/issue/MOTO-3", state: { id: "s-approved", name: "Approved" }, labels: { nodes: [ { id: "l-interactive", name: "Runner: Interactive" } ] } },
       ],
     )
 
@@ -511,6 +522,9 @@ class TriggerTest < Minitest::Test
 
     assert_equal "merging MOTO-3\n", output
     assert_includes prompt_for(calls, "MOTO-3"), "This Linear issue is approved: https://linear.app/gotte/issue/MOTO-3"
+    assert_equal "xai/grok-4.7", session_for(calls, "MOTO-3")[:model]
+    labels = issue_update_inputs(calls).filter_map { |input| input[:addedLabelIds] }.flatten
+    assert_equal [ "l-working", "l-model: xai/grok-4.7", "l-variant: high" ], labels
   end
 
   def test_skips_cards_with_working_tag

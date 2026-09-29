@@ -12,7 +12,7 @@ class Linear
   ].freeze
   TAGS = [
     { name: "working", color: "#f2c94c" },
-    { name: "interactive", color: "#bb87fc" },
+    { name: "runner: interactive", color: "#bb87fc" },
     { name: "runner: openchamber", color: "#bb87fc" },
     { name: "runner: t3", color: "#bb87fc" },
     { name: "variant: low", color: "#4cb782" },
@@ -24,33 +24,12 @@ class Linear
     { name: "variant: ultrathink", color: "#4cb782" },
     { name: "model: openai/gpt-6.1-sol", color: "#26b5ce" },
     { name: "model: openai/gpt-6-astra", color: "#26b5ce" },
-    { name: "model: openai/gpt-6-sol", color: "#26b5ce" },
-    { name: "model: openai/gpt-6-luna", color: "#26b5ce" },
-    { name: "model: openai/gpt-5.6-sol", color: "#26b5ce" },
-    { name: "model: openai/gpt-5.6-terra", color: "#26b5ce" },
-    { name: "model: openai/gpt-5.6-luna", color: "#26b5ce" },
-    { name: "model: openai/gpt-5.5", color: "#26b5ce" },
     { name: "model: anthropic/claude-opus-5-5", color: "#26b5ce" },
     { name: "model: anthropic/claude-sonnet-5-5", color: "#26b5ce" },
-    { name: "model: anthropic/claude-fable-5-1", color: "#26b5ce" },
-    { name: "model: anthropic/claude-fable-5", color: "#26b5ce" },
-    { name: "model: anthropic/claude-opus-5", color: "#26b5ce" },
-    { name: "model: anthropic/claude-opus-4-8", color: "#26b5ce" },
-    { name: "model: anthropic/claude-sonnet-5", color: "#26b5ce" },
-    { name: "model: anthropic/claude-haiku-4-5", color: "#26b5ce" },
     { name: "model: xai/grok-4.7", color: "#26b5ce" },
-    { name: "model: xai/grok-4.6", color: "#26b5ce" },
-    { name: "model: xai/grok-4.5", color: "#26b5ce" },
-    { name: "model: google/gemini-3.8-flash", color: "#26b5ce" },
-    { name: "model: google/gemini-3.7-flash", color: "#26b5ce" },
     { name: "model: google/gemini-3.1-pro", color: "#26b5ce" },
-    { name: "model: cursor/auto-smart", color: "#26b5ce" },
     { name: "model: cursor/composer-2.5", color: "#26b5ce" },
     { name: "model: cursor/grok-4.7", color: "#26b5ce" },
-    { name: "model: cursor/claude-opus-5-5", color: "#26b5ce" },
-    { name: "model: cursor/claude-sonnet-5-5", color: "#26b5ce" },
-    { name: "model: cursor/gpt-5.6-sol", color: "#26b5ce" },
-    { name: "model: cursor/gemini-3.8-flash", color: "#26b5ce" },
   ].freeze
 
   class << self
@@ -187,12 +166,23 @@ class Linear
 
     def sync_tags
       current = tag_nodes
+      legacy = current.find { |tag| tag[:name].to_s.casecmp?("interactive") }
+      if legacy.present? && current.any? { |tag| tag[:name].to_s.casecmp?("runner: interactive") }
+        raise "Merge the interactive and runner: interactive labels before syncing"
+      end
+      used_ids = []
       TAGS.each do |want|
         existing = current.find { |tag| tag[:name].to_s.downcase == want[:name].downcase }
+        existing ||= legacy if want[:name] == "runner: interactive"
         if existing
-          next if existing[:color] == want[:color]
+          used_ids << existing.fetch(:id)
+          input = {}
+          input[:name] = want[:name] unless existing[:name].to_s.casecmp?(want[:name])
+          input[:color] = want[:color] if existing[:color] != want[:color]
+          next if input.blank?
 
-          graphql(TAG_UPDATE_MUTATION, { id: existing.fetch(:id), input: { color: want[:color] } })
+          graphql(TAG_UPDATE_MUTATION, { id: existing.fetch(:id), input: })
+          puts "renamed #{existing[:name]} to #{want[:name]}" if input[:name].present?
         else
           graphql(
             TAG_CREATE_MUTATION,
@@ -208,6 +198,7 @@ class Linear
         end
       end
       current.each do |tag|
+        next if used_ids.include?(tag.fetch(:id))
         next if TAGS.any? { |want| want[:name].casecmp?(tag[:name].to_s) }
         next if tag[:team].present? && tag.dig(:team, :id) != team_id
 

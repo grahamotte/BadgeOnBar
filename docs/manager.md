@@ -4,13 +4,26 @@
 
 Cards can override the defaults in `config.json` using these labels:
 
-- `runner: openchamber` or `runner: t3`
+- `runner: openchamber`, `runner: t3`, or `runner: interactive`
 - `model: <provider>/<modelid>`
 - `variant: <effort>`
 
 When the trigger starts a card, it fills in missing labels from `agent.runner`, `agent.model`, and `agent.variant`. Existing selections take precedence. A blank default variant leaves that label unset. The recorded selections also apply when the card reaches Approved; edit its labels to change the runner or model for merging.
 
-The model labels include options from OpenAI, Anthropic, xAI, Google, and Cursor. Availability and supported effort levels depend on the runner, provider account, and model. A model without effort options needs a blank default variant. For OpenChamber, model and variant values are forwarded as before.
+`runner: interactive` marks work started manually with the user. The manager skips those cards in Ready, and uses its configured runner to merge them when Approved. Sync renames the old `interactive` label in place, preserving its ID and existing card assignments.
+
+The model picker contains eight options:
+
+- `openai/gpt-6.1-sol`
+- `openai/gpt-6-astra`
+- `anthropic/claude-opus-5-5`
+- `anthropic/claude-sonnet-5-5`
+- `xai/grok-4.7`
+- `google/gemini-3.1-pro`
+- `cursor/composer-2.5`
+- `cursor/grok-4.7`
+
+Availability and supported effort levels depend on the runner, provider account, and model. A model without effort options needs a blank default variant. For OpenChamber, model and variant values are forwarded as before.
 
 ## T3 Code
 

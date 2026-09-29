@@ -18,7 +18,7 @@ class Trigger
 
         item = items.find do |candidate|
           next false if Linear.tagged?(candidate, WORKING)
-          next false if column == READY && Linear.tagged?(candidate, INTERACTIVE)
+          next false if column == READY && (Linear.tagged?(candidate, "runner: #{INTERACTIVE}") || Linear.tagged?(candidate, INTERACTIVE))
 
           true
         end
@@ -65,6 +65,7 @@ class Trigger
           model: Linear.model(item),
           variant: Linear.variant(item),
         }
+        selections[:runner] = Settings.all.dig(:agent, :runner) if selections[:runner].to_s.casecmp?(INTERACTIVE)
         selections.each do |key, value|
           next if value.present?
 
