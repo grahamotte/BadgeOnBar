@@ -120,7 +120,7 @@ class Trigger
            - Commit
            - Open a GitHub PR with `gh pr create` using `GITHUB_TOKEN`
            - Link the PR to the card
-           - Comment on the card describing what you did and how the change works at a high level. Keep the explanation brief so the user can understand the code without implementation details.
+           - Comment on the card with a brief summary of what changed and a short fenced pseudocode block showing how the change works at a high level. Use named components and indentation to show the flow of inputs, key decisions, and results. Keep it structural and concise; do not explain the flow in paragraphs or include low-level implementation details.
            - Remove the working tag
            - Move the card to review
         6. If the card is blocked or the change is not possible:
