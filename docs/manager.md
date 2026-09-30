@@ -12,6 +12,8 @@ When the trigger starts a card, it fills in missing labels from `agent.runner`, 
 
 `runner: interactive` marks work started manually with the user. The manager skips those cards in Ready, and tries the same automatic merge when Approved, using its configured runner if an agent is needed. Sync renames the old `interactive` label in place, preserving its ID and existing card assignments.
 
+`skip review` tells the manager's work agent to create and link a PR as usual, then merge it immediately after resolving conflicts and passing required checks. The agent confirms the PR is merged, updates a clean main checkout, completes the card, removes the working tag, and removes the card's worktree from the main checkout as its final step. A blocked merge returns the card to Planned with an explanation. Cards without the tag still go to Review, and named skills retain their own finishing instructions.
+
 The model picker contains eight options:
 
 - `openai/gpt-6.1-sol`

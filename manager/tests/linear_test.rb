@@ -112,6 +112,8 @@ class LinearTest < Minitest::Test
     creates = calls.select { |call| graphql?(call, "mutation IssueLabelCreate") }.map { |call| call.dig(:payload, :variables, :input) }
     assert_equal Linear::TAGS.map { |tag| { teamId: "team-1", **tag } }, creates
     assert_includes output, "created working tag"
+    assert_includes creates, { teamId: "team-1", name: "skip review", color: "#4cb782" }
+    assert_includes output, "created skip review tag"
     assert_includes output, "created variant: high tag"
     assert_includes output, "created model: xai/grok-4.7 tag"
   end

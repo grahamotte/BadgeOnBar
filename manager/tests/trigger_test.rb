@@ -34,6 +34,8 @@ class TriggerTest < Minitest::Test
     assert_includes prompt, "Keep it structural and concise; do not explain the flow in paragraphs or include low-level implementation details."
     assert_includes prompt, "Remove the working tag"
     assert_includes prompt, "Move the card to review"
+    refute_includes prompt, "Merge the linked PR immediately"
+    refute_includes prompt, "remove only this card's worktree"
     assert_includes prompt, "Move the card to planned"
     assert_includes prompt, "If the card names a skill, follow it; where the skill says how to finish the card, do that instead of steps 5 and 6, then remove the working tag. Step 7 still applies."
     assert_includes prompt, "If you spent significant time unnecessarily or the instructions misdirected you, and the issue could be backported to Code Moto (`codemoto.org` / MOTO), search the MOTO backlog for a matching card first."
@@ -44,6 +46,43 @@ class TriggerTest < Minitest::Test
     assert_equal Worktree.path_for({ identifier: "MOTO-1" }), directory_for(calls, "MOTO-1")
     assert_equal "openai/gpt-6.1-sol", session_for(calls, "MOTO-1").fetch(:model)
     assert_equal "high", session_for(calls, "MOTO-1").fetch(:variant)
+  end
+
+  def test_skip_review_prompt_creates_pr_and_merges_before_completing_and_cleaning_up
+    calls = stub_manager(
+      items: [
+        {
+          id: "item-1",
+          identifier: "MOTO-1",
+          url: "https://linear.app/gotte/issue/MOTO-1",
+          state: { name: "Ready" },
+          labels: { nodes: [ { name: "Skip Review" } ] },
+        },
+      ],
+    )
+
+    capture_io { Trigger.call }
+
+    prompt = prompt_for(calls, "MOTO-1")
+    assert_includes prompt, "Open a GitHub PR with `gh pr create` using `GITHUB_TOKEN`"
+    assert_includes prompt, "Link the PR to the card"
+    assert_includes prompt, "Comment on the card with a brief summary"
+    assert_includes prompt, "This card has the `skip review` tag."
+    assert_includes prompt, "Merge the linked PR immediately with `gh pr merge` using `GITHUB_TOKEN`"
+    assert_includes prompt, "resolving conflicts and passing required checks first"
+    assert_includes prompt, "Verify that the PR is merged before completing the card or removing its worktree."
+    assert_includes prompt, "If the merge is blocked, follow step 6."
+    assert_includes prompt, "run `git pull --ff-only` there. Do not switch branches."
+    assert_includes prompt, "Move the card to completed"
+    assert_includes prompt, "Remove the working tag"
+    assert_includes prompt, "From the main checkout, remove only this card's worktree with `git worktree remove`."
+    assert_includes prompt, "Do this last, after all card updates and repository work are finished. Do not remove the main checkout."
+    assert_includes prompt, "where the skill says how to finish the card, do that instead of steps 5 and 6"
+    assert_includes prompt, "Move the card to planned"
+    refute_includes prompt, "Move the card to review"
+    assert_operator prompt.index("Link the PR to the card"), :<, prompt.index("Merge the linked PR immediately")
+    assert_operator prompt.index("Merge the linked PR immediately"), :<, prompt.index("Move the card to completed")
+    assert_operator prompt.index("Move the card to completed"), :<, prompt.index("remove only this card's worktree")
   end
 
   def test_starts_agent_with_model_and_variant_labels
