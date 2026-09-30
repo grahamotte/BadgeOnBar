@@ -37,6 +37,7 @@ module ManagerTestIsolation
     File.write(
       Settings.path,
       JSON.generate(
+        githubRepo: "git@github.com:grahamotte/codemoto.org.git",
         linear: { workspace: "gotte", team: "MOTO" },
         agent: { runner: "openchamber", model: "openai/gpt-6.1-sol", variant: "high" },
       ),

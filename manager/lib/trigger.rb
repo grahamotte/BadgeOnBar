@@ -35,7 +35,10 @@ class Trigger
           end
           puts "started working on #{Linear.identifier(item)}"
         when APPROVED
-          start_agent(item, merge_prompt(item), directory: Worktree.directory(item))
+          Linear.tag(item, WORKING)
+          next if merge_approved(item)
+
+          start_agent(item, merge_prompt(item), tagged: true)
           puts "merging #{Linear.identifier(item)}"
         end
       end
@@ -57,9 +60,24 @@ class Trigger
       puts "failed to update master: #{error.message}"
     end
 
-    def start_agent(item, prompt, directory:)
-      Linear.tag(item, WORKING)
+    def merge_approved(item)
+      return false unless ApprovedMerge.call(item)
+
+      branch = Worktree.pull_master
+      puts "updated #{branch}" if branch.present?
+      Linear.move(item, COMPLETED)
+      Linear.untag(item, WORKING)
+      puts "merged #{Linear.identifier(item)}"
+      true
+    rescue StandardError => error
+      puts "automatic merge failed for #{Linear.identifier(item)}: #{error.message}"
+      false
+    end
+
+    def start_agent(item, prompt, directory: nil, tagged: false)
+      Linear.tag(item, WORKING) unless tagged
       begin
+        directory ||= Worktree.directory(item)
         selections = {
           runner: Linear.runner(item),
           model: Linear.model(item),
