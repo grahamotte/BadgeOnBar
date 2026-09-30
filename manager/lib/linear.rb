@@ -12,6 +12,7 @@ class Linear
   ].freeze
   TAGS = [
     { name: "working", color: "#f2c94c" },
+    { name: "skip review", color: "#4cb782" },
     { name: "runner: interactive", color: "#bb87fc" },
     { name: "runner: openchamber", color: "#bb87fc" },
     { name: "runner: t3", color: "#bb87fc" },

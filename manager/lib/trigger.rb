@@ -105,6 +105,21 @@ class Trigger
     end
 
     def work_prompt(item)
+      completion = if Linear.tagged?(item, "skip review")
+        <<~PROMPT
+          - This card has the `skip review` tag. Merge the linked PR immediately with `gh pr merge` using `GITHUB_TOKEN`, resolving conflicts and passing required checks first. Verify that the PR is merged before completing the card or removing its worktree. If the merge is blocked, follow step 6.
+          - If the main checkout is on master or main and has no uncommitted changes, run `git pull --ff-only` there. Do not switch branches.
+          - Move the card to completed
+          - Remove the working tag
+          - From the main checkout, remove only this card's worktree with `git worktree remove`. Do this last, after all card updates and repository work are finished. Do not remove the main checkout.
+        PROMPT
+      else
+        <<~PROMPT
+          - Remove the working tag
+          - Move the card to review
+        PROMPT
+      end
+
       <<~PROMPT
         Do this Linear issue: #{Linear.url(item)}
 
@@ -121,8 +136,7 @@ class Trigger
            - Open a GitHub PR with `gh pr create` using `GITHUB_TOKEN`
            - Link the PR to the card
            - Comment on the card with a brief summary of what changed and a short fenced pseudocode block showing how the change works at a high level. Use named components and indentation to show the flow of inputs, key decisions, and results. Keep it structural and concise; do not explain the flow in paragraphs or include low-level implementation details.
-           - Remove the working tag
-           - Move the card to review
+        #{completion.lines.map { |line| "   #{line}" }.join.rstrip}
         6. If the card is blocked or the change is not possible:
            - Comment on the card explaining why
            - Remove the working tag
