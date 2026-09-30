@@ -156,6 +156,13 @@ class TriggerTest < Minitest::Test
     status = Object.new
     status.define_singleton_method(:success?) { true }
     Open3.stubs(:capture3).with { |*args| args[1] == "t3" }.returns([ JSON.generate(token: "token", sessionId: "session"), "", status ])
+    card_directory = Worktree.path_for({ identifier: "MOTO-1" })
+    Open3.stubs(:capture3).with do |*args, **kwargs|
+      args == [ "git", "worktree", "list", "--porcelain", "-z" ] && kwargs[:chdir] == File.realpath(card_directory)
+    end.returns([
+      "worktree #{Worktree.root}\0HEAD abc\0branch refs/heads/master\0\0worktree #{card_directory}\0HEAD def\0branch refs/heads/moto-1\0\0",
+      "", status,
+    ])
     requests = []
     Req.stubs(:call).with do |*args, **kwargs|
       opts = req_opts(args, kwargs)
@@ -171,6 +178,11 @@ class TriggerTest < Minitest::Test
     turn = requests.find { |item| item.dig(:payload, :type) == "thread.turn.start" }
     assert_includes turn.dig(:payload, :message, :text), "MOTO-1"
     assert_equal "codex", turn.dig(:payload, :modelSelection, :instanceId)
+    project = requests.find { |item| item.dig(:payload, :type) == "project.create" }
+    thread = requests.find { |item| item.dig(:payload, :type) == "thread.create" }
+    assert_equal File.realpath(Worktree.root), project.dig(:payload, :workspaceRoot)
+    assert_equal File.realpath(card_directory), thread.dig(:payload, :worktreePath)
+    assert_equal "moto-1", thread.dig(:payload, :branch)
     assert_nil session_for(calls, "MOTO-1")
   end
 
