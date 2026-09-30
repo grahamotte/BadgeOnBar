@@ -40,7 +40,7 @@ class TriggerTest < Minitest::Test
     refute_includes prompt, "Open a worktree."
     refute calls.any? { |call| call[:prompt].to_s.include?("MOTO-2") }
     assert_equal Worktree.path_for({ identifier: "MOTO-1" }), directory_for(calls, "MOTO-1")
-    assert_equal "xai/grok-4.7", session_for(calls, "MOTO-1").fetch(:model)
+    assert_equal "openai/gpt-6.1-sol", session_for(calls, "MOTO-1").fetch(:model)
     assert_equal "high", session_for(calls, "MOTO-1").fetch(:variant)
   end
 
@@ -94,7 +94,7 @@ class TriggerTest < Minitest::Test
     capture_io { Trigger.call }
 
     labels = issue_update_inputs(calls).filter_map { |input| input[:addedLabelIds] }.flatten
-    assert_equal [ "l-working", "l-runner: openchamber", "l-model: xai/grok-4.7" ], labels
+    assert_equal [ "l-working", "l-runner: openchamber", "l-model: openai/gpt-6.1-sol" ], labels
     refute session_for(calls, "MOTO-1").key?(:variant) && session_for(calls, "MOTO-1")[:variant].present?
   end
 
@@ -522,9 +522,9 @@ class TriggerTest < Minitest::Test
 
     assert_equal "merging MOTO-3\n", output
     assert_includes prompt_for(calls, "MOTO-3"), "This Linear issue is approved: https://linear.app/gotte/issue/MOTO-3"
-    assert_equal "xai/grok-4.7", session_for(calls, "MOTO-3")[:model]
+    assert_equal "openai/gpt-6.1-sol", session_for(calls, "MOTO-3")[:model]
     labels = issue_update_inputs(calls).filter_map { |input| input[:addedLabelIds] }.flatten
-    assert_equal [ "l-working", "l-model: xai/grok-4.7", "l-variant: high" ], labels
+    assert_equal [ "l-working", "l-model: openai/gpt-6.1-sol", "l-variant: high" ], labels
   end
 
   def test_skips_cards_with_working_tag
@@ -688,7 +688,7 @@ class TriggerTest < Minitest::Test
   def default_label_inputs
     [
       { addedLabelIds: [ "l-runner: openchamber" ] },
-      { addedLabelIds: [ "l-model: xai/grok-4.7" ] },
+      { addedLabelIds: [ "l-model: openai/gpt-6.1-sol" ] },
       { addedLabelIds: [ "l-variant: high" ] },
     ]
   end

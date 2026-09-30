@@ -52,7 +52,7 @@
   },
   "agent": {
     "runner": "openchamber",
-    "model": "xai/grok-4.7",
+    "model": "openai/gpt-6.1-sol",
     "variant": "medium"
   },
   "apps": {

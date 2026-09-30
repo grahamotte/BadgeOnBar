@@ -38,7 +38,7 @@ module ManagerTestIsolation
       Settings.path,
       JSON.generate(
         linear: { workspace: "gotte", team: "MOTO" },
-        agent: { runner: "openchamber", model: "xai/grok-4.7", variant: "high" },
+        agent: { runner: "openchamber", model: "openai/gpt-6.1-sol", variant: "high" },
       ),
     )
     super
