@@ -29,13 +29,28 @@ class T3RunnerTest < Minitest::Test
     @projects = []
     @failure = nil
     @auth_failure = nil
+    @directory = File.join(@worktree_test_dir, "card")
+    FileUtils.mkdir_p(@directory)
+    @worktrees = nil
+    @git_success = true
     test = self
+    git_status = Object.new
+    git_status.define_singleton_method(:success?) { test.instance_variable_get(:@git_success) }
     status = Object.new
     status.define_singleton_method(:success?) { test.instance_variable_get(:@commands).last[4] != test.instance_variable_get(:@auth_failure) }
     Open3.stubs(:capture3).with do |*arguments|
+      next false unless arguments[1] == "t3"
+
       @commands << arguments
       true
     end.returns([ JSON.generate(token: "t3-token", sessionId: "auth-1"), "secret-error", status ])
+    git_output = +""
+    Open3.stubs(:capture3).with do |*arguments, **kwargs|
+      next false unless arguments == [ "git", "worktree", "list", "--porcelain", "-z" ]
+
+      git_output.replace(@worktrees || porcelain([ kwargs.fetch(:chdir), "master" ]))
+      true
+    end.returns([ git_output, "secret-git-error", git_status ])
     response = {}
     Req.stubs(:call).with do |*args, **kwargs|
       opts = req_opts(args, kwargs)
@@ -49,12 +64,14 @@ class T3RunnerTest < Minitest::Test
   end
 
   def test_creates_project_thread_and_turn_with_short_lived_auth
-    result = Agent.start("do the work", runner: "t3", directory: "/tmp/card")
+    result = Agent.start("do the work", runner: "t3", directory: @directory)
 
     assert_equal [ "project.create", "thread.create", "thread.turn.start" ], dispatches.map { |item| item[:type] }
     project, thread, turn = dispatches
-    assert_equal "/tmp/card", project[:workspaceRoot]
+    assert_equal File.realpath(@directory), project[:workspaceRoot]
     assert_equal project[:projectId], thread[:projectId]
+    assert_equal "master", thread[:branch]
+    assert_nil thread[:worktreePath]
     assert_equal thread[:threadId], turn[:threadId]
     assert_equal({ threadId: thread[:threadId] }, result)
     assert_equal "do the work", turn.dig(:message, :text)
@@ -73,12 +90,99 @@ class T3RunnerTest < Minitest::Test
 
   def test_uses_configured_runner_and_reuses_active_project
     Settings.all[:agent][:runner] = "t3"
-    @projects = [ { id: "old", workspaceRoot: "/tmp/card", deletedAt: "yesterday" }, { id: "project-1", workspaceRoot: "/tmp/card", deletedAt: nil } ]
+    @projects = [ { id: "old", workspaceRoot: File.realpath(@directory), deletedAt: "yesterday" }, { id: "project-1", workspaceRoot: File.realpath(@directory), deletedAt: nil } ]
 
-    Agent.start("work", directory: "/tmp/card")
+    Agent.start("work", directory: @directory)
 
     assert_equal [ "thread.create", "thread.turn.start" ], dispatches.map { |item| item[:type] }
     assert_equal "project-1", dispatches.first[:projectId]
+  end
+
+  def test_worktree_reuses_main_project_instead_of_worktree_project
+    @worktrees = porcelain([ Worktree.root, "master" ], [ @directory, "moto-73" ])
+    @projects = [
+      { id: "worktree-project", workspaceRoot: File.realpath(@directory) },
+      { id: "deleted-main", workspaceRoot: File.realpath(Worktree.root), deletedAt: "yesterday" },
+      { id: "main-project", workspaceRoot: File.realpath(Worktree.root) },
+    ]
+
+    Agent.start("work", runner: "t3", directory: @directory)
+
+    assert_equal [ "thread.create", "thread.turn.start" ], dispatches.map { |item| item[:type] }
+    assert_equal "main-project", dispatches.first[:projectId]
+    assert_equal File.realpath(@directory), dispatches.first[:worktreePath]
+    assert_equal "moto-73", dispatches.first[:branch]
+  end
+
+  def test_worktree_creates_main_project_when_missing
+    @worktrees = porcelain([ Worktree.root, "master" ], [ @directory, "moto-73" ])
+
+    Agent.start("work", runner: "t3", directory: @directory)
+
+    project, thread = dispatches
+    assert_equal File.realpath(Worktree.root), project[:workspaceRoot]
+    assert_equal File.basename(Worktree.root), project[:title]
+    assert_equal project[:projectId], thread[:projectId]
+    assert_equal File.realpath(@directory), thread[:worktreePath]
+    assert_equal "moto-73", thread[:branch]
+  end
+
+  def test_detached_worktree_has_no_branch
+    @worktrees = porcelain([ Worktree.root, "master" ], [ @directory, nil ])
+
+    Agent.start("work", runner: "t3", directory: @directory)
+
+    assert_nil dispatches[1][:branch]
+    assert_equal File.realpath(@directory), dispatches[1][:worktreePath]
+  end
+
+  def test_symlinked_worktree_uses_real_path
+    @worktrees = porcelain([ Worktree.root, "master" ], [ @directory, "moto-73" ])
+    link = File.join(@worktree_test_dir, "card-link")
+    File.symlink(@directory, link)
+
+    Agent.start("work", runner: "t3", directory: link)
+
+    assert_equal File.realpath(@directory), dispatches[1][:worktreePath]
+  end
+
+  def test_git_failure_does_not_issue_auth_or_create_project
+    @git_success = false
+
+    error = assert_raises(RuntimeError) { Agent.start("work", runner: "t3", directory: @directory) }
+
+    assert_equal "Could not list Git worktrees for T3", error.message
+    assert_equal [], @commands
+    assert_equal [], @requests
+  end
+
+  def test_missing_checkout_does_not_create_project
+    @worktrees = porcelain([ Worktree.root, "master" ])
+
+    assert_raises(RuntimeError) { Agent.start("work", runner: "t3", directory: @directory) }
+
+    assert_equal [], @commands
+    assert_equal [], @requests
+  end
+
+  def test_unrelated_missing_worktree_does_not_block_launch
+    @worktrees = porcelain([ Worktree.root, "master" ], [ "/missing/old-card", "moto-1" ], [ @directory, "moto-73" ])
+
+    Agent.start("work", runner: "t3", directory: @directory)
+
+    assert_equal File.realpath(Worktree.root), dispatches.first[:workspaceRoot]
+    assert_equal File.realpath(@directory), dispatches[1][:worktreePath]
+  end
+
+  def test_worktree_path_with_spaces_and_newlines
+    directory = File.join(@worktree_test_dir, "card with\na newline")
+    FileUtils.mkdir_p(directory)
+    @worktrees = porcelain([ Worktree.root, "master" ], [ directory, "moto-73" ])
+
+    Agent.start("work", runner: "t3", directory: directory)
+
+    assert_equal File.realpath(directory), dispatches[1][:worktreePath]
+    assert_equal "moto-73", dispatches[1][:branch]
   end
 
   def test_overrides_model_and_effort_and_resolves_alias
@@ -201,6 +305,12 @@ class T3RunnerTest < Minitest::Test
   end
 
   private
+
+  def porcelain(*worktrees)
+    worktrees.map do |path, branch|
+      "worktree #{path}\0HEAD abc\0#{branch.present? ? "branch refs/heads/#{branch}" : "detached"}\0\0"
+    end.join
+  end
 
   def write_catalog(instance = "codex")
     FileUtils.mkdir_p(File.join(@home, "caches"))

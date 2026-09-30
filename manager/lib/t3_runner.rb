@@ -16,12 +16,14 @@ class T3Runner
       model = Settings.all.dig(:agent, :model) if model.blank?
       variant = Settings.all.dig(:agent, :variant) if variant.blank?
       selection = model_selection(model, variant)
+      directory = File.realpath(directory)
+      workspace = workspace(directory)
       issued = JSON.parse(auth("issue", "--ttl", "5m", "--label", "Code Moto manager", "--json"), symbolize_names: true)
       headers = { "Authorization" => "Bearer #{issued.fetch(:token)}" }
       thread_id = SecureRandom.uuid
       created = false
       begin
-        project_id = project(directory, headers)
+        project_id = project(workspace.fetch(:root), headers)
         dispatch(
           {
             type: "thread.create",
@@ -31,8 +33,8 @@ class T3Runner
             modelSelection: selection,
             runtimeMode: "full-access",
             interactionMode: "default",
-            branch: nil,
-            worktreePath: nil,
+            branch: workspace[:branch],
+            worktreePath: directory == workspace[:root] ? nil : directory,
           },
           headers,
         )
@@ -153,6 +155,23 @@ class T3Runner
         end
       end
       { instanceId: catalog[:instanceId].present? ? catalog[:instanceId] : instance, model: selected.fetch(:slug), options: }
+    end
+
+    def workspace(directory)
+      stdout, _stderr, status = Open3.capture3("git", "worktree", "list", "--porcelain", "-z", chdir: directory)
+      raise "Could not list Git worktrees for T3" unless status.success?
+
+      worktrees = stdout.split("\0\0").map do |block|
+        lines = block.split("\0")
+        path = lines.find { |line| line.start_with?("worktree ") }&.delete_prefix("worktree ")
+        branch = lines.find { |line| line.start_with?("branch ") }&.delete_prefix("branch refs/heads/")
+        { path: path.present? && File.directory?(path) ? File.realpath(path) : path, branch: }
+      end
+      current = worktrees.find { |item| item[:path] == directory }
+      root = worktrees.first&.fetch(:path)
+      raise "Could not resolve the Git checkout for T3" if root.blank? || current.blank?
+
+      { root:, branch: current[:branch] }
     end
 
     def project(directory, headers)
