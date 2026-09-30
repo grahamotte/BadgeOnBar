@@ -133,6 +133,67 @@ class TriggerTest < Minitest::Test
     assert_nil session_for(calls, "MOTO-1")
   end
 
+  def test_merges_approved_card_without_starting_agent
+    calls = stub_manager(items: [
+      { id: "item-3", identifier: "MOTO-3", url: "https://linear.app/gotte/issue/MOTO-3", state: { name: "Approved" } },
+    ])
+    stub_automatic_merge
+
+    output, = capture_io { Trigger.call }
+
+    assert_equal "updated master\nmerged MOTO-3\n", output
+    assert_equal [ { addedLabelIds: [ "l-working" ] }, { stateId: "s-completed" }, { removedLabelIds: [ "l-working" ] } ], issue_update_inputs(calls)
+    assert_nil session_for(calls, "MOTO-3")
+    assert_includes git_commands, [ "gh", "pr", "merge", "https://github.com/grahamotte/codemoto.org/pull/3", "--repo", "grahamotte/codemoto.org", "--merge", "--match-head-commit", "abc" ]
+    assert_includes git_commands, [ "git", "pull", "--ff-only", "origin", "master" ]
+  end
+
+  def test_completes_automatic_merge_without_pulling_dirty_checkout
+    calls = stub_manager(items: [
+      { id: "item-3", identifier: "MOTO-3", url: "https://linear.app/gotte/issue/MOTO-3", state: { name: "Approved" } },
+    ])
+    stub_automatic_merge
+    Open3.stubs(:capture3).with("git", "status", "--porcelain", chdir: Worktree.root).returns([ " M file.rb", "", Struct.new(:success?).new(true) ])
+
+    output, = capture_io { Trigger.call }
+
+    assert_equal "merged MOTO-3\n", output
+    assert_includes issue_update_inputs(calls), { stateId: "s-completed" }
+    refute git_commands.any? { |command| command[1] == "pull" }
+    assert_nil session_for(calls, "MOTO-3")
+  end
+
+  def test_falls_back_when_main_checkout_cannot_be_updated
+    calls = stub_manager(items: [
+      { id: "item-3", identifier: "MOTO-3", url: "https://linear.app/gotte/issue/MOTO-3", state: { name: "Approved" } },
+    ])
+    stub_automatic_merge
+    Open3.stubs(:capture3).with("git", "pull", "--ff-only", "origin", "master", chdir: Worktree.root).returns([ "", "diverged", Struct.new(:success?).new(false) ])
+
+    output, = capture_io { Trigger.call }
+
+    assert_includes output, "diverged"
+    refute_includes issue_update_inputs(calls), { stateId: "s-completed" }
+    assert session_for(calls, "MOTO-3").present?
+  end
+
+  def test_falls_back_to_agent_when_automatic_merge_command_fails
+    calls = stub_manager(items: [
+      { id: "item-3", identifier: "MOTO-3", url: "https://linear.app/gotte/issue/MOTO-3", state: { name: "Approved" } },
+    ])
+    Open3.stubs(:capture3).with("mise", "linear", "issues", "read", "MOTO-3", "--with-attachments", chdir: Worktree.root).returns([
+      "", "could not read card", Struct.new(:success?).new(false),
+    ])
+
+    output, = capture_io { Trigger.call }
+
+    assert_includes output, "automatic merge failed for MOTO-3:"
+    assert_includes output, "could not read card"
+    assert_includes output, "merging MOTO-3"
+    assert_equal [ { addedLabelIds: [ "l-working" ] }, *default_label_inputs ], issue_update_inputs(calls)
+    assert session_for(calls, "MOTO-3").present?
+  end
+
   def test_starts_merge_agent_for_approved_cards
     calls = stub_manager(
       items: [
@@ -590,6 +651,7 @@ class TriggerTest < Minitest::Test
       end
       true
     end.returns([ "", "", ok ])
+    Open3.stubs(:capture3).with("mise", "linear", "issues", "read", anything, "--with-attachments", chdir: Worktree.root).returns([ JSON.generate(attachments: { nodes: [] }), "", ok ])
     Open3.stubs(:capture3).with("git", "branch", "--show-current", chdir: Worktree.root).returns([ "master\n", "", ok ])
     Open3.stubs(:capture3).with("git", "status", "--porcelain", chdir: Worktree.root).returns([ "", "", ok ])
     Req.stubs(:call).with do |*args, **kwargs|
@@ -634,6 +696,7 @@ class TriggerTest < Minitest::Test
                 { id: "s-working", name: "Working", type: "started" },
                 { id: "s-planned", name: "Planned", type: "unstarted" },
                 { id: "s-approved", name: "Approved", type: "started" },
+                { id: "s-completed", name: "Completed", type: "completed" },
               ],
             },
           },
@@ -683,6 +746,20 @@ class TriggerTest < Minitest::Test
       true
     end.returns({ data: { issueUpdate: { success: true } } })
     calls
+  end
+
+  def stub_automatic_merge
+    url = "https://github.com/grahamotte/codemoto.org/pull/3"
+    ok = Struct.new(:success?).new(true)
+    Open3.stubs(:capture3).with("mise", "linear", "issues", "read", "MOTO-3", "--with-attachments", chdir: Worktree.root).returns([
+      JSON.generate(attachments: { nodes: [ { url: } ] }), "", ok,
+    ])
+    pr = { state: "OPEN", baseRefName: "master", headRefOid: "abc", mergeable: "MERGEABLE", mergeStateStatus: "CLEAN" }
+    Open3.stubs(:capture3).with("gh", "pr", "view", url, "--repo", "grahamotte/codemoto.org", "--json", "state,baseRefName,headRefOid,mergeable,mergeStateStatus", chdir: Worktree.root).returns(
+      [ JSON.generate(pr), "", ok ],
+      [ JSON.generate(pr.merge(state: "MERGED")), "", ok ],
+    )
+
   end
 
   def default_label_inputs

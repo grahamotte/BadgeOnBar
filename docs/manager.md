@@ -8,9 +8,9 @@ Cards can override the defaults in `config.json` using these labels:
 - `model: <provider>/<modelid>`
 - `variant: <effort>`
 
-When the trigger starts a card, it fills in missing labels from `agent.runner`, `agent.model`, and `agent.variant`. Existing selections take precedence. A blank default variant leaves that label unset. The recorded selections also apply when the card reaches Approved; edit its labels to change the runner or model for merging.
+When the trigger starts a card, it fills in missing labels from `agent.runner`, `agent.model`, and `agent.variant`. Existing selections take precedence. A blank default variant leaves that label unset. When a card reaches Approved, the manager first tries to merge its single linked PR in the configured GitHub repository. A clean, mergeable PR targeting master or main is merged with its head commit checked, and the manager confirms it is merged before updating a clean main checkout, completing the card, and removing the working tag. An already merged PR can also complete the card. Missing or ambiguous links, conflicts, pending checks, queued merges, and command failures fall back to the merge agent. The recorded selections apply to that agent; edit the labels to change its runner or model.
 
-`runner: interactive` marks work started manually with the user. The manager skips those cards in Ready, and uses its configured runner to merge them when Approved. Sync renames the old `interactive` label in place, preserving its ID and existing card assignments.
+`runner: interactive` marks work started manually with the user. The manager skips those cards in Ready, and tries the same automatic merge when Approved, using its configured runner if an agent is needed. Sync renames the old `interactive` label in place, preserving its ID and existing card assignments.
 
 The model picker contains eight options:
 
