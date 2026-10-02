@@ -105,6 +105,12 @@ class KeychainTest < Minitest::Test
     assert_healthy
   end
 
+  def test_protect_yields_the_snapshot
+    @keychain.protect do |saved|
+      assert_equal({ search: [ @login, @system ], default: @login, login: @login }, saved)
+    end
+  end
+
   def test_protect_skips_restore_when_unchanged
     @keychain.protect { }
 

@@ -97,14 +97,13 @@ module Apps
     def with_signing_certificates(certificates)
       keychain = File.join(tmp_root, "signing-#{Process.pid}.keychain-db")
       roots = "/System/Library/Keychains/SystemRootCertificates.keychain"
-      host_keychain.protect do
+      host_keychain.protect do |saved|
         FileUtils.mkdir_p(tmp_root)
         password = "#{certificates.first.fetch(1)}_CERTIFICATE_PASSWORD"
         FileUtils.rm_f(keychain)
         Cmd.local("security create-keychain -p \"$#{password}\" #{Shellwords.escape(keychain)}")
         Cmd.local("security unlock-keychain -p \"$#{password}\" #{Shellwords.escape(keychain)}")
-        Cmd.local(Shellwords.join([ "security", "default-keychain", "-d", "user", "-s", keychain ]))
-        Cmd.local(Shellwords.join([ "security", "list-keychains", "-d", "user", "-s", keychain, roots ]))
+        Cmd.local(Shellwords.join([ "security", "list-keychains", "-d", "user", "-s", *[ keychain, *saved[:search], roots ].uniq ]))
         Cmd.local(Shellwords.join([ "security", "import", File.join(__dir__, "apps", "apple_certificate_authorities.pem"), "-k", keychain, "-f", "pemseq" ]))
         certificates.each do |name, prefix, policy|
           certificate_password = "#{prefix}_CERTIFICATE_PASSWORD"

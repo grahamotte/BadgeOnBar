@@ -30,7 +30,7 @@ class Keychain
   def protect
     saved = snapshot
     file = save(saved)
-    yield
+    yield saved
   ensure
     restore(saved) if saved && snapshot != saved
     FileUtils.rm_f(file) if file

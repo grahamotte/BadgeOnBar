@@ -53,15 +53,15 @@ class AppsTest < Minitest::Test
     assert_equal ENV.fetch("APPLE_KEY_SECRET_BASE64").unpack1("m0"), File.binread(Apps.private_key_path)
   end
 
-  def test_uses_only_the_temporary_keychain_while_signing
+  def test_adds_the_temporary_keychain_without_changing_the_default
     keychain = File.join(Apps.tmp_root, "signing-#{Process.pid}.keychain-db")
     login = File.join(@publish_test_dir, "Library", "Keychains", "login.keychain-db")
     FileUtils.mkdir_p(File.dirname(login))
     File.write(login, "login")
     commands = []
     Cmd.stubs(:local).with { |command| commands << command; true }.returns("Apple Distribution")
-    stub_security([ "list-keychains", "-d", "user" ], "\"#{login}\"", "\"#{keychain}\"")
-    stub_security([ "default-keychain", "-d", "user" ], "\"#{login}\"", "\"#{keychain}\"")
+    stub_security([ "list-keychains", "-d", "user" ], "\"#{login}\"", "\"#{keychain}\" \"#{login}\"")
+    stub_security([ "default-keychain", "-d", "user" ], "\"#{login}\"", "\"#{login}\"")
     stub_security([ "login-keychain" ], "\"#{login}\"", "\"#{login}\"")
     Cmd.expects(:local).with(Shellwords.join([ "security", "list-keychains", "-d", "user", "-s", login ])).returns("")
     Cmd.expects(:local).with(Shellwords.join([ "security", "default-keychain", "-d", "user", "-s", login ])).returns("")
@@ -72,8 +72,8 @@ class AppsTest < Minitest::Test
     end
 
     assert_includes commands, Shellwords.join([ "security", "import", File.expand_path("../../lib/apps/apple_certificate_authorities.pem", __dir__), "-k", keychain, "-f", "pemseq" ])
-    assert_includes commands, Shellwords.join([ "security", "list-keychains", "-d", "user", "-s", keychain, "/System/Library/Keychains/SystemRootCertificates.keychain" ])
-    assert_includes commands, Shellwords.join([ "security", "default-keychain", "-d", "user", "-s", keychain ])
+    assert_includes commands, Shellwords.join([ "security", "list-keychains", "-d", "user", "-s", keychain, login, "/System/Library/Keychains/SystemRootCertificates.keychain" ])
+    refute_includes commands, Shellwords.join([ "security", "default-keychain", "-d", "user", "-s", keychain ])
     assert_includes commands, Shellwords.join([ "security", "delete-keychain", keychain ])
     assert commands.any? { |command| command.start_with?("/usr/bin/openssl pkcs12") }
     refute commands.any? { |command| command.include?("brew") }
@@ -86,8 +86,8 @@ class AppsTest < Minitest::Test
     FileUtils.mkdir_p(File.dirname(login))
     File.write(login, "login")
     Cmd.stubs(:local).returns("")
-    stub_security([ "list-keychains", "-d", "user" ], "\"#{login}\"", "\"#{keychain}\"")
-    stub_security([ "default-keychain", "-d", "user" ], "\"#{login}\"", "\"#{keychain}\"")
+    stub_security([ "list-keychains", "-d", "user" ], "\"#{login}\"", "\"#{keychain}\" \"#{login}\"")
+    stub_security([ "default-keychain", "-d", "user" ], "\"#{login}\"", "\"#{login}\"")
     stub_security([ "login-keychain" ], "\"#{login}\"", "\"#{login}\"")
     Cmd.expects(:local).with(Shellwords.join([ "security", "list-keychains", "-d", "user", "-s", login ])).returns("")
     Cmd.expects(:local).with(Shellwords.join([ "security", "default-keychain", "-d", "user", "-s", login ])).returns("")
