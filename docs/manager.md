@@ -27,6 +27,39 @@ The model picker contains eight options:
 
 Availability and supported effort levels depend on the runner, provider account, and model. A model without effort options needs a blank default variant. For OpenChamber, model and variant values are forwarded as before.
 
+## macOS agent task execution
+
+Run root `mise` tasks with the card's worktree root as the working directory and a non-login shell. Before running tasks in a newly opened worktree, copy `.env.development`, `.env.production`, and `backend/db/schema.rb` from the main checkout as required by `AGENTS.md`. The manager already copies these files when opening a card worktree.
+
+For Codex's `exec_command`, set `login: false` explicitly on every call that invokes `mise`; the option applies to that call only. This also applies when `exec_command` is called through an orchestration wrapper. For example:
+
+```javascript
+await tools.exec_command({
+  cmd: "mise test",
+  workdir: "/absolute/path/to/card-worktree",
+  login: false,
+});
+```
+
+Other runners should use their equivalent non-login shell option. Keep using the root tasks so their dependencies, environment files, and task shell configuration are applied.
+
+In the failure reported by MOTO-77, login-shell PATH ordering selected `/usr/bin/bundle` and macOS system Ruby 2.6 instead of the Ruby pinned in `mise.toml`. This can look like a missing Bundler version or a Ruby compatibility failure. `mise which ruby` and `mise exec -- ruby --version` resolved the pinned Ruby even while the root task failed. Wrapping the task in `mise exec -- bash -c` also failed in that session; retrying the same root task with `login: false` succeeded.
+
+If this symptom occurs, run these diagnostics from the worktree root with `login: false`:
+
+```sh
+command -v ruby
+command -v bundle
+mise which ruby
+mise which bundle
+mise exec -- ruby --version
+mise exec -- bundle --version
+```
+
+The shell may resolve mise shims or installed tool paths. `mise which` should identify the mise-managed installations, and the Ruby version should match `[tools]` in the root `mise.toml`. Retry the original root task in the same non-login execution mode. A successful direct `mise exec` diagnostic alone does not verify the task's environment.
+
+If a pinned tool is missing, use `mise install` in that mode, then retry. If the task still fails, investigate its actual error with the selected tools confirmed. Do not install gems into system Ruby, change lockfiles, or downgrade pinned versions to address a shell-resolution failure. Share tool paths and versions when reporting the failure; do not dump environment variables or secret files.
+
 ## T3 Code
 
 Start T3 Code and enable/authenticate the provider you want to use. For example, these settings select Codex through T3:
