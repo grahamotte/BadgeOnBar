@@ -10,7 +10,7 @@ class TriggerTest < Minitest::Test
     assert_equal(
       {
         or: [
-          { state: { name: { in: [ "Ready", "Approved" ] } } },
+          { state: { name: { in: [ "🤖 Ready", "Ready", "🤖 Approved", "Approved" ] } } },
           {
             and: [
               { state: { name: { in: [ "Completed", "Canceled" ] } } },

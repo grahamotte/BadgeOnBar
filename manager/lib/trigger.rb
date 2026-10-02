@@ -10,10 +10,10 @@ class Trigger
     def call
       filter = {
         or: [
-          { state: { name: { in: [ "Ready", "Approved" ] } } },
+          { state: { name: { in: Linear.state_names(READY, APPROVED) } } },
           {
             and: [
-              { state: { name: { in: [ "Completed", "Canceled" ] } } },
+              { state: { name: { in: Linear.state_names(COMPLETED, CANCELED) } } },
               { updatedAt: { gte: "-P30D" } },
             ],
           },
