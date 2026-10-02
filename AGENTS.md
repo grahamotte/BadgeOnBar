@@ -17,7 +17,7 @@ The "Repo Specific" section blow contains rules specific to this repo only.
 5. Use root `mise` tasks instead of invoking underlying tools directly when an applicable task exists.
 6. Do not create a canvas or visualization unless the user specifically requests one.
 7. When opening a git worktree, copy `.env.development`, `.env.production`, and `backend/db/schema.rb` from the main checkout into the worktree before running tests or mise tasks.
-8. Every task needs a Linear card, including operations such as deploys, merges, and publishes. If there is no card, create one first. All code changes and other changes to tracked repository files need a GitHub PR. Operations without tracked repository changes need no PR, empty commit, or branch. Never commit to or push `master`, and never make repository changes outside the PR flow.
+8. Every task needs a Linear tracking card, including operations such as deploys, merges, and publishes. Reuse an existing card for the whole task and record individual operations and steps there; create a card only if none covers the task. All code changes and other changes to tracked repository files need a GitHub PR. Operations without tracked repository changes need no PR, empty commit, or branch. Never commit to or push `master`, and never make repository changes outside the PR flow.
 9. Work from `origin/master`: start branches from it, and do not rely on local `master` being current.
 10. If you spend significant time unnecessarily or the instructions misdirect you, and the issue could be backported to Code Moto (`codemoto.org` / MOTO), search the MOTO backlog (`mise linear issues search "<issue>" --team MOTO --status Backlog`). If a matching card exists, comment with a brief summary of your experience. Otherwise create a MOTO backlog card. Do not file app-specific issues that cannot be backported.
 11. On macOS, run root `mise` tasks from the worktree root in a non-login shell. For Codex `exec_command`, set `login: false` explicitly on each call that runs `mise`, including through wrappers. If Bundler reports system Ruby or a missing Bundler version, check tool resolution and retry the same root task this way before changing dependencies. See [macOS agent task execution](docs/manager.md#macos-agent-task-execution).
@@ -55,12 +55,12 @@ Columns, in order: `Backlog`, `Planned`, `Ready`, `Working`, `Review`, `Approved
 Tags (pass them by id, not name, since Linearis does not resolve tag names per team):
 
 - `working`: the manager's agent is processing the card. Only add or remove it when a manager prompt tells you to.
-- `skip review`: for tracked repository changes, the manager's work agent creates and links a PR, then merges it before completing the card and removing its worktree. Operations without tracked repository changes complete without a PR. Neither path waits for review.
+- `skip review`: for tracked repository changes, the manager's work agent creates and links a PR, then merges it before completing the card and removing its worktree when the whole task is done. Operations without tracked repository changes complete without a PR when the whole task is done. Neither path waits for review.
 - `runner: interactive`: the card is worked with the user instead of by the manager. The manager does not pick it up from `ready`, but still merges it from `approved`.
 
 When the user hands you a Linear card, use the `interactive-card` skill, unless the prompt says the manager runs the card.
 
-Operations are skills, and their cards name the skill to run: `deploy`, `merge`, and `publish`. Each skill finishes its own card and merges any PRs required for tracked repository changes. A deploy without repository changes needs no PR; record its result on the card. `mise deploy`, `mise merge`, and `mise publish` all work from `origin/master`.
+Operations can run under an existing tracking card. When a card invokes an operation skill, it names the skill to run: `deploy`, `merge`, or `publish`. Each skill records its result on that card and merges any PRs required for tracked repository changes. Complete the card only when its whole task is done; individual operations and PRs do not complete a larger tracking card. Keep it in `Working` while steps remain, or `Planned` when blocked. Move it to `Review` or `Approved` only when its whole task is ready; approval of an individual PR does not approve the whole card. `mise deploy`, `mise merge`, and `mise publish` all work from `origin/master`.
 
 ## GitHub
 
