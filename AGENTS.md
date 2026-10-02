@@ -20,6 +20,7 @@ The "Repo Specific" section blow contains rules specific to this repo only.
 8. Every change needs a Linear card and a GitHub PR, including operations such as deploys, merges, and publishes. If there is no card, create one first. Never commit to or push `master`, and never make changes outside that flow.
 9. Work from `origin/master`: start branches from it, and do not rely on local `master` being current.
 10. If you spend significant time unnecessarily or the instructions misdirect you, and the issue could be backported to Code Moto (`codemoto.org` / MOTO), search the MOTO backlog (`mise linear issues search "<issue>" --team MOTO --status Backlog`). If a matching card exists, comment with a brief summary of your experience. Otherwise create a MOTO backlog card. Do not file app-specific issues that cannot be backported.
+11. On macOS, run root `mise` tasks from the worktree root in a non-login shell. For Codex `exec_command`, set `login: false` explicitly on each call that runs `mise`, including through wrappers. If Bundler reports system Ruby or a missing Bundler version, check tool resolution and retry the same root task this way before changing dependencies. See [macOS agent task execution](docs/manager.md#macos-agent-task-execution).
 
 ## Ruby
 
