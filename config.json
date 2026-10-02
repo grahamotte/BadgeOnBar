@@ -56,7 +56,7 @@
     "variant": "medium"
   },
   "apps": {
-    "build": "0.2.0",
+    "build": "0.2.1",
     "contactEmail": "go@graham.lol",
     "contactFirstName": "Graham",
     "contactLastName": "Otte",
@@ -138,7 +138,7 @@
       },
       "android": {}
     },
-    "version": "0.2.0",
-    "whatsNew": "Added repository-only macOS publishing and improved release reliability."
+    "version": "0.2.1",
+    "whatsNew": "Bug fixes."
   }
 }
