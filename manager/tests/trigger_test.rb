@@ -60,6 +60,7 @@ class TriggerTest < Minitest::Test
     assert_includes prompt, "If there are tracked repository changes, commit them, push the branch, and create or update the card's PR:"
     assert_includes prompt, "if the card has no open PR for these changes"
     assert_includes prompt, "Comment on the card with a brief summary of what changed and a short fenced pseudocode block showing how the change works at a high level."
+    assert_includes prompt, "Use readable, imperfect Ruby in a fenced `ruby` block; the pseudocode does not need to run."
     assert_includes prompt, "Use named components and indentation to show the flow of inputs, key decisions, and results."
     assert_includes prompt, "Keep it structural and concise; do not explain the flow in paragraphs or include low-level implementation details."
     assert_includes prompt, "Remove the working tag"
