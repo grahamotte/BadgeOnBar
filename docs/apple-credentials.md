@@ -127,6 +127,8 @@ Repeat this preparation for Apple Development, Apple Distribution, or Developer 
 
 The publish workflow imports this identity into an isolated temporary keychain. Leaving it installed in the login keychain does not affect which identity the workflow uses.
 
+While signing, the temporary keychain replaces the user's default keychain and search list. The `keychain` gem snapshots those settings first and restores them when signing finishes, fails, or is interrupted. If the process is killed, `mise manager:trigger` restores the snapshot on its next run.
+
 ## Verify a replacement identity
 
 Load `.env.production`, then run the command matching the rotated certificate. Each command only imports and validates the identity in the same temporary-keychain path used by publishing; it does not publish anything.

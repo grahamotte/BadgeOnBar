@@ -31,6 +31,14 @@ The model picker contains eight options:
 
 Availability and supported effort levels depend on the runner, provider account, and model. A model without effort options needs a blank default variant. For OpenChamber, model and variant values are forwarded as before.
 
+## Host keychain protection
+
+Tasks that change the user's keychain settings, such as publish signing, wrap the change in `Keychain#protect` from `gems/keychain`. It saves the search list, default keychain, and login keychain under `~/.config/codemoto/keychain` and restores them when the block finishes, raises, or is interrupted.
+
+Each `mise manager:trigger` run first restores snapshots left by processes that are no longer running and removes keychains whose files no longer exist from the search list, default, and login settings. Before removing a card worktree, the manager also removes keychains stored inside it; if that fails, the worktree is kept. The trigger then warns when the default or login keychain is not `~/Library/Keychains/login.keychain-db`, the search list omits it, or a larger `login_renamed_*.keychain-db` suggests macOS replaced the login keychain. These checks are skipped while a protected task is running.
+
+Run `mise manager:keychain` to repair the warned state. It resets the search list, default, and login keychain to the login keychain. If a larger `login_renamed_*` file exists, it saves the current login keychain as `login_backup_<timestamp>.keychain-db`, copies the largest renamed file back to `login.keychain-db`, and asks you to log out and back in.
+
 ## Code Moto merge cards
 
 Cards that invoke the `merge` skill and request local env-file cleanup must target `.env.development` and `.env.production` in the main checkout, where the post-merge `git pull --ff-only` runs. The card worktree contains temporary copies that disappear when it is removed.
