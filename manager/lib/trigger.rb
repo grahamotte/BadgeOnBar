@@ -107,7 +107,7 @@ class Trigger
     def work_prompt(item)
       completion = if Linear.tagged?(item, "skip review")
         <<~PROMPT
-          - This card has the `skip review` tag. Merge the linked PR immediately with `gh pr merge` using `GITHUB_TOKEN`, resolving conflicts and passing required checks first. Verify that the PR is merged before completing the card or removing its worktree. If the merge is blocked, follow step 6.
+          - This card has the `skip review` tag. If there are tracked repository changes, merge the linked PR immediately with `gh pr merge` using `GITHUB_TOKEN`, resolving conflicts and passing required checks first. Verify that the PR is merged before completing the card or removing its worktree. If the merge is blocked, follow step 6. Operations without tracked repository changes complete without a PR.
           - If the main checkout is on master or main and has no uncommitted changes, run `git pull --ff-only` there. Do not switch branches.
           - Move the card to completed
           - Remove the working tag
@@ -116,7 +116,7 @@ class Trigger
       else
         <<~PROMPT
           - Remove the working tag
-          - Move the card to review
+          - Move the card to review if there are tracked repository changes; otherwise move it to completed
         PROMPT
       end
 
@@ -130,11 +130,12 @@ class Trigger
         1. This session is already in the card worktree. Env files and schema.rb were copied from the main checkout.
         2. Rebase onto the current origin main, or merge it instead if the branch has merge commits. Do not hard-reset; keep existing commits.
         3. Read the card and all comments. If the card names a skill, follow it; where the skill says how to finish the card, do that instead of steps 5 and 6, then remove the working tag. Step 7 still applies.
+           Every task, including operations, needs a Linear card. A GitHub PR is required only for code changes or other changes to tracked repository files. Operations without tracked repository changes need no PR, empty commit, or branch. Do not require GitHub PR access for such operations.
         4. Implement the work. You may edit existing commits or add new ones.
         5. If you finish:
-           - Commit
-           - Open a GitHub PR with `gh pr create` using `GITHUB_TOKEN`
-           - Link the PR to the card
+           - If there are tracked repository changes, commit them, push the branch, and create or update the card's PR:
+             - Open a GitHub PR with `gh pr create` using `GITHUB_TOKEN` if the card has no PR
+             - Link the PR to the card
            - Comment on the card with a brief summary of what changed and a short fenced pseudocode block showing how the change works at a high level. Use named components and indentation to show the flow of inputs, key decisions, and results. Keep it structural and concise; do not explain the flow in paragraphs or include low-level implementation details.
         #{completion.lines.map { |line| "   #{line}" }.join.rstrip}
         6. If the card is blocked or the change is not possible:
