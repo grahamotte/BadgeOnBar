@@ -1,7 +1,7 @@
 require "time"
 
 class AgentSelection
-  MAX_QUOTA_AGE = 600
+  MAX_QUOTA_AGE = 300
   MIN_REMAINING = 5
 
   class << self
@@ -29,6 +29,12 @@ class AgentSelection
 
     private
 
+    def stale_quota?(limits)
+      Time.now - Time.iso8601(limits.fetch(:checkedAt)) > MAX_QUOTA_AGE
+    rescue KeyError, ArgumentError, TypeError, NoMethodError
+      false
+    end
+
     def current_quota?(limits)
       return false if limits.blank? || limits[:unavailable].present?
 
@@ -53,7 +59,7 @@ class AgentSelection
       catalog = JSON.parse(File.read(File.join(home, "caches", "#{instance}.json")), symbolize_names: true)
       limits = catalog[:usageLimits]
       unless current_quota?(limits)
-        return unless refresh
+        return unless refresh && stale_quota?(limits)
 
         T3Runner.refresh_provider(instance)
         return weekly_remaining(selection, refresh: false)

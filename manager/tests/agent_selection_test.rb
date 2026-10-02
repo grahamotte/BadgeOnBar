@@ -81,7 +81,7 @@ class AgentSelectionTest < Minitest::Test
   end
 
   def test_skips_stale_future_and_expired_snapshots
-    [ @now - 601, @now + 60 ].each do |checked|
+    [ @now - 301, @now + 60 ].each do |checked|
       edit_catalog { |catalog| catalog[:usageLimits][:checkedAt] = checked.iso8601 }
       assert_equal @candidates.first, AgentSelection.resolve
     end
@@ -147,24 +147,47 @@ class AgentSelectionTest < Minitest::Test
   end
 
   def test_refreshes_stale_quota_and_scores_the_new_snapshot
-    edit_catalog { |catalog| catalog[:usageLimits][:checkedAt] = (@now - 601).iso8601 }
+    edit_catalog { |catalog| catalog[:usageLimits][:checkedAt] = (@now - 301).iso8601 }
     @refresh = -> { write_catalog("claudeAgent", "claude-opus-5-5", weekly: 99) }
 
     assert_equal @candidates.last, AgentSelection.resolve
     assert_equal [ "ws://127.0.0.1:3773/ws" ], @refreshes
   end
 
-  def test_refreshes_missing_failed_and_expired_usage_once
-    [ nil, { unavailable: { reason: "probeFailed" } }, { checkedAt: @now.iso8601, windows: [ { kind: "weekly", usedPercent: 5, resetsAt: (@now - 1).iso8601 } ] } ].each do |limits|
+  def test_does_not_refresh_recent_or_undated_unusable_usage
+    [
+      nil,
+      { checkedAt: "invalid" },
+      { unavailable: { reason: "probeFailed" } },
+      { checkedAt: @now.iso8601, unavailable: { reason: "probeFailed" } },
+      { checkedAt: (@now + 60).iso8601, windows: [ { kind: "weekly", usedPercent: 5 } ] },
+      { checkedAt: @now.iso8601, windows: [ { kind: "weekly", usedPercent: 5, resetsAt: (@now - 1).iso8601 } ] },
+    ].each do |limits|
       edit_catalog { |catalog| catalog[:usageLimits] = limits }
-      @refresh = -> { write_catalog("claudeAgent", "claude-opus-5-5", weekly: 99) }
-      assert_equal @candidates.last, AgentSelection.resolve
+      assert_equal @candidates.first, AgentSelection.resolve
     end
-    assert_equal 3, @refreshes.length
+    assert_equal [], @refreshes
+  end
+
+  def test_reuses_quota_under_five_minutes_old
+    edit_catalog { |catalog| catalog[:usageLimits][:checkedAt] = (@now - 299).iso8601(6) }
+
+    assert_equal @candidates.last, AgentSelection.resolve
+    assert_equal [], @refreshes
+  end
+
+  def test_refreshes_old_failed_usage_once
+    edit_catalog do |catalog|
+      catalog[:usageLimits] = { checkedAt: (@now - 301).iso8601, unavailable: { reason: "probeFailed" } }
+    end
+    @refresh = -> { write_catalog("claudeAgent", "claude-opus-5-5", weekly: 99) }
+
+    assert_equal @candidates.last, AgentSelection.resolve
+    assert_equal 1, @refreshes.length
   end
 
   def test_failed_refresh_keeps_other_fresh_candidates_available
-    edit_catalog { |catalog| catalog[:usageLimits][:checkedAt] = (@now - 601).iso8601 }
+    edit_catalog { |catalog| catalog[:usageLimits][:checkedAt] = (@now - 301).iso8601 }
     @refresh = -> { raise Timeout::Error }
 
     assert_equal @candidates.first, AgentSelection.resolve
