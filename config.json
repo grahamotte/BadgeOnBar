@@ -43,8 +43,8 @@
     "size": "s-1vcpu-2gb"
   },
   "secrets": {
-    "development": "op://Projects/Badge On Bar Development/notesPlain",
-    "production": "op://Projects/Badge On Bar Production/notesPlain"
+    "development": "op://Projects/Badge On Bar Development",
+    "production": "op://Projects/Badge On Bar Production"
   },
   "linear": {
     "workspace": "gotte",
