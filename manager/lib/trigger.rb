@@ -147,7 +147,7 @@ class Trigger
            - If there are tracked repository changes, commit them, push the branch, and create or update the card's PR:
              - Open a GitHub PR with `gh pr create` using `GITHUB_TOKEN` if the card has no PR
              - Link the PR to the card
-           - Comment on the card with a brief summary of what changed and a short fenced pseudocode block showing how the change works at a high level. Use named components and indentation to show the flow of inputs, key decisions, and results. Keep it structural and concise; do not explain the flow in paragraphs or include low-level implementation details.
+           - Comment on the card with a brief summary of what changed and a short fenced pseudocode block showing how the change works at a high level. Use readable, imperfect Ruby in a fenced `ruby` block; the pseudocode does not need to run. Use named components and indentation to show the flow of inputs, key decisions, and results. Keep it structural and concise; do not explain the flow in paragraphs or include low-level implementation details.
         #{completion.lines.map { |line| "   #{line}" }.join.rstrip}
         6. If the card is blocked or the change is not possible:
            - Comment on the card explaining why
