@@ -2,6 +2,8 @@
 
 `mise manager:sync` (also available as `mise manager:linear_sync`) reconciles the configured Linear team's workflow, labels, and Git automations. It creates the manager's runner, model, and variant labels and deletes labels outside the managed set, including shared workspace labels returned for the team. Deleting a shared label removes it from cards across the workspace. Labels owned by other teams are left alone. Run sync before triggering cards.
 
+`mise manager:trigger` filters issues in Linear before paginating: all Ready and Approved cards remain eligible regardless of age, while Completed and Canceled cards are fetched for worktree cleanup only when updated within the last 30 days. Other columns are excluded. The window uses the last update rather than creation, so an old card that is newly completed or canceled still gets cleaned up. Worktrees for terminal cards unchanged for more than 30 days need manual removal if the manager missed the cleanup window.
+
 Cards can override the defaults in `config.json` using these labels:
 
 - `runner: openchamber`, `runner: t3`, or `runner: interactive`
