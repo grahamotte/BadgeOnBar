@@ -23,8 +23,8 @@ Check and report every item. Do not stop after the first failure. Abort the merg
 3. Preserve the intent of both Code Moto and downstream changes. Keep `AGENTS.md` **Repo Specific** and app-specific skills. Inspect surrounding code, history, and tests when a resolution is not obvious.
 4. Ask the user only when there is genuine ambiguity with materially different valid outcomes, or progress requires information or authority only they can provide. Explain the exact decision needed; do not stop merely because a conflict or failure occurred.
 5. Run `mise test` after the merge succeeds. Fix merge-related failures, commit the fixes, and rerun the whole suite until it passes.
-6. Push with `git push -u origin HEAD:<branch>` and open a GitHub PR with `gh pr create --head <branch>`.
-7. Merge the PR with `gh pr merge --merge --delete-branch`. Never squash or rebase it, never rebase the branch, and never force push; the merge commit must keep Code Moto's history.
+6. If the repository is already up to date and there are no new commits or tracked file changes to bring into `origin/master`, report that result and skip the commit and PR steps. Preserve merge commits through a PR even when the final file contents match. Otherwise, push with `git push -u origin HEAD:<branch>` and open a GitHub PR with `gh pr create --head <branch>`.
+7. If a PR was needed, merge the PR with `gh pr merge --merge --delete-branch`. Never squash or rebase it, never rebase the branch, and never force push; the merge commit must keep Code Moto's history.
 8. Locate the main checkout with `git worktree list --porcelain`. Confirm it is on master or main and has no uncommitted changes, then run `git pull --ff-only` there so it matches origin. Do not switch branches. If it cannot be updated, report the blocker and leave the merge card incomplete.
 9. Perform any local env-file cleanup in that main checkout: `.env.development` and `.env.production` copied into the card worktree are temporary and are removed with the worktree. Preserve secret values and downstream-only keys. Arrange the Code Moto keys in the order and grouping of the main checkout's merged `.env.default`, followed by its separator line, then downstream-only keys. Remove settings only after their values have been preserved in `config.json`.
 10. From the main checkout root, run `mise manager:secrets` in a non-login shell to pull fresh secrets using the merged `config.json`. It overwrites local env files, so any required cleanup must also be reflected in the corresponding 1Password notes. Verify every regenerated `.env.<key>` in the main checkout against its `.env.default`, including `.env.development` and `.env.production` when configured under `secrets`: every Code Moto key appears once in template order and grouping before the separator, and downstream-only keys follow it. Inspect key names and layout without printing secret values. If refresh fails or the layout is wrong, correct the source notes and regenerate; if that cannot be done, report the blocker and leave the card incomplete.
@@ -44,9 +44,9 @@ Code Moto sets `[task_config] shell = "bash -o errexit -o pipefail -c"` so inlin
 
 ## Linear card
 
-When running for a Linear card, finish the card here instead of sending it to `review`:
+Reuse the supplied tracking card for this operation and record its result there. Create a card only if none covers the task. Follow this section instead of sending the operation to `review`; complete the card only when its whole task is done. If other steps remain after success, keep it in `working` and record what remains:
 
 - Comment with the recovery point as soon as `mise merge` prints it.
-- Link the PR to the card.
-- On success, finish workflow steps 8–10 before moving the card to `completed`. Comment with the PR, merge commit, conflict resolutions, test results, main checkout path and branch, and successful secrets refresh and layout checks. Worktree env-file copies do not satisfy this completion check.
+- Link any required PR to the card.
+- On success, finish workflow steps 8–10 before moving the card to `completed`, and do so only when the whole task is done. Comment with the PR, merge commit, conflict resolutions, test results, main checkout path and branch, and successful secrets refresh and layout checks. Worktree env-file copies do not satisfy this completion check.
 - When blocked, comment with the blocker and the recovery point, then move the card to `planned`.
