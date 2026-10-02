@@ -62,10 +62,7 @@ class AppsTest < Minitest::Test
     Cmd.stubs(:local).with { |command| commands << command; true }.returns("Apple Distribution")
     stub_security([ "list-keychains", "-d", "user" ], "\"#{login}\"", "\"#{keychain}\" \"#{login}\"")
     stub_security([ "default-keychain", "-d", "user" ], "\"#{login}\"", "\"#{login}\"")
-    stub_security([ "login-keychain" ], "\"#{login}\"", "\"#{login}\"")
     Cmd.expects(:local).with(Shellwords.join([ "security", "list-keychains", "-d", "user", "-s", login ])).returns("")
-    Cmd.expects(:local).with(Shellwords.join([ "security", "default-keychain", "-d", "user", "-s", login ])).returns("")
-    Cmd.expects(:local).with(Shellwords.join([ "security", "login-keychain", "-s", login ])).returns("")
 
     Apps.with_signing_certificate("Apple Distribution", "APPLE_DISTRIBUTION") do
       assert_equal 1, Dir.glob(File.join(@publish_test_dir, ".config", "codemoto", "keychain", "*.json")).size
@@ -88,10 +85,7 @@ class AppsTest < Minitest::Test
     Cmd.stubs(:local).returns("")
     stub_security([ "list-keychains", "-d", "user" ], "\"#{login}\"", "\"#{keychain}\" \"#{login}\"")
     stub_security([ "default-keychain", "-d", "user" ], "\"#{login}\"", "\"#{login}\"")
-    stub_security([ "login-keychain" ], "\"#{login}\"", "\"#{login}\"")
     Cmd.expects(:local).with(Shellwords.join([ "security", "list-keychains", "-d", "user", "-s", login ])).returns("")
-    Cmd.expects(:local).with(Shellwords.join([ "security", "default-keychain", "-d", "user", "-s", login ])).returns("")
-    Cmd.expects(:local).with(Shellwords.join([ "security", "login-keychain", "-s", login ])).returns("")
 
     error = assert_raises(RuntimeError) { Apps.with_signing_certificate("Apple Distribution", "APPLE_DISTRIBUTION") { } }
 
