@@ -109,11 +109,14 @@ class Trigger
           model: Linear.model(item),
           variant: Linear.variant(item),
         }
-        selections[:runner] = Settings.all.dig(:agent, :runner) if selections[:runner].to_s.casecmp?(INTERACTIVE)
+        interactive = selections[:runner].to_s.casecmp?(INTERACTIVE)
+        selections[:runner] = nil if interactive
+        defaults = AgentSelection.resolve(**selections)
+        selections[:runner] = defaults[:runner] if interactive
         selections.each do |key, value|
           next if value.present?
 
-          default = Settings.all.dig(:agent, key)
+          default = defaults[key]
           next if default.blank?
 
           Linear.tag(item, "#{key}: #{default}")
