@@ -122,10 +122,9 @@ class WorktreeTest < Minitest::Test
     FileUtils.mkdir_p(File.dirname(temporary))
     File.write(temporary, "temporary")
     stub_git
-    stub_security(search: temporary, default: temporary, login: temporary)
+    stub_security(search: temporary, default: temporary)
     Open3.expects(:capture3).with("security", "list-keychains", "-d", "user", "-s", login).returns([ "", "", status(true) ])
     Open3.expects(:capture3).with("security", "default-keychain", "-d", "user", "-s", login).returns([ "", "", status(true) ])
-    Open3.expects(:capture3).with("security", "login-keychain", "-s", login).returns([ "", "", status(true) ])
 
     assert Worktree.remove(item)
 
@@ -139,7 +138,7 @@ class WorktreeTest < Minitest::Test
     FileUtils.mkdir_p(path)
     File.write(temporary, "temporary")
     stub_git
-    stub_security(search: temporary, default: temporary, login: Worktree.keychain.login)
+    stub_security(search: temporary, default: temporary)
     Open3.stubs(:capture3).with { |command, *arguments| command == "security" && arguments.include?("-s") }.returns([ "", "denied", status(false) ])
 
     error = assert_raises(RuntimeError) { Worktree.remove(item) }
@@ -349,10 +348,9 @@ class WorktreeTest < Minitest::Test
     @git_commands || []
   end
 
-  def stub_security(search:, default:, login:)
+  def stub_security(search:, default:)
     Open3.stubs(:capture3).with("security", "list-keychains", "-d", "user").returns([ "\"#{search}\"\n", "", status(true) ])
     Open3.stubs(:capture3).with("security", "default-keychain", "-d", "user").returns([ "\"#{default}\"\n", "", status(true) ])
-    Open3.stubs(:capture3).with("security", "login-keychain").returns([ "\"#{login}\"\n", "", status(true) ])
   end
 
   def write_source(relative, contents)

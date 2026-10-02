@@ -33,11 +33,11 @@ Availability and supported effort levels depend on the runner, provider account,
 
 ## Host keychain protection
 
-Tasks that change the user's keychain settings, such as publish signing, wrap the change in `Keychain#protect` from `gems/keychain`. It saves the search list, default keychain, and login keychain under `~/.config/codemoto/keychain` and restores them when the block finishes, raises, or is interrupted.
+Tasks that change the user's keychain settings, such as publish signing, wrap the change in `Keychain#protect` from `gems/keychain`. It saves the search list and default keychain under `~/.config/codemoto/keychain` and restores whichever changed when the block finishes, raises, or is interrupted. The login keychain setting is not touched; `security login-keychain -s` fails on current macOS, so tasks cannot change it either.
 
-Each `mise manager:trigger` run first restores snapshots left by processes that are no longer running and removes keychains whose files no longer exist from the search list, default, and login settings. Before removing a card worktree, the manager also removes keychains stored inside it; if that fails, the worktree is kept. The trigger then warns when the default or login keychain is not `~/Library/Keychains/login.keychain-db`, the search list omits it, or a larger `login_renamed_*.keychain-db` suggests macOS replaced the login keychain. These checks are skipped while a protected task is running.
+Each `mise manager:trigger` run first restores snapshots left by processes that are no longer running and removes keychains whose files no longer exist from the search list and default. Before removing a card worktree, the manager also removes keychains stored inside it; if that fails, the worktree is kept. The trigger then warns when the default keychain is not `~/Library/Keychains/login.keychain-db`, the search list omits it, or a larger `login_renamed_*.keychain-db` suggests macOS replaced the login keychain. These checks are skipped while a protected task is running.
 
-Run `mise manager:keychain` to repair the warned state. It resets the search list, default, and login keychain to the login keychain. If a larger `login_renamed_*` file exists, it saves the current login keychain as `login_backup_<timestamp>.keychain-db`, copies the largest renamed file back to `login.keychain-db`, and asks you to log out and back in.
+Run `mise manager:keychain` to repair the warned state. It resets the default keychain to the login keychain and adds the login keychain to the search list. If a larger `login_renamed_*` file exists, it saves the current login keychain as `login_backup_<timestamp>.keychain-db`, copies the largest renamed file back to `login.keychain-db`, and asks you to log out and back in.
 
 ## Code Moto merge cards
 

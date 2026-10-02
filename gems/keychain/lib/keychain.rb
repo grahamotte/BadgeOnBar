@@ -23,7 +23,6 @@ class Keychain
     {
       search: paths(security("list-keychains", "-d", "user")),
       default: paths(security("default-keychain", "-d", "user")).first,
-      login: paths(security("login-keychain")).first,
     }
   end
 
@@ -32,18 +31,19 @@ class Keychain
     file = save(saved)
     yield saved
   ensure
-    restore(saved) if saved && snapshot != saved
+    restore(saved) if saved
     FileUtils.rm_f(file) if file
   end
 
   def restore(saved)
+    current = snapshot
     search = saved.fetch(:search, []).select { |path| usable?(path) }
     search.unshift(login) unless search.include?(login)
-    errors = [
-      [ "list-keychains", "-d", "user", "-s", *search ],
-      [ "default-keychain", "-d", "user", "-s", usable?(saved[:default]) ? saved[:default] : login ],
-      [ "login-keychain", "-s", usable?(saved[:login]) ? saved[:login] : login ],
-    ].filter_map do |arguments|
+    default = usable?(saved[:default]) ? saved[:default] : login
+    steps = []
+    steps << [ "list-keychains", "-d", "user", "-s", *search ] unless current[:search] == search
+    steps << [ "default-keychain", "-d", "user", "-s", default ] unless current[:default] == default
+    errors = steps.filter_map do |arguments|
       security(*arguments)
       nil
     rescue StandardError => error
@@ -55,7 +55,7 @@ class Keychain
   def release(directory = nil)
     root = File.join(File.expand_path(directory), "") if directory
     current = snapshot
-    released = [ *current[:search], current[:default], current[:login] ].compact.uniq.select do |path|
+    released = [ *current[:search], current[:default] ].compact.uniq.select do |path|
       !File.exist?(path) || (root && path.start_with?(root))
     end
     return [] if released.empty?
@@ -63,14 +63,13 @@ class Keychain
     restore(
       search: current[:search] - released,
       default: released.include?(current[:default]) ? login : current[:default],
-      login: released.include?(current[:login]) ? login : current[:login],
     )
     released
   end
 
   def recover
     states.reject { |state| alive?(state[:pid]) }.map do |state|
-      restore(state[:snapshot]) if snapshot != state[:snapshot]
+      restore(state[:snapshot])
       FileUtils.rm_f(state[:file])
       state[:file]
     end
@@ -87,7 +86,6 @@ class Keychain
     found = []
     found << "#{login} is missing" unless File.exist?(login)
     found << "default keychain is #{current[:default] || "unset"}, not #{login}" unless current[:default] == login
-    found << "login keychain is #{current[:login] || "unset"}, not #{login}" unless current[:login] == login
     found << "search list does not include #{login}" unless current[:search].include?(login)
     renamed.each { |path| found << "#{path} is larger than #{login} and may hold the original login keychain" }
     found
@@ -96,7 +94,7 @@ class Keychain
   def repair
     recover
     replaced = restore_renamed
-    restore(search: snapshot[:search], default: login, login: login)
+    restore(search: snapshot[:search], default: login)
     replaced
   end
 

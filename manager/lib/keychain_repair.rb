@@ -23,7 +23,7 @@ class KeychainRepair
       @output.puts "Saved the previous login keychain to #{replaced[:backup]}." if replaced[:backup].present?
       @output.puts "Log out and back in so macOS reloads the login keychain."
     end
-    @output.puts "Reset the default keychain, login keychain, and search list to #{@keychain.login}."
+    @output.puts "Reset the default keychain and search list to #{@keychain.login}."
 
     remaining = @keychain.problems
     remaining.each { |problem| @output.puts "Still needs attention: #{problem}" }

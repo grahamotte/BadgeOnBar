@@ -28,7 +28,7 @@ class TriggerTest < Minitest::Test
     login = Worktree.keychain.login
     other = File.join(File.dirname(login), "other.keychain-db")
     File.write(other, "other")
-    stub_security(search: other, default: other, login: login)
+    stub_security(search: other, default: other)
 
     output, = capture_io { Trigger.call }
 
@@ -49,11 +49,10 @@ class TriggerTest < Minitest::Test
     missing = File.join(@worktree_test_dir, "deleted", "signing.keychain-db")
     state = File.join(Worktree.keychain.state_root, "20260101000000000000-99999999.json")
     FileUtils.mkdir_p(File.dirname(state))
-    File.write(state, JSON.generate(pid: 99_999_999, snapshot: { search: [ login ], default: login, login: }))
-    stub_security(search: missing, default: missing, login:)
+    File.write(state, JSON.generate(pid: 99_999_999, snapshot: { search: [ login ], default: login }))
+    stub_security(search: missing, default: missing)
     Open3.expects(:capture3).with("security", "list-keychains", "-d", "user", "-s", login).twice.returns([ "", "", Struct.new(:success?).new(true) ])
     Open3.expects(:capture3).with("security", "default-keychain", "-d", "user", "-s", login).twice.returns([ "", "", Struct.new(:success?).new(true) ])
-    Open3.expects(:capture3).with("security", "login-keychain", "-s", login).twice.returns([ "", "", Struct.new(:success?).new(true) ])
 
     output, = capture_io { Trigger.call }
 
@@ -771,11 +770,10 @@ class TriggerTest < Minitest::Test
     opts[:url] == Linear::HOST && opts.dig(:payload, :query).to_s.include?(fragment)
   end
 
-  def stub_security(search:, default:, login:)
+  def stub_security(search:, default:)
     ok = Struct.new(:success?).new(true)
     Open3.stubs(:capture3).with("security", "list-keychains", "-d", "user").returns([ "\"#{search}\"\n", "", ok ])
     Open3.stubs(:capture3).with("security", "default-keychain", "-d", "user").returns([ "\"#{default}\"\n", "", ok ])
-    Open3.stubs(:capture3).with("security", "login-keychain").returns([ "\"#{login}\"\n", "", ok ])
   end
 
   def stub_manager(items:)
