@@ -50,11 +50,6 @@
     "workspace": "gotte",
     "team": "BOB"
   },
-  "agent": {
-    "runner": "t3",
-    "model": "openai/gpt-6.1-sol",
-    "variant": "medium"
-  },
   "apps": {
     "build": "0.6.1",
     "description": "Badge On Bar mirrors selected macOS Dock badge counts into separate menu bar items.",
