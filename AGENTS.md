@@ -17,7 +17,7 @@ The "Repo Specific" section blow contains rules specific to this repo only.
 5. Use root `mise` tasks instead of invoking underlying tools directly when an applicable task exists.
 6. Do not create a canvas or visualization unless the user specifically requests one.
 7. When opening a git worktree, copy `.env.development`, `.env.production`, and `backend/db/schema.rb` from the main checkout into the worktree before running tests or mise tasks.
-8. Every change needs a Linear card and a GitHub PR, including operations such as deploys, merges, and publishes. If there is no card, create one first. Never commit to or push `master`, and never make changes outside that flow.
+8. Every task needs a Linear card, including operations such as deploys, merges, and publishes. If there is no card, create one first. All code changes and other changes to tracked repository files need a GitHub PR. Operations without tracked repository changes need no PR, empty commit, or branch. Never commit to or push `master`, and never make repository changes outside the PR flow.
 9. Work from `origin/master`: start branches from it, and do not rely on local `master` being current.
 10. If you spend significant time unnecessarily or the instructions misdirect you, and the issue could be backported to Code Moto (`codemoto.org` / MOTO), search the MOTO backlog (`mise linear issues search "<issue>" --team MOTO --status Backlog`). If a matching card exists, comment with a brief summary of your experience. Otherwise create a MOTO backlog card. Do not file app-specific issues that cannot be backported.
 
@@ -54,12 +54,12 @@ Columns, in order: `Backlog`, `Planned`, `Ready`, `Working`, `Review`, `Approved
 Tags (pass them by id, not name, since Linearis does not resolve tag names per team):
 
 - `working`: the manager's agent is processing the card. Only add or remove it when a manager prompt tells you to.
-- `skip review`: the manager's work agent still creates and links a PR, then merges it, completes the card, and removes its worktree without waiting for review.
+- `skip review`: for tracked repository changes, the manager's work agent creates and links a PR, then merges it before completing the card and removing its worktree. Operations without tracked repository changes complete without a PR. Neither path waits for review.
 - `runner: interactive`: the card is worked with the user instead of by the manager. The manager does not pick it up from `ready`, but still merges it from `approved`.
 
 When the user hands you a Linear card, use the `interactive-card` skill, unless the prompt says the manager runs the card.
 
-Operations are skills, and their cards name the skill to run: `deploy`, `merge`, and `publish`. Each skill finishes its own card and merges its own PRs; `mise deploy`, `mise merge`, and `mise publish` all work from `origin/master`.
+Operations are skills, and their cards name the skill to run: `deploy`, `merge`, and `publish`. Each skill finishes its own card and merges any PRs required for tracked repository changes. A deploy without repository changes needs no PR; record its result on the card. `mise deploy`, `mise merge`, and `mise publish` all work from `origin/master`.
 
 ## GitHub
 
