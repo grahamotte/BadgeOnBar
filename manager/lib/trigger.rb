@@ -8,7 +8,18 @@ class Trigger
 
   class << self
     def call
-      Linear.issues.group_by { |item| Linear.column(item) }.each do |column, items|
+      filter = {
+        or: [
+          { state: { name: { in: [ "Ready", "Approved" ] } } },
+          {
+            and: [
+              { state: { name: { in: [ "Completed", "Canceled" ] } } },
+              { updatedAt: { gte: "-P30D" } },
+            ],
+          },
+        ],
+      }
+      Linear.issues(filter:).group_by { |item| Linear.column(item) }.each do |column, items|
         case column
         when COMPLETED, CANCELED
           cleaned = items.select { |item| cleanup_worktree(item) }

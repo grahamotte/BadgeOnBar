@@ -1,6 +1,28 @@
 require_relative "test_helper"
 
 class TriggerTest < Minitest::Test
+  def test_fetches_all_actionable_cards_and_only_recent_terminal_cards
+    calls = stub_manager(items: [])
+
+    assert_output("") { Trigger.call }
+
+    query = calls.find { |call| graphql?(call, "query Issues") }
+    assert_equal(
+      {
+        or: [
+          { state: { name: { in: [ "Ready", "Approved" ] } } },
+          {
+            and: [
+              { state: { name: { in: [ "Completed", "Canceled" ] } } },
+              { updatedAt: { gte: "-P30D" } },
+            ],
+          },
+        ],
+      },
+      query.dig(:payload, :variables, :filter),
+    )
+  end
+
   def test_moves_ready_cards_and_starts_work_agent
     calls = stub_manager(
       items: [
