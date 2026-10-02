@@ -27,6 +27,12 @@ The model picker contains eight options:
 
 Availability and supported effort levels depend on the runner, provider account, and model. A model without effort options needs a blank default variant. For OpenChamber, model and variant values are forwarded as before.
 
+## Code Moto merge cards
+
+Cards that invoke the `merge` skill and request local env-file cleanup must target `.env.development` and `.env.production` in the main checkout, where the post-merge `git pull --ff-only` runs. The card worktree contains temporary copies that disappear when it is removed.
+
+Before completing a merge card, follow the merge skill's main-checkout steps: confirm master or main, pull the merged changes, run `mise manager:secrets` from that checkout root in a non-login shell, and verify the refreshed files against the merged `.env.default`. Code Moto keys must appear once in template order and grouping before the separator line, with downstream-only keys afterward. Apply cleanup to the corresponding 1Password notes so regeneration preserves it. A failed refresh or layout check leaves the card blocked rather than completed.
+
 ## macOS agent task execution
 
 Run root `mise` tasks with the card's worktree root as the working directory and a non-login shell. Before running tasks in a newly opened worktree, copy `.env.development`, `.env.production`, and `backend/db/schema.rb` from the main checkout as required by `AGENTS.md`. The manager already copies these files when opening a card worktree.
