@@ -52,6 +52,8 @@ Work items are cards in Linear. Use `mise linear <args>`, which runs the [Linear
 
 When commenting on a card with pseudocode, use readable, imperfect Ruby in a fenced `ruby` block. Favor named components and indentation that show inputs, key decisions, and results; the pseudocode does not need to run.
 
+Do not assign users to cards when creating or working on them, including manager tasks. Leave existing assignees unchanged.
+
 Columns, in order: `Backlog`, `Planned`, `Ready`, `Working`, `Review`, `Approved`, `Completed`, `Canceled`.
 
 Tags (pass them by id, not name, since Linearis does not resolve tag names per team):
