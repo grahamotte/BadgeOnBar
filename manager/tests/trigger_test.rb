@@ -45,6 +45,7 @@ class TriggerTest < Minitest::Test
     prompt = prompt_for(calls, "MOTO-1")
     assert_includes prompt, "Do this Linear issue: https://linear.app/gotte/issue/MOTO-1"
     assert_includes prompt, "The manager runs this card. Do not use the `interactive-card` skill."
+    assert_includes prompt, "Do not assign users to cards when creating or working on them. Leave existing assignees unchanged."
     assert_includes prompt, "This may be a new card or a kickback with corrections in later comments."
     assert_includes prompt, "There may already be a worktree, commits, and a PR."
     assert_includes prompt, "This session is already in the card worktree. Env files and schema.rb were copied from the main checkout."
@@ -586,6 +587,7 @@ class TriggerTest < Minitest::Test
     assert_includes prompt_for(calls, "MOTO-1"), "This session is already in the card worktree. Env files and schema.rb were copied from the main checkout."
     assert_includes prompt_for(calls, "MOTO-1"), "Rebase onto the current origin main, or merge it instead if the branch has merge commits. Do not hard-reset; keep existing commits."
     assert_includes prompt_for(calls, "MOTO-3"), "Rebase the GitHub PR on the card."
+    assert_includes prompt_for(calls, "MOTO-3"), "Do not assign users to cards when creating or working on them. Leave existing assignees unchanged."
     assert_equal Worktree.path_for({ identifier: "MOTO-1" }), directory_for(calls, "MOTO-1")
     assert_equal Worktree.root, directory_for(calls, "MOTO-3")
   end
