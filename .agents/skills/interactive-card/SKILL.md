@@ -22,7 +22,7 @@ When repository changes are ready to merge, or the user asks for review:
 
 1. Commit and push with `git push -u <gitRemote> HEAD:<card branch>`. The manager finds the card's worktree through this branch.
 2. Use `mise -C <mr-moto-checkout> pr <project> create <CARD> --title "<title>" --body-file <path>` to create or update the open card PR and link it to Linear.
-3. Comment the handoff described in `AGENTS.md` and move the card to `review`. Do not do work that depends on the merge.
+3. Comment the handoff described in `AGENTS.md`, giving concrete commands, project-local paths, inputs, and verification for each remaining action instead of referring to another skill. Move the card to `Review`. Do not do work that depends on the merge.
 
 For later changes to an open PR, push to it and comment with what changed and an updated handoff.
 

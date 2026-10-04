@@ -66,11 +66,11 @@ Columns, in order: `Backlog`, `Planned`, `🤖 Working`, `Review`, `🤖 Approve
 
 Every agent session ends with one handoff: move the card to `Review`, `Planned`, or `Completed`, comment why, and remove the `working` tag if the manager started the session. Do not leave a non-interactive card in `🤖 Working` without the tag, since that queues another agent.
 
-Sessions share nothing but the card. Before moving a card to `Review`, comment a handoff for the Approved agent: the PR to merge, remaining work after the merge in order (naming skills such as `deploy`), relevant inputs and constraints, work already done, and verification required before completion. Write "Remaining work: none" when nothing remains. The Approved agent reads the card and all comments first; a missing or ambiguous handoff sends the card to `Planned`, never to `Completed`.
+Sessions share nothing but the card. Before moving a card to `Review`, comment a handoff for the Approved agent: the PR to merge, remaining work after the merge in order with concrete commands and project-local paths, relevant inputs and constraints, work already done, and verification required before completion. Describe each remaining action directly so the next session can execute it from the card and the project's own instructions. Write "Remaining work: none" when nothing remains. The Approved agent reads the card and all comments first; a missing or ambiguous handoff sends the card to `Planned`, never to `Completed`.
 
-Operation skills, such as `deploy`, `merge`, and `publish`, record their results on the card that invokes them and follow this workflow. `mise deploy`, `mise merge`, and `mise publish` all work from `origin/master`.
+Operations record their results on the card that requests them and follow this workflow. `mise deploy`, `mise merge`, and `mise publish` all work from `origin/master`. Manager prompts and handoffs describe actions directly rather than referring to skills in other repositories.
 
-When the user hands you a Linear card, use the `interactive-card` skill, unless the prompt says the manager runs the card.
+When the user hands you a Linear card directly, use this project's local `interactive-card` skill. For manager-started cards, follow the supplied prompt and workflow: the manager has already claimed the card with the `working` tag. Keep its column and runner labels until handoff, and remove the `working` tag only after recording the outcome.
 
 ### Tags
 
