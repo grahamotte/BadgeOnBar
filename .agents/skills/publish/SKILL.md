@@ -21,7 +21,7 @@ The request or card chooses the mode. Default to a full publish.
 2. Review the commits since the most recent commit named `Version` and choose the smallest appropriate semantic version bump from the current configured version: major for breaking changes, minor for new user-facing capabilities, and patch for everything else. Ask before a major bump. A publish request permits a patch release when there are no notable changes.
 3. Run `mise publish:approved_version` to find the latest version actually approved by App Store Connect. Find the `Version` commit that set that approved version and review every subsequent change when writing `whatsNew`, including changes already included in newer unapproved versions. If no approved version exists, review changes from the beginning of the repository. Write a concise, user-facing summary based on that full range, using `Bug fixes.` when nothing user-facing is notable.
 4. Run `mise publish:set_version <version>` and `mise test`, then commit only the version files with the message `Version`.
-5. Deliver the version commit through the supplied repository review instructions. Release only after the version PR has been merged and verified.
+5. Deliver the version commit through the supplied repository review instructions and hand off Review with the selected publish mode and release commands as remaining work. The Approved session releases only after the version PR has been merged and verified.
 
 ## Release
 
@@ -35,4 +35,4 @@ The macOS revision is signed, notarized, and released through GitHub. Other Appl
 
 ## Results
 
-Report the version PR and release result. When blocked, report the failure, its impact, and the state publishing stopped in. Record results on the invoking card when present; its lifecycle follows the launch prompt.
+Report the version PR and release result. When blocked, report the failure, its impact, and the state publishing stopped in. Record results on the invoking card when present. In a work session, hand off successful work to Review even when no tracked changes or PR are needed; explicitly record "No PR needed" and "Remaining work: none" when applicable. The Approved session finishes any remaining steps, then completes the card. When blocked, hand off Planned using the launch prompt’s commands.
