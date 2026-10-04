@@ -1,6 +1,6 @@
 # Manager
 
-Linear dispatch lives in [Mr. Moto](https://github.com/grahamotte/mr-moto), the sister repository checked out at `../mr-moto`. It owns repository registration, enqueueing, agent dispatch, and worktrees. See its `docs/manager.md` for orchestration and configuration. Mr. Moto owns the card workflow in `../mr-moto/docs/workflow.md` and supplies it to agent sessions. Code Moto does not mirror or define card lifecycle rules.
+The launch prompt supplies card access, PR management, and handoff instructions, including complete commands that execute central management tools. Agents work in their project checkout without reading another repository's documentation or configuration to discover the session workflow. This repository keeps only project-specific operation tooling.
 
 Code Moto's `manager/` keeps the per-repository tasks:
 
@@ -16,9 +16,9 @@ After a Code Moto merge, verify the main checkout: confirm master or main, pull 
 
 ## Repository discovery for all-repository skills
 
-For Code Moto rollouts, read the registered repository inventory from Mr. Moto’s `config.json`. Locate the Code Moto main checkout and each project’s main checkout with `git worktree list --porcelain`; deduplicate by Git common directory and exclude linked worktrees. Confirm downstream membership using a `codemoto` remote (or legacy `upstream`), shared Code Moto Git ancestry, and the repository’s `AGENTS.md`. Exclude Mr. Moto and non-Code Moto repositories from basis merges. Also check Code Moto’s sibling directories for downstreams missing from the registry and report gaps rather than silently scheduling an incomplete rollout.
+For Code Moto rollouts, obtain registered repository metadata using the inventory command supplied in the launch prompt. Do not read manager configuration files. Locate the Code Moto main checkout and each project’s main checkout with `git worktree list --porcelain`; deduplicate by Git common directory and exclude linked worktrees. Confirm downstream membership using a `codemoto` remote (or legacy `upstream`), shared Code Moto Git ancestry, and the repository’s `AGENTS.md`. Exclude Mr. Moto and non-Code Moto repositories from basis merges. Also check Code Moto’s sibling directories for downstreams missing from the registry and report gaps rather than silently scheduling an incomplete rollout.
 
-Use each entry’s explicit workspace, team, path, and configured `gitRemote` (default `origin`) when asking Mr. Moto to enqueue a merge. Missing checkouts or ambiguous membership are blockers. Fetch the configured remote and use its actual default branch; do not assume local master is current. Report the inventory, exclusions, and rollout concerns on the supplied tracking card. Mr. Moto’s workflow owns card creation, claims, and handoffs.
+Use each entry’s explicit workspace, team, path, and configured `gitRemote` (default `origin`) when asking Mr. Moto to enqueue a merge. Missing checkouts or ambiguous membership are blockers. Fetch the configured remote and use its actual default branch; do not assume local master is current. Report the inventory, exclusions, and rollout concerns on the supplied tracking card. The launch prompt supplies card creation, claims, and handoff instructions.
 
 ## macOS agent task execution
 

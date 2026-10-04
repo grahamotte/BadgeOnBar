@@ -17,7 +17,7 @@ The "Repo Specific" section blow contains rules specific to this repo only.
 5. Use root `mise` tasks instead of invoking underlying tools directly when an applicable task exists.
 6. Do not create a canvas or visualization unless the user specifically requests one.
 7. When opening a git worktree, copy `.env.development`, `.env.production`, and `backend/db/schema.rb` from the main checkout into the worktree before running tests or mise tasks.
-8. All code changes and other changes to tracked repository files need a GitHub PR. Operations without tracked repository changes need no PR, empty commit, or branch. Never commit to or push `master`, and never make repository changes outside the PR flow.
+8. All code changes and other changes to tracked repository files need a PR through the launch prompt's supplied commands. Operations without tracked repository changes need no PR, empty commit, or branch. Never commit to or push `master`, and never make repository changes outside the PR flow.
 9. Work from `origin/master`: start branches from it, and do not rely on local `master` being current.
 10. If you spend significant time unnecessarily or the instructions misdirect you, and the issue could be backported to Code Moto (`codemoto.org` / MOTO), report it with enough detail for Mr. Moto to track the basis-repository follow-up. Keep app-specific issues separate.
 11. On macOS, run root `mise` tasks from the worktree root in a non-login shell. For Codex `exec_command`, set `login: false` explicitly on each call that runs `mise`, including through wrappers. If Bundler reports system Ruby or a missing Bundler version, check tool resolution and retry the same root task this way before changing dependencies. See [macOS agent task execution](docs/manager.md#macos-agent-task-execution).
@@ -46,9 +46,9 @@ The "Repo Specific" section blow contains rules specific to this repo only.
 - After every code change, run the whole suite with `mise test`.
 - Do not write integration tests.
 
-## Mr. Moto
+## Session instructions
 
-Mr. Moto owns Linear access, card tracking, agent claims, handoffs, and PR review and merging. Follow the workflow supplied by its session prompt or `../mr-moto/docs/workflow.md`. This repository provides implementation instructions, checks, and operation tooling; it does not define the card lifecycle.
+Follow the launch prompt for task scope, card access, review, and handoff commands. This repository provides implementation instructions, checks, and operation tooling. The launch prompt supplies the session workflow; do not search another repository for workflow instructions.
 
 ## File Structure
 

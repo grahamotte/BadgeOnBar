@@ -18,4 +18,4 @@ description: Deploy `origin/master` to production. Use only when the user explic
 
 ## Results
 
-Report the deployed SHA and any fix PRs. When blocked, report the failure and what is needed to unblock it. Record results on the invoking card when present; its lifecycle follows the supplied Mr. Moto workflow.
+Report the deployed SHA and any fix PRs. When blocked, report the failure and what is needed to unblock it. Record results on the invoking card when present; its lifecycle follows the launch prompt.

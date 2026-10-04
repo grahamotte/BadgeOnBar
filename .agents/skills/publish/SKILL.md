@@ -35,4 +35,4 @@ The macOS revision is signed, notarized, and released through GitHub. Other Appl
 
 ## Results
 
-Report the version PR and release result. When blocked, report the failure, its impact, and the state publishing stopped in. Record results on the invoking card when present; its lifecycle follows the supplied Mr. Moto workflow.
+Report the version PR and release result. When blocked, report the failure, its impact, and the state publishing stopped in. Record results on the invoking card when present; its lifecycle follows the launch prompt.
