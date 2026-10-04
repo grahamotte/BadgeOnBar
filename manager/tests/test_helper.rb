@@ -22,7 +22,7 @@ module ManagerTestIsolation
       Settings.path,
       JSON.generate(
         githubRepo: "git@github.com:grahamotte/codemoto.org.git",
-        linear: { workspace: "gotte", team: "MOTO" },
+        domain: "codemoto.org",
       ),
     )
     super
