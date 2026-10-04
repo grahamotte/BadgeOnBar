@@ -4,7 +4,6 @@ pnpm = "11.21.0"
 ruby = "4.0.6"
 python = "3.14.7"
 deno = "2.9.5"
-"npm:linearis" = "2026.8.0"
 
 [env]
 _.file = '.env.development'
@@ -309,11 +308,3 @@ run = 'cd manager && bundle exec ruby spawn.rb "$usage_domain"'
 alias = ["merge"]
 usage = 'arg "[branch]" help="Branch to merge into, created from origin/master" default="codemoto-merge"'
 run = "scripts/mise/manager_merge.sh"
-
-#
-# Linear
-#
-
-[tasks.linear]
-raw_args = true
-run = 'LINEAR_API_TOKEN="$LINEAR_TOKEN" linearis'

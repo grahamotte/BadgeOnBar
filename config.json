@@ -46,10 +46,6 @@
     "development": "op://Projects/Code Moto Development",
     "production": "op://Projects/Code Moto Production"
   },
-  "linear": {
-    "workspace": "gotte",
-    "team": "MOTO"
-  },
   "apps": {
     "build": "0.2.1",
     "contactEmail": "go@graham.lol",
