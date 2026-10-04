@@ -40,7 +40,6 @@ Non-secret project settings live in `config.json`, including the domain, GitHub 
 | `mise console` | Open the Rails development console |
 | `mise simulate macos` | Build and launch the macOS app |
 | `mise xcode` | Open the Apple app project |
-| `mise manager:trigger` | Process eligible cards for the configured Linear team |
 
 Deployment, upstream merges, and publishing follow the card and pull request workflow described in [AGENTS.md](AGENTS.md), using the corresponding skills in [.agents/skills](.agents/skills). Badge On Bar is distributed as a signed and notarized GitHub release, not through the App Store.
 
@@ -50,7 +49,7 @@ Deployment, upstream merges, and publishing follow the card and pull request wor
 - **Frontend:** React, TypeScript, Vite, and Tailwind CSS, with separate sites for configured subdomains.
 - **Apps:** A Swift macOS menu bar app, with simulator and signed GitHub release publishing tools.
 - **Operations:** Server provisioning and deployment, backups, and shared Ruby gems.
-- **Agent workflow:** A manager that picks up Linear cards, launches coding agents in Git worktrees, and merges approved pull requests.
+- **Agent workflow:** Linear cards are worked by coding agents in Git worktrees, dispatched by the sister repository [Mr. Moto](https://github.com/grahamotte/mr-moto).
 
 ## Repository guide
 
@@ -62,10 +61,10 @@ Deployment, upstream merges, and publishing follow the card and pull request wor
 | `gems/` | Shared Ruby libraries |
 | `deploy/` | Infrastructure and deployment tooling |
 | `publish/` | App versioning, simulation, and publishing |
-| `manager/` | Linear workflow, agent runners, and project creation |
+| `manager/` | Secrets refresh, project creation, and Code Moto merges |
 | `scripts/` | Scripts behind mise tasks |
 
-See [manager runners and labels](docs/manager.md) for agent configuration, [Apple credentials](docs/apple-credentials.md) for publishing setup, and [AGENTS.md](AGENTS.md) for contribution rules.
+See [manager](docs/manager.md) for how Code Moto works with Mr. Moto, [Apple credentials](docs/apple-credentials.md) for publishing setup, and [AGENTS.md](AGENTS.md) for contribution rules.
 
 New Code Moto projects are created with `mise spawn` from the Code Moto repository. This app brings in foundation updates with the merge skill instead of replacing its history.
 
