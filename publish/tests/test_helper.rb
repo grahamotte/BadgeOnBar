@@ -53,7 +53,6 @@ Req.define_singleton_method(:call) { |*, **| raise UnsafeTestOperation, "Req.cal
   "APPLE_MAC_INSTALLER_DISTRIBUTION_CERTIFICATE_BASE64" => [ developer_id_pkcs12.to_der ].pack("m0"),
   "APPLE_MAC_INSTALLER_DISTRIBUTION_CERTIFICATE_PASSWORD" => developer_id_password,
   "APPLE_TEAM_ID" => "team",
-  "GITHUB_TOKEN" => "github-token",
   "test" => "true",
 }.each { |key, value| ENV[key] = value }
 
@@ -61,6 +60,8 @@ module PublishTestIsolation
   def before_setup
     @publish_test_dir = Dir.mktmpdir
     $cache = Cache.new(dir: File.join(@publish_test_dir, "cache"))
+    Constants.global_path = File.join(@publish_test_dir, "global-config.json")
+    File.write(Constants.global_path, JSON.generate(githubToken: "github-token"))
     configure_config_fixture
     super
   end
@@ -68,6 +69,7 @@ module PublishTestIsolation
   def after_teardown
     FileUtils.rm_rf(@publish_test_dir)
     Apps.reset
+    Constants.global_path = nil
     Constants.config_path = nil
     Constants.instance_variable_set(:@config, nil)
     super
