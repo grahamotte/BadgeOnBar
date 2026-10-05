@@ -1,6 +1,6 @@
 {
   "domain": "badgeonbar.com",
-  "githubRepo": "git@github.com:grahamotte/badgeonbar.com.git",
+  "githubRepo": "git@github.com:grahamotte/BadgeOnBar.git",
   "database": "badgeonbar",
   "site": {
     "title": "Badge On Bar",
