@@ -1,6 +1,6 @@
 {
   "domain": "codemoto.org",
-  "githubRepo": "git@github.com:grahamotte/codemoto.org.git",
+  "githubRepo": "git@github.com:grahamotte/CodeMoto.git",
   "database": "codemoto",
   "site": {
     "title": "Code Moto",
