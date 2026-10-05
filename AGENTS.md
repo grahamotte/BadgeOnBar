@@ -55,8 +55,7 @@ Follow the launch prompt for task scope, card access, review, and handoff comman
 - `.agents/skills/` - Project-specific agent skills.
 - `.claude/skills` - Symlink to `.agents/skills/` for Claude Code.
 - `.env.default` - Template for the `.env.*` secret files.
-- `.env.*` - Gitignored secrets, identifiers issued or rotated with them, and `RAILS_ENV`/`NODE_ENV`. Do not expose secret values.
-- `~/.config/codemoto/config.json` - Private credentials for project tooling. `1passwordServiceAccountToken` authenticates `mise manager:secrets`, which uses it to pull every `secrets` key in `config.json` as `.env.<key>` from its `op://<vault>/<item>` reference. Each item stores one concealed field per env key, labeled with the key name; the file follows the `.env.default` layout with extra keys at the end.
+- `.env.*` - Gitignored secrets, identifiers issued or rotated with them, and `RAILS_ENV`/`NODE_ENV`. Do not expose secret values. Mr. Moto generates them from 1Password with its `secrets` command; each item stores one concealed field per env key, labeled with the key name, and the file follows the `.env.default` layout with extra keys at the end.
 - `apps/` - Mobile apps for iOS and Android.
 - `assets/` - Shared images and media.
 - `backend/` - Ruby on Rails API server.

@@ -2,9 +2,8 @@
 
 The launch prompt supplies card access, PR management, and handoff instructions, including complete commands that execute central management tools. Agents work in their project checkout without reading another repository's documentation or configuration to discover the session workflow. This repository keeps only project-specific operation tooling.
 
-Code Moto's `manager/` keeps the per-repository tasks:
+Code Moto's `manager/` keeps the per-repository tasks. Mr. Moto owns credentials and refreshes each project's `.env.*` files from 1Password with its `secrets` command; `.env.default` controls their layout.
 
-- `mise manager:secrets` reads `1passwordServiceAccountToken` from the global file and passes it to 1Password through `OP_SERVICE_ACCOUNT_TOKEN`. Repository `secrets` references and `.env.default` control which app secrets are fetched and their layout. The token is never copied into repository configuration or generated env files.
 - `mise manager:spawn <domain>` clones Code Moto into a new app. The task creates the app checkout and configuration; registration and scheduling are separate Mr. Moto operations.
 - `mise manager:merge <branch>` merges the latest Code Moto into a downstream repository.
 
@@ -12,7 +11,7 @@ Code Moto's `manager/` keeps the per-repository tasks:
 
 Code Moto merges that require local env-file cleanup must target `.env.development` and `.env.production` in the main checkout, where the post-merge `git pull --ff-only` runs. The card worktree contains temporary copies that disappear when it is removed.
 
-After a Code Moto merge, verify the main checkout: confirm master or main, pull the merged changes, run `mise manager:secrets` from that checkout root in a non-login shell, and verify the refreshed files against the merged `.env.default`. Code Moto keys must appear once in template order and grouping before the separator line, with downstream-only keys afterward. Apply cleanup to the corresponding 1Password item fields so regeneration preserves it. Report a failed refresh or layout check as a blocker.
+After a Code Moto merge, verify the main checkout: confirm master or main, pull the merged changes, refresh its env files with the Mr. Moto secrets command supplied in the launch prompt, and verify the refreshed files against the merged `.env.default`. Code Moto keys must appear once in template order and grouping before the separator line, with downstream-only keys afterward. Apply cleanup to the corresponding 1Password item fields so regeneration preserves it. Report a failed refresh or layout check as a blocker.
 
 ## Repository discovery for all-repository skills
 
