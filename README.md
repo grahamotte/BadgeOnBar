@@ -6,7 +6,7 @@ Badge On Bar is a native macOS menu bar app that mirrors Dock badge counts into 
   <img src="assets/screenshot.png" alt="Badge on Bar screenshot">
 </p>
 
-Badge On Bar is a rewrite of the fantastic [Doll](https://github.com/xiaogdgenuine/Doll) project. It is built on [Code Moto](https://github.com/grahamotte/codemoto.org), a shared foundation for a Rails API, a React website, native Apple apps, and project tooling. This repository keeps its own Git history and configuration, and merges improvements from Code Moto as the foundation evolves. Components can be added or removed to suit the project.
+Badge On Bar is a rewrite of the fantastic [Doll](https://github.com/xiaogdgenuine/Doll) project. It is built on [Code Moto](https://github.com/grahamotte/CodeMoto), a shared foundation for a Rails API, a React website, native Apple apps, and project tooling. This repository keeps its own Git history and configuration, and merges improvements from Code Moto as the foundation evolves. Components can be added or removed to suit the project.
 
 ## Contributing
 
@@ -49,7 +49,7 @@ Deployment, basis merges, and publishing use the project-specific instructions i
 - **Frontend:** React, TypeScript, Vite, and Tailwind CSS, with separate sites for configured subdomains.
 - **Apps:** A Swift macOS menu bar app, with simulator and signed GitHub release publishing tools.
 - **Operations:** Server provisioning and deployment, backups, and shared Ruby gems.
-- **Agent workflow:** Linear cards are worked by coding agents in Git worktrees, dispatched by the sister repository [Mr. Moto](https://github.com/grahamotte/mr-moto).
+- **Agent workflow:** Linear cards are worked by coding agents in Git worktrees, dispatched by the sister repository [Mr. Moto](https://github.com/grahamotte/MrMoto).
 
 ## Repository guide
 
