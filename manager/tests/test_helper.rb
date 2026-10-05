@@ -16,7 +16,6 @@ ENV["test"] = "true"
 module ManagerTestIsolation
   def before_setup
     @manager_test_dir = Dir.mktmpdir("manager")
-    Settings.global_path = File.join(@manager_test_dir, "global-config.json")
     Settings.path = File.join(@manager_test_dir, "config.json")
     File.write(
       Settings.path,

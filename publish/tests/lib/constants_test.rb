@@ -13,20 +13,19 @@ class ConstantsTest < Minitest::Test
     assert_equal "", Constants.github_repo
   end
 
-  def test_github_token_comes_only_from_global_config
+  def test_github_token_comes_from_environment
     Constants.config[:githubToken] = "local-token"
-    assert_equal "github-token", Constants.github_token
 
-    File.write(Constants.global_path, JSON.generate({}))
-    error = assert_raises(RuntimeError) { Constants.github_token }
-    assert_equal "Set githubToken in #{Constants.global_path}", error.message
+    assert_equal "github-token", Constants.github_token
   end
 
-  def test_invalid_global_config_is_rejected_without_exposing_contents
-    [ "[1]", "{secret" ].each do |contents|
-      File.write(Constants.global_path, contents)
+  def test_missing_github_token_has_actionable_error
+    [ nil, "" ].each do |token|
+      ENV["GITHUB_TOKEN"] = token
       error = assert_raises(RuntimeError) { Constants.github_token }
-      refute_includes error.message, "secret"
+      assert_equal "Set GITHUB_TOKEN in .env.production through Mr. Moto's mise secrets", error.message
+    ensure
+      ENV["GITHUB_TOKEN"] = "github-token"
     end
   end
 
