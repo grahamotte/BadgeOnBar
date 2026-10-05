@@ -17,7 +17,7 @@ After a Code Moto merge, verify the main checkout: confirm master or main, pull 
 
 For Code Moto rollouts, obtain registered repository metadata using the inventory command supplied in the launch prompt. Do not read manager configuration files. Locate the Code Moto main checkout and each project’s main checkout with `git worktree list --porcelain`; deduplicate by Git common directory and exclude linked worktrees. Confirm downstream membership using a `codemoto` remote (or legacy `upstream`), shared Code Moto Git ancestry, and the repository’s `AGENTS.md`. Exclude Mr. Moto and non-Code Moto repositories from basis merges. Also check Code Moto’s sibling directories for downstreams missing from the registry and report gaps rather than silently scheduling an incomplete rollout.
 
-Use each entry’s explicit workspace, team, path, and configured `gitRemote` (default `origin`) when asking Mr. Moto to enqueue a merge. Missing checkouts or ambiguous membership are blockers. Fetch the configured remote and use its actual default branch; do not assume local master is current. Report the inventory, exclusions, and rollout concerns on the supplied tracking card. The launch prompt supplies card creation, claims, and handoff instructions.
+Use each entry’s explicit workspace, team, path, and `origin` workflow remote when asking Mr. Moto to enqueue a merge. Missing checkouts or ambiguous membership are blockers. Fetch origin and use its actual default branch; do not assume local master is current. Report the inventory, exclusions, and rollout concerns on the supplied tracking card. The launch prompt supplies card creation, claims, and handoff instructions.
 
 ## macOS agent task execution
 

@@ -48,6 +48,8 @@ The "Repo Specific" section blow contains rules specific to this repo only.
 
 ## Session instructions
 
+Use `origin` as the sole workflow repository remote, preserving its hosting provider and actual default branch. A Code Moto basis remote named `codemoto` and an optional `deployment` remote may also be present. Do not add mirrors or alternate origin names. Fetch before updating default branches, use fast-forward-only pulls, and never force-push a default branch.
+
 Follow the launch prompt for task scope, card access, review, and handoff commands. This repository provides implementation instructions, checks, and operation tooling. The launch prompt supplies the session workflow; do not search another repository for workflow instructions.
 
 ## File Structure
