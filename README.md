@@ -64,7 +64,7 @@ Deployment, basis merges, and publishing use the project-specific instructions i
 | `manager/` | Project creation and Code Moto merges |
 | `scripts/` | Scripts behind mise tasks |
 
-See [manager](docs/manager.md) for how Code Moto works with Mr. Moto, [Apple credentials](docs/apple-credentials.md) for publishing setup, and [AGENTS.md](AGENTS.md) for contribution rules.
+See [manager](docs/manager.md) for how Code Moto works with Mr. Moto, [Apple credentials](docs/apple-credentials.md) for publishing setup, [logging](docs/logging.md) for Grafana logs, and [AGENTS.md](AGENTS.md) for contribution rules.
 
 New Code Moto projects are created with `mise spawn` from the Code Moto repository. This app brings in foundation updates with the merge skill instead of replacing its history.
 
