@@ -1,6 +1,6 @@
 # Logging
 
-Production Rails processes keep writing logs to STDOUT, so journald, `mise deploy:log`, and `mise deploy:status` work as before. When `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_HEADERS`, and `OTEL_SERVICE_NAME` are all set, they also ship every Rails logger line to Grafana Cloud Loki over OTLP/HTTP with protobuf. In development and test, or with any of those keys unset, nothing is shipped.
+Rails processes keep writing logs to STDOUT, so journald, `mise deploy:log`, and `mise deploy:status` work as before. In production and development, when `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_HEADERS`, and `OTEL_SERVICE_NAME` are all set, they also ship every Rails logger line to Grafana Cloud Loki over OTLP/HTTP with protobuf. In test, or with any of those keys unset, nothing is shipped.
 
 Shipping uses the OpenTelemetry Ruby logs SDK. Lines are queued in memory, exported in batches from a background thread, dropped when the queue is full or Grafana is unreachable, and flushed when the process exits.
 
@@ -11,14 +11,14 @@ One Grafana Cloud stack and one token serve every project. Store these keys in e
 - `OTEL_EXPORTER_OTLP_ENDPOINT`: the stack's OTLP gateway, such as `https://otlp-gateway-prod-us-west-0.grafana.net/otlp`.
 - `OTEL_EXPORTER_OTLP_HEADERS`: `Authorization=Basic <base64 of instanceID:token>`, exactly as Grafana's OpenTelemetry page generates it. A literal space after `Basic` works; `%20` also works.
 - `OTEL_EXPORTER_OTLP_PROTOCOL`: `http/protobuf`.
-- `OTEL_SERVICE_NAME`: a short, stable name for the app, such as `MOTO`. It becomes the `service_name` label.
+- `OTEL_SERVICE_NAME`: a short, stable name for the app, such as `MOTO`. It becomes the `service_name` label; development appends `-dev`.
 
 Create the token from the stack's OpenTelemetry tile with `logs:write`. Add `metrics:write` and `traces:write` when metrics and traces are added; the same endpoint and headers carry them.
 
 ## Labels and fields
 
-- `service_name`: `OTEL_SERVICE_NAME`.
-- `deployment_environment`: the Rails environment, `production`.
+- `service_name`: `OTEL_SERVICE_NAME` in production, and `OTEL_SERVICE_NAME` with a `-dev` suffix in development, such as `MOTO-dev`.
+- `deployment_environment`: the Rails environment, `production` or `development`.
 - `service_instance_id`: the process, `api` for Puma, `job` for the GoodJob worker, and `rails` for runners and consoles.
 - `severity_text` and `detected_level`: the Ruby logger level. `ERROR` lines have `detected_level="error"` and `FATAL` lines have `detected_level="critical"`.
 - `exception_type` and `error_fingerprint`: set on lines written by the `Rails.error` subscriber for unhandled controller and job exceptions. The fingerprint hashes the exception class and the first application backtrace line without its line number, so it stays stable across deploys and days. The body holds the class, message, and the first 30 backtrace lines.

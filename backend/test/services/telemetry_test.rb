@@ -15,7 +15,7 @@ class TelemetryTest < ActiveSupport::TestCase
     super
   end
 
-  def test_disabled_outside_production
+  def test_disabled_in_test
     previous = Telemetry::KEYS.index_with { |key| ENV[key] }
     Telemetry::KEYS.each { |key| ENV[key] = "value" }
 
@@ -70,11 +70,17 @@ class TelemetryTest < ActiveSupport::TestCase
   end
 
   def test_resource
-    attributes = @provider.instance_variable_get(:@resource).attribute_enumerator.to_h
+    previous = ENV["OTEL_SERVICE_NAME"]
+    ENV["OTEL_SERVICE_NAME"] = "MOTO"
+    attributes = Telemetry.resource.attribute_enumerator.to_h
 
+    assert_equal "MOTO-dev", attributes.fetch("service.name")
+    assert_equal "MOTO-dev", Telemetry.service_name
     assert_equal "test", attributes.fetch("deployment.environment")
     assert_equal "rails", attributes.fetch("service.instance.id")
     assert_equal "rails", Telemetry.role
+  ensure
+    ENV["OTEL_SERVICE_NAME"] = previous
   end
 
   def test_exporter_posts_protobuf_with_basic_auth

@@ -55,7 +55,7 @@ class Telemetry
     attr_reader :provider
 
     def enabled?
-      X.prod? && KEYS.all? { |key| ENV[key].present? }
+      (X.prod? || X.dev?) && KEYS.all? { |key| ENV[key].present? }
     end
 
     def start
@@ -63,13 +63,7 @@ class Telemetry
 
       @provider = build_provider(Exporter.new)
       Rails.logger.broadcast_to(logger)
-      at_exit { stop }
-      provider
-    end
-
-    def stop
-      provider&.shutdown(timeout: 10)
-      @provider = nil
+      provider.tap { |x| at_exit { x.shutdown(timeout: 10) } }
     end
 
     def build_provider(exporter)
@@ -88,10 +82,15 @@ class Telemetry
     def resource
       OpenTelemetry::SDK::Resources::Resource.default.merge(
         OpenTelemetry::SDK::Resources::Resource.create(
+          "service.name" => service_name,
           "deployment.environment" => Rails.env.to_s,
           "service.instance.id" => role,
         ),
       )
+    end
+
+    def service_name
+      X.prod? ? ENV.fetch("OTEL_SERVICE_NAME", "") : "#{ENV.fetch("OTEL_SERVICE_NAME", "")}-dev"
     end
 
     def role
