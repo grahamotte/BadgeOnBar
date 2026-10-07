@@ -72,9 +72,22 @@ class ErrorLoggerTest < ActiveSupport::TestCase
   def test_failing_job
     assert_raises(ArgumentError) { ActiveJob::Base.execute(ErrorLoggerTestJob.new.serialize) }
 
-    record = records.find { |x| x.attributes&.fetch("exception.type", nil) == "ArgumentError" }
-    assert_equal "ERROR", record.severity_text
-    assert record.body.start_with?("ArgumentError: job failed\n")
+    errors = records.select { |x| x.attributes&.fetch("exception.type", nil) == "ArgumentError" }
+    assert_equal 1, errors.size
+    assert_equal "ERROR", errors.first.severity_text
+    assert_equal "ErrorLoggerTestJob", errors.first.attributes.fetch("job.class")
+    assert errors.first.body.start_with?("ArgumentError: job failed\n")
+  end
+
+  def test_good_job_thread_error
+    error = build_error("thread failed", [ "/gems/z.rb:1:in 'z'" ])
+
+    GoodJob._on_thread_error(error)
+    GoodJob._on_thread_error(error)
+
+    errors = records.select { |x| x.body.start_with?("RuntimeError: thread failed") }
+    assert_equal 1, errors.size
+    assert_equal "ERROR", errors.first.severity_text
   end
 
   private

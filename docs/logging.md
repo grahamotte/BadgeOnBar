@@ -20,10 +20,13 @@ Create the token from the stack's OpenTelemetry tile with `logs:write`. Add `met
 - `service_name`: `OTEL_SERVICE_NAME`.
 - `deployment_environment`: the Rails environment, `production` or `development`.
 - `service_version`: the git commit SHA the process booted from.
+- `host_name`: the machine's hostname.
 - `service_instance_id`: the process, `api` for Puma, `job` for the GoodJob worker, and `rails` for runners and consoles.
 - `severity_text` and `detected_level`: the Ruby logger level. `ERROR` lines have `detected_level="error"` and `FATAL` lines have `detected_level="critical"`.
 - `event_name`: the Rails instrumentation event that wrote the line, such as `sql.active_record`, `start_processing.action_controller`, `process_action.action_controller`, or `perform.active_job`. Lines written directly with `Rails.logger`, including Rails' `Started GET` request line, have none.
-- `exception_type` and `error_fingerprint`: set on lines written by the `Rails.error` subscriber for unhandled controller and job exceptions. The fingerprint hashes the exception class and the first application backtrace line without its line number, so it stays stable across deploys and days. The body holds the class, message, and the first 30 backtrace lines.
+- `request_id`: the request id on lines written while a controller action runs, from `Processing by` through `Completed`, including its errors.
+- `job_class` and `job_id`: the ActiveJob class and id on lines written while a job performs, including its errors.
+- `exception_type` and `error_fingerprint`: set on lines written by the `Rails.error` subscriber for unhandled controller exceptions, job exceptions, and GoodJob thread errors. The fingerprint hashes the exception class and the first application backtrace line without its line number, so it stays stable across deploys and days. The body holds the class, message, and the first 30 backtrace lines.
 
 ## Queries
 

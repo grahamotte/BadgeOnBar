@@ -46,7 +46,7 @@ class Telemetry
         severity_text: severity,
         severity_number: SEVERITIES.fetch(severity, 0),
         body: [ *tags, progname, msg2str(msg) ].compact_blank.join(" ").strip,
-        attributes: Telemetry.attributes.presence,
+        attributes: Telemetry.context.merge(Telemetry.attributes).presence,
       }
     end
 
@@ -92,6 +92,7 @@ class Telemetry
             "deployment.environment" => Rails.env.to_s,
             "service.instance.id" => role,
             "service.version" => version,
+            "host.name" => Socket.gethostname,
           }.compact,
         ),
       )
@@ -116,6 +117,18 @@ class Telemetry
       return "api" if defined?(Rails::Server)
 
       "rails"
+    end
+
+    def context
+      context = ActiveSupport::ExecutionContext.to_h
+      request = context[:controller].try(:request)
+      job = context[:job]
+
+      {
+        "request.id" => request.try(:request_id),
+        "job.class" => job&.class&.name,
+        "job.id" => job.try(:job_id),
+      }.compact
     end
 
     def attributes

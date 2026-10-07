@@ -69,6 +69,30 @@ class TelemetryTest < ActiveSupport::TestCase
     assert_equal({}, Telemetry.attributes)
   end
 
+  def test_context
+    job = ApplicationJob.new
+    controller = Api::NoopController.new
+    controller.request = ActionDispatch::TestRequest.create("action_dispatch.request_id" => "request-1")
+    ActiveSupport::ExecutionContext[:controller] = controller
+    ActiveSupport::ExecutionContext[:job] = job
+
+    Telemetry.with_attributes("request.id" => "override") { @logger.info("overridden") }
+    @logger.info("context")
+    ActiveSupport::ExecutionContext.clear
+    @logger.info("cleared")
+
+    assert_equal(
+      [
+        { "request.id" => "override", "job.class" => "ApplicationJob", "job.id" => job.job_id },
+        { "request.id" => "request-1", "job.class" => "ApplicationJob", "job.id" => job.job_id },
+        nil,
+      ],
+      records.map(&:attributes),
+    )
+  ensure
+    ActiveSupport::ExecutionContext.clear
+  end
+
   def test_resource
     attributes = Telemetry.resource.attribute_enumerator.to_h
 
@@ -76,6 +100,7 @@ class TelemetryTest < ActiveSupport::TestCase
     assert_equal "rails", attributes.fetch("service.instance.id")
     assert_match(/\A\h{40}\z/, attributes.fetch("service.version"))
     assert_equal Telemetry.version, attributes.fetch("service.version")
+    assert_equal Socket.gethostname, attributes.fetch("host.name")
     assert_equal "rails", Telemetry.role
   end
 
