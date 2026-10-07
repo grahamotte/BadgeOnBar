@@ -16,6 +16,12 @@ class Telemetry
     end
   end
 
+  module LogSubscriber
+    def call(event)
+      Telemetry.with_attributes("event.name" => event.name) { super }
+    end
+  end
+
   class Device
     def initialize(logger)
       @logger = logger
@@ -82,15 +88,27 @@ class Telemetry
     def resource
       OpenTelemetry::SDK::Resources::Resource.default.merge(
         OpenTelemetry::SDK::Resources::Resource.create(
-          "service.name" => service_name,
-          "deployment.environment" => Rails.env.to_s,
-          "service.instance.id" => role,
+          {
+            "deployment.environment" => Rails.env.to_s,
+            "service.instance.id" => role,
+            "service.version" => version,
+          }.compact,
         ),
       )
     end
 
-    def service_name
-      X.prod? ? ENV.fetch("OTEL_SERVICE_NAME", "") : "#{ENV.fetch("OTEL_SERVICE_NAME", "")}-dev"
+    def version(root = Rails.root.join(".."))
+      git = root.join(".git")
+      git = root.join(git.read.delete_prefix("gitdir:").strip) if git.file?
+      head = git.join("HEAD").read.strip
+      return head unless head.start_with?("ref: ")
+
+      ref = head.delete_prefix("ref: ")
+      common = git.join("commondir").file? ? git.join(git.join("commondir").read.strip) : git
+      [ git, common ].map { |dir| dir.join(ref) }.find(&:file?)&.read&.strip ||
+        common.join("packed-refs").read[/^(\h+) #{Regexp.escape(ref)}$/, 1]
+    rescue SystemCallError
+      nil
     end
 
     def role

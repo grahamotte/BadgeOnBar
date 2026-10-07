@@ -70,17 +70,63 @@ class TelemetryTest < ActiveSupport::TestCase
   end
 
   def test_resource
-    previous = ENV["OTEL_SERVICE_NAME"]
-    ENV["OTEL_SERVICE_NAME"] = "MOTO"
     attributes = Telemetry.resource.attribute_enumerator.to_h
 
-    assert_equal "MOTO-dev", attributes.fetch("service.name")
-    assert_equal "MOTO-dev", Telemetry.service_name
     assert_equal "test", attributes.fetch("deployment.environment")
     assert_equal "rails", attributes.fetch("service.instance.id")
+    assert_match(/\A\h{40}\z/, attributes.fetch("service.version"))
+    assert_equal Telemetry.version, attributes.fetch("service.version")
     assert_equal "rails", Telemetry.role
+  end
+
+  def test_version
+    Dir.mktmpdir do |dir|
+      root = Pathname(dir)
+      git = root.join(".git")
+      git.join("refs/heads").mkpath
+
+      assert_nil Telemetry.version(root)
+
+      git.join("HEAD").write("#{"a" * 40}\n")
+      assert_equal "a" * 40, Telemetry.version(root)
+
+      git.join("HEAD").write("ref: refs/heads/master\n")
+      git.join("packed-refs").write("# pack-refs\n#{"b" * 40} refs/heads/master\n")
+      assert_equal "b" * 40, Telemetry.version(root)
+
+      git.join("refs/heads/master").write("#{"c" * 40}\n")
+      assert_equal "c" * 40, Telemetry.version(root)
+    end
+  end
+
+  def test_version_in_worktree
+    Dir.mktmpdir do |dir|
+      root = Pathname(dir).join("worktree")
+      common = Pathname(dir).join("main/.git")
+      git = common.join("worktrees/worktree")
+      git.mkpath
+      common.join("refs/heads").mkpath
+      root.mkpath
+      root.join(".git").write("gitdir: #{git}\n")
+      git.join("HEAD").write("ref: refs/heads/moto-117\n")
+      git.join("commondir").write("../..\n")
+      common.join("refs/heads/moto-117").write("#{"d" * 40}\n")
+
+      assert_equal "d" * 40, Telemetry.version(root)
+    end
+  end
+
+  def test_log_subscriber_event_name
+    Rails.logger.broadcast_to(@logger)
+
+    ActiveSupport::Notifications.instrument("sql.active_record", sql: "BEGIN", name: "TRANSACTION", binds: [], type_casted_binds: []) { nil }
+    Rails.logger.info("plain")
+
+    record = records.find { |x| x.body.include?("TRANSACTION") }
+    assert_equal({ "event.name" => "sql.active_record" }, record.attributes)
+    assert_nil records.find { |x| x.body == "plain" }.attributes
   ensure
-    ENV["OTEL_SERVICE_NAME"] = previous
+    Rails.logger.stop_broadcasting_to(@logger)
   end
 
   def test_exporter_posts_protobuf_with_basic_auth

@@ -11,16 +11,18 @@ One Grafana Cloud stack and one token serve every project. Store these keys in e
 - `OTEL_EXPORTER_OTLP_ENDPOINT`: the stack's OTLP gateway, such as `https://otlp-gateway-prod-us-west-0.grafana.net/otlp`.
 - `OTEL_EXPORTER_OTLP_HEADERS`: `Authorization=Basic <base64 of instanceID:token>`, exactly as Grafana's OpenTelemetry page generates it. A literal space after `Basic` works; `%20` also works.
 - `OTEL_EXPORTER_OTLP_PROTOCOL`: `http/protobuf`.
-- `OTEL_SERVICE_NAME`: a short, stable name for the app, such as `MOTO`. It becomes the `service_name` label; development appends `-dev`.
+- `OTEL_SERVICE_NAME`: a short, stable name for the app, such as `MOTO`. It becomes the `service_name` label.
 
 Create the token from the stack's OpenTelemetry tile with `logs:write`. Add `metrics:write` and `traces:write` when metrics and traces are added; the same endpoint and headers carry them.
 
 ## Labels and fields
 
-- `service_name`: `OTEL_SERVICE_NAME` in production, and `OTEL_SERVICE_NAME` with a `-dev` suffix in development, such as `MOTO-dev`.
+- `service_name`: `OTEL_SERVICE_NAME`.
 - `deployment_environment`: the Rails environment, `production` or `development`.
+- `service_version`: the git commit SHA the process booted from.
 - `service_instance_id`: the process, `api` for Puma, `job` for the GoodJob worker, and `rails` for runners and consoles.
 - `severity_text` and `detected_level`: the Ruby logger level. `ERROR` lines have `detected_level="error"` and `FATAL` lines have `detected_level="critical"`.
+- `event_name`: the Rails instrumentation event that wrote the line, such as `sql.active_record`, `start_processing.action_controller`, `process_action.action_controller`, or `perform.active_job`. Lines written directly with `Rails.logger`, including Rails' `Started GET` request line, have none.
 - `exception_type` and `error_fingerprint`: set on lines written by the `Rails.error` subscriber for unhandled controller and job exceptions. The fingerprint hashes the exception class and the first application backtrace line without its line number, so it stays stable across deploys and days. The body holds the class, message, and the first 30 backtrace lines.
 
 ## Queries
