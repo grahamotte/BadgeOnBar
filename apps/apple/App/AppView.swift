@@ -2,7 +2,7 @@ import Combine
 import SwiftUI
 
 struct AppView: View {
-    @State private var timer = FocusTimer()
+    @StateObject private var timer = FocusTimer()
     private let ticker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
