@@ -1,25 +1,32 @@
 # Merge
 
-The merge branch is the card branch when running for a card, otherwise `codemoto-merge`.
+Merge Code Moto into every downstream repository in one rollout, worked sequentially by one agent on the invoking card. Keep every downstream PR and checkpoint on that card; do not create separate downstream merge cards. A Merge template card only needs to reference this runbook and state any rollout-specific scope or follow-up.
 
-## Precheck
+## Discover and plan
 
-Check and report every item. Do not stop after the first failure. Abort the merge if any item fails.
+1. Read the invoking card and every comment before starting or resuming. Discover all downstream repositories using [repository discovery](../docs/manager.md#repository-discovery-for-all-repository-runbooks). Use the registered-project inventory command named in `mr --help` to obtain each project's workspace, team, main checkout path, and `origin` remote. Do not read manager configuration files. Exclude Code Moto itself, Mr. Moto, and non-Code Moto repositories; report missing registrations, missing checkouts, and ambiguous membership as blockers.
+2. Fetch the registered Code Moto checkout's `origin` and record its default-branch SHA. Fetch each downstream's `origin`, identify its actual default branch, and review the Code Moto changes not yet incorporated there. Record compatibility concerns and downstream-specific changes. The current `mise merge` task targets `origin/master` and Code Moto's `master`; if a repository uses a different default branch, report the tooling mismatch as a blocker rather than changing its default branch or remote.
+3. Comment on the invoking card with the full inventory, exclusions, basis SHA, and a checkpoint for each downstream. Track its worktree and branch, baseline tests, recovery point, merge commit and conflict resolutions, post-merge tests, PR URL or no-change result, remaining work, and any blocker. Update checkpoints after each repository and before handing off. On resume, inspect the recorded worktree and PR state and continue unfinished work without duplicating branches or PRs. Use `mr card search Merge` from each target project to check existing unfinished merge cards and their linked PRs; report overlapping work for coordination instead of starting a competing merge.
+4. For each downstream, run `mr card worktree <CARD> --project <NAME>` with the invoking card's identifier and the registered project name. Work in the path it prints, following that repository's `AGENTS.md` and checks. Confirm `.env.development`, `.env.production`, and `backend/db/schema.rb` were copied from its main checkout before running mise tasks. The merge branch is this card's branch in each project. Without a card, use a separate worktree and `codemoto-merge` branch per downstream.
+
+## Per-repository precheck
+
+Check and report every item. Do not stop after the first failure. Do not start that repository's merge if any item fails. Record its blocker and continue independent downstreams when possible. An in-progress merge recorded in a checkpoint is resumed under the workflow below instead of treated as a fresh precheck failure.
 
 - The repository is a Git worktree with a valid `HEAD`.
 - It has no uncommitted changes.
 - It has no Git operation in progress.
-- After `git fetch origin` and `git checkout --detach origin/master`, `mise test` passes.
+- After `git fetch origin` and `git checkout --detach origin/master`, baseline `mise test` passes. Do this only for a fresh merge; when resuming an existing merge, use its recorded baseline result and inspect its state before continuing. Never rebase a branch that already contains a Code Moto merge.
 
-## Workflow
+## Per-repository workflow
 
 1. Run `mise merge <branch>`. It uses the `codemoto` remote for the basis repository and migrates a legacy `upstream` remote only when its URL points to Code Moto. Unrelated `upstream` remotes are preserved. It checks out the merge branch, creating it from `origin/master` if needed, prints the merge recovery point, and merges Code Moto's `master`. Report the recovery point.
 2. If it stops with conflicts, inspect the output and repository state. Resolve every conflict, stage the resolutions, and run `GIT_EDITOR=true git merge --continue`. Repeat until the merge finishes.
 3. Preserve the intent of both Code Moto and downstream changes. Keep `AGENTS.md` **Repo Specific** and app-specific runbooks and skills. Inspect surrounding code, history, and tests when a resolution is not obvious.
 4. Ask the user only when there is genuine ambiguity with materially different valid outcomes, or progress requires information or authority only they can provide. Explain the exact decision needed; do not stop merely because a conflict or failure occurred.
 5. Run `mise test` after the merge succeeds. Fix merge-related failures, commit the fixes, and rerun the whole suite until it passes.
-6. If the repository is already up to date and there are no new commits or tracked file changes to bring into `origin/master`, report that result and hand off without a commit or PR (see Results for Review versus Approved), explicitly recording whether any main-checkout work remains. Preserve merge commits through a PR even when the final file contents match. Otherwise, deliver the merge branch through the supplied repository review instructions.
-7. Hand off with the PR and steps 8–10 as remaining work, following the Results handoff rule. The Approved session continues those steps only after the PR has been merged and verified under the supplied repository review instructions. Never squash or rebase it, never rebase the branch, and never force push; the merge commit must keep Code Moto's history.
+6. If the repository is already up to date and there are no new commits or tracked file changes to bring into `origin/master`, record that result without a commit or PR and continue to the next repository, explicitly recording whether any main-checkout work remains (see Results for Review versus Approved). Preserve merge commits through a PR even when the final file contents match. Otherwise, commit any remaining fixes with git, run `mr push`, then `mr pr create --title <title> --body-file <file>` from this downstream card worktree. These commands attach its PR to the same invoking card, even when the downstream belongs to a different registered team in the workspace. Follow the supplied repository review instructions and record the PR URL on the checkpoint.
+7. Repeat the precheck and steps 1–6 for the remaining downstreams before handing off the rollout with every PR and steps 8–10 per repository as remaining work, following the Results handoff rule. The Approved session continues those steps for each repository only after its PR has been merged and verified under the supplied repository review instructions; complete the card only after every repository is finished. Never squash or rebase a merge PR, never rebase its branch, and never force push; the merge commit must keep Code Moto's history.
 8. Locate the main checkout with `git worktree list --porcelain`. Confirm it is on master or main and has no uncommitted changes, then run `git pull --ff-only` there so it matches origin. Do not switch branches. If it cannot be updated, report the blocker.
 9. Perform any local env-file cleanup in that main checkout: `.env.development` and `.env.production` copied into the card worktree are temporary and are removed with the worktree. Preserve secret values and downstream-only keys. Arrange the Code Moto keys in the order and grouping of the main checkout's merged `.env.default`, followed by its separator line, then downstream-only keys. Remove settings only after their values have been preserved in `config.json`.
 10. Refresh the main checkout's env files with `mr secrets`, in a non-login shell. It overwrites local env files, so any required cleanup must also be reflected in the corresponding 1Password item fields. Verify every regenerated `.env.<key>` in the main checkout against its `.env.default`, including `.env.development` and `.env.production`: every Code Moto key appears once in template order and grouping before the separator, and downstream-only keys follow it. Inspect key names and layout without printing secret values. If the project has no secrets configured, refresh fails, or the layout is wrong, correct the source item fields and regenerate when possible; otherwise report the blocker.
@@ -27,7 +34,7 @@ Check and report every item. Do not stop after the first failure. Abort the merg
 
 ## Downstream notes
 
-- Shared operation skills moved to `runbooks/deploy.md`, `runbooks/merge.md`, `runbooks/merge-all.md`, and `runbooks/publish.md`. Remove the inherited `.claude/skills` symlink and the old shared skill directories; preserve downstream-only skills. The shared `test`, `triage-jobs-card`, `upgrade`, and `prod-debug` skills are removed. Use `mise tasks` to discover task descriptions, and update downstream documentation and deployment declarations to reference runbooks.
+- Shared operation skills moved to `runbooks/deploy.md`, `runbooks/merge.md`, and `runbooks/publish.md`. Remove the inherited `.claude/skills` symlink and the old shared skill directories; preserve downstream-only skills. The shared `test`, `triage-jobs-card`, `upgrade`, and `prod-debug` skills are removed. Use `mise tasks` to discover task descriptions, and update downstream documentation and deployment declarations to reference runbooks. The former `runbooks/merge-all.md` is consolidated into this runbook; remove it and point downstream references here.
 
 - `Path.mv` and `Path.cp` raise if the destination already exists unless the caller passes `overwrite: true`. They never nest a source inside an existing destination directory. Downstream callers that intentionally overwrite must pass `overwrite: true`.
 
@@ -48,7 +55,7 @@ Code Moto sets `[task_config] shell = "bash -o errexit -o pipefail -c"` so inlin
 
 ## Results
 
-Report the recovery point as soon as `mise merge` prints it. After the merge, verify steps 8–10 and report the PR, merge commit, conflict resolutions, tests, main checkout path and branch, and secrets refresh and layout results. Any "deploy after merge" follow-up applies only when the repository's `AGENTS.md` Repo Specific section says it is deployed; otherwise record it as not applicable and complete the card. Worktree env-file copies do not satisfy main-checkout verification. When blocked, include the recovery point.
+Report each recovery point as soon as `mise merge` prints it. Record every repository's PR or no-change result, merge commit, conflict resolutions, tests, main checkout path and branch, and outstanding steps on the invoking card. The Working session prepares all downstream PRs; the Approved session verifies steps 8–10 for each merged PR and records secrets refresh and layout results. Include explicit per-project commands and checkout paths in `After merge:` so another session can finish the rollout. Any "deploy after merge" follow-up applies only when the repository's `AGENTS.md` Repo Specific section says it is deployed; otherwise record that repository's deployment as not applicable. Complete the card only after all repositories and required follow-ups are finished. Worktree env-file copies do not satisfy main-checkout verification. When blocked, include the affected repository, its recovery point when available, partial results for all other repositories, and the exact decision or action needed.
 
 ## Finishing
 
@@ -56,6 +63,6 @@ Every card that runs this runbook finishes with the comment, push, and move step
 
 Record results on the invoking card when present. In a work session, move successful work even when no tracked changes or PR are needed; explicitly record "No PR needed" and "Remaining work: none" when applicable. The Approved session finishes any remaining steps, then completes the card.
 
-- When the merge is low risk or clear (clean or trivially resolved conflicts, passing tests, nothing needing the user's judgment), move the card directly to Approved.
+- When all downstreams have PRs or verified no-change results and the rollout is low risk or clear (clean or trivially resolved conflicts, passing tests, nothing needing the user's judgment), move the card directly to Approved.
 - Move it to Review when something significant deserves the user's look, such as non-obvious conflict resolutions, behavior or compatibility changes, or env or secrets concerns, and say what to look at in the comment.
-- When blocked, report what is needed and move it to Planned.
+- When any downstream is blocked, preserve all checkpoints and completed PRs, report what is needed, and move the invoking card to Planned. Do not complete a partial rollout.
