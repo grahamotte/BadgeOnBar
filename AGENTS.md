@@ -75,8 +75,7 @@ For card work, use Mr. Moto's `mr` CLI: run `mr card claim <CARD>` and follow it
 Read the relevant runbook when asked to perform an operation:
 
 - [Deploy](runbooks/deploy.md) - Deploy `origin/master` to production.
-- [Merge](runbooks/merge.md) - Merge Code Moto into a downstream repository.
-- [Merge all](runbooks/merge-all.md) - Create merge cards for all downstream repositories.
+- [Merge](runbooks/merge.md) - Merge Code Moto into all downstream repositories on one card.
 - [Publish](runbooks/publish.md) - Version and publish configured Apple apps.
 
 Run `mise tasks` to discover available tasks and their descriptions, including development and production debugging tools.
