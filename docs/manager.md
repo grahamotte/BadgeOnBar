@@ -13,7 +13,7 @@ Code Moto merges that require local env-file cleanup must target `.env.developme
 
 After a Code Moto merge, verify the main checkout: confirm master or main, pull the merged changes, refresh its env files with `mr secrets`, and verify the refreshed files against the merged `.env.default`. Code Moto keys must appear once in template order and grouping before the separator line, with downstream-only keys afterward. Apply cleanup to the corresponding 1Password item fields so regeneration preserves it. Report a failed refresh or layout check as a blocker.
 
-## Repository discovery for all-repository skills
+## Repository discovery for all-repository runbooks
 
 For Code Moto rollouts, obtain registered repository metadata using the inventory command named in `mr --help`. Do not read manager configuration files. Locate the Code Moto main checkout and each project’s main checkout with `git worktree list --porcelain`; deduplicate by Git common directory and exclude linked worktrees. Confirm downstream membership using a `codemoto` remote (or legacy `upstream`), shared Code Moto Git ancestry, and the repository’s `AGENTS.md`. Exclude Mr. Moto and non-Code Moto repositories from basis merges. Also check Code Moto’s sibling directories for downstreams missing from the registry and report gaps rather than silently scheduling an incomplete rollout.
 
