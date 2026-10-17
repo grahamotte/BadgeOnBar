@@ -1,12 +1,13 @@
-import Combine
 import Foundation
+import Observation
 
 @MainActor
-final class FocusTimer: ObservableObject {
-    @Published private(set) var completedSessions: Int
-    @Published private(set) var isRunning = false
-    @Published private(set) var minutes: Int
-    @Published private(set) var remainingSeconds: Int
+@Observable
+final class FocusTimer {
+    private(set) var completedSessions: Int
+    private(set) var isRunning = false
+    private(set) var minutes: Int
+    private(set) var remainingSeconds: Int
 
     private let defaults: UserDefaults
 

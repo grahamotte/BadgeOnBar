@@ -4,6 +4,7 @@ pnpm = "11.21.0"
 ruby = "4.0.6"
 python = "3.14.7"
 deno = "2.9.5"
+swift = { version = "6.4.1", os = ["linux"] }
 
 [env]
 _.file = '.env.development'
