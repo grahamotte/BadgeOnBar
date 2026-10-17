@@ -62,8 +62,10 @@ GEM
       hashdiff (>= 0.4.0, < 2.0.0)
 
 PLATFORMS
+  aarch64-linux
   arm64-darwin-23
   ruby
+  x86_64-linux
 
 DEPENDENCIES
   cache (= 0.0.0)!
