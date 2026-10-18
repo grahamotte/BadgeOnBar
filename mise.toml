@@ -194,9 +194,9 @@ run = "set -a && source .env.production && cd deploy && ruby query.rb"
 #
 
 [tasks."test:backend"]
-description = "Run Rails backend unit tests"
+description = "Load the schema into the test database and run Rails backend unit tests"
 depends = ["dependencies:backend"]
-run = "cd backend && rails test"
+run = "cd backend && rails db:test:prepare && rails test"
 
 [tasks."test:deploy"]
 description = "Run deployment tooling unit tests"
