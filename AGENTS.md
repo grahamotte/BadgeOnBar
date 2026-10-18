@@ -54,7 +54,7 @@ For card work, use Mr. Moto's `mr` CLI: run `mr card claim <CARD>` and follow it
 
 ## File Structure
 
-- `runbooks/` - Project operation instructions for deployment, basis merges, rollout cards, and publishing.
+- `runbooks/` - Project operation instructions for deployment and publishing.
 - `.env.default` - Template for the `.env.*` secret files.
 - `.env.*` - Gitignored secrets, identifiers issued or rotated with them, and `RAILS_ENV`/`NODE_ENV`. Do not expose secret values. Mr. Moto generates them from 1Password with its `secrets` command; each item stores one concealed field per env key, labeled with the key name, and the file follows the `.env.default` layout with extra keys at the end.
 - `apps/` - Mobile apps for iOS and Android.
@@ -75,7 +75,6 @@ For card work, use Mr. Moto's `mr` CLI: run `mr card claim <CARD>` and follow it
 Read the relevant runbook when asked to perform an operation:
 
 - [Deploy](runbooks/deploy.md) - Deploy `origin/master` to production.
-- [Merge](runbooks/merge.md) - Merge Code Moto into all downstream repositories on one card.
 - [Publish](runbooks/publish.md) - Version and publish configured Apple apps.
 
 Run `mise tasks` to discover available tasks and their descriptions, including development and production debugging tools.
