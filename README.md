@@ -17,7 +17,7 @@ Tools:
 - `mise test` — run the complete app, web, deployment, and shared-gem test suite
 - `mise simulate macos` — build and launch the macOS app
 - `mise xcode` — open the Xcode project
-- `$publish` — version, test, push, sign, notarize, and publish to GitHub Releases
+- the [publish runbook](runbooks/publish.md) — version, test, push, sign, notarize, and publish to GitHub Releases
 
 ## Local development
 
@@ -42,7 +42,7 @@ Non-secret project settings live in `config.json`, including the domain, GitHub 
 | `mise xcode` | Open the Apple app project |
 | `mise keychain` | Restore keychain settings left by an interrupted signing run; `--repair` resets the login keychain |
 
-Deployment, basis merges, and publishing use the project-specific instructions in [.agents/skills](.agents/skills). Mr. Moto owns card tracking, enqueueing, and the review workflow. Badge On Bar is distributed as a signed and notarized GitHub release, not through the App Store.
+Deployment and publishing use the project-specific instructions in [runbooks](runbooks). Mr. Moto owns card tracking, enqueueing, the review workflow, and the Code Moto merge rollout. Badge On Bar is distributed as a signed and notarized GitHub release, not through the App Store.
 
 ## What's included
 
@@ -63,11 +63,12 @@ Deployment, basis merges, and publishing use the project-specific instructions i
 | `deploy/` | Infrastructure and deployment tooling |
 | `publish/` | App versioning, simulation, and publishing |
 | `manager/` | Project creation and Code Moto merges |
+| `runbooks/` | Deployment and publishing instructions |
 | `scripts/` | Scripts behind mise tasks |
 
 See [manager](docs/manager.md) for how Code Moto works with Mr. Moto, [Apple credentials](docs/apple-credentials.md) for publishing setup, [logging](docs/logging.md) for Grafana logs, and [AGENTS.md](AGENTS.md) for contribution rules.
 
-New Code Moto projects are created with `mise spawn` from the Code Moto repository. This app brings in foundation updates with the merge skill instead of replacing its history.
+New Code Moto projects are created with `mise spawn` from the Code Moto repository. This app brings in foundation updates with Mr. Moto's [merge runbook](https://github.com/grahamotte/MrMoto/blob/master/runbooks/merge.md) instead of replacing its history.
 
 ## License
 
