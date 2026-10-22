@@ -45,7 +45,7 @@ GEM
       uri (>= 0.11.1)
     net-protocol (0.4.0)
       timeout
-    net-ssh (8.0.1)
+    net-ssh (8.0.2)
       logger
       openssl (>= 3.2.0)
     openssl (4.0.2)
@@ -84,7 +84,7 @@ DEPENDENCIES
   minitest (= 6.0.6)
   minitest-parallel_fork (= 2.1.1)
   mocha (= 3.1.0)
-  net-ssh (= 8.0.1)
+  net-ssh (= 8.0.2)
   pry (= 0.16.1)
   shellwords (= 0.2.2)
   test_safety (= 0.0.0)!
@@ -113,7 +113,7 @@ CHECKSUMS
   mocha (3.1.0) sha256=75f42d69ebfb1f10b32489dff8f8431d37a418120ecdfc07afe3bc183d4e1d56
   net-http (0.10.0) sha256=1a2ff6e37a05724973c43f2bf7bf105f59c36a4cd0a7e9b1c021a0a566987c27
   net-protocol (0.4.0) sha256=f9f90c8c6f64794a45160bf422177a336db12809de3beeeaa26b88fcd2e8c853
-  net-ssh (8.0.1) sha256=6316c74a66abe867755d56b710a087d317140ac6b9dcdff81c85befcfaeb44d7
+  net-ssh (8.0.2) sha256=8d2010b3ba6f7bf5c470aac5e77647d29b2a4dcf000346bafc3c99c439d1c29b
   openssl (4.0.2) sha256=1037ad2868ae58df9ad917891c0c0f9815a1172f6846d4bcdd508e4c2ee747c2
   prism (1.9.0) sha256=7b530c6a9f92c24300014919c9dcbc055bf4cdf51ec30aed099b06cd6674ef85
   pry (0.16.1) sha256=d92d82c86e7f2dc34beec6d2892d5cf5ea517eea22eed3ceabb38ee62a98accc
