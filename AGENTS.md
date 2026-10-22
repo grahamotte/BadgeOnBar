@@ -21,6 +21,7 @@ The "Repo Specific" section blow contains rules specific to this repo only.
 9. Work from `origin/master`: start branches from it, and do not rely on local `master` being current.
 10. If you spend significant time unnecessarily or the instructions misdirect you, and the issue could be backported to Code Moto (`CodeMoto` / MOTO), report it with enough detail for Mr. Moto to track the basis-repository follow-up. Keep app-specific issues separate.
 11. On macOS, run root `mise` tasks from the worktree root in a non-login shell. For Codex `exec_command`, set `login: false` explicitly on each call that runs `mise`, including through wrappers. If Bundler reports system Ruby or a missing Bundler version, check tool resolution and retry the same root task this way before changing dependencies. See [macOS agent task execution](docs/manager.md#macos-agent-task-execution).
+12. `AGENTS.md` is the only agent-instruction file. Do not add `.agents/`, `.claude/`, `.codex/`, or `CLAUDE.md`; put repeatable operations in `runbooks/`.
 
 ## Ruby
 
@@ -54,7 +55,7 @@ For card work, use Mr. Moto's `mr` CLI: run `mr card claim <CARD>` and follow it
 
 ## File Structure
 
-- `runbooks/` - Project operation instructions for deployment and publishing.
+- `runbooks/` - Project operation instructions, such as deployment and publishing.
 - `.env.default` - Template for the `.env.*` secret files.
 - `.env.*` - Gitignored secrets, identifiers issued or rotated with them, and `RAILS_ENV`/`NODE_ENV`. Do not expose secret values. Mr. Moto generates them from 1Password with its `secrets` command; each item stores one concealed field per env key, labeled with the key name, and the file follows the `.env.default` layout with extra keys at the end.
 - `apps/` - Mobile apps for iOS and Android.
