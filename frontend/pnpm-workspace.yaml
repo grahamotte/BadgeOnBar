@@ -1,4 +1,5 @@
-minimumReleaseAge: 10080
 blockExoticSubdeps: true
 allowBuilds:
   esbuild: true
+minimumReleaseAgeExclude:
+  - vite@8.3.5
