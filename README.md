@@ -38,7 +38,7 @@ Deployment and publishing use the project-specific instructions in [runbooks](ru
 
 ## Starting another project
 
-Run `mise spawn example.com` from this repository to create a sibling checkout with project configuration and generated environment files. Create its GitHub repository and review its configuration and credentials before using it. Repository registration and scheduling are handled separately by [Mr. Moto](https://github.com/grahamotte/MrMoto). Downstream projects use Mr. Moto's [merge runbook](https://github.com/grahamotte/MrMoto/blob/master/runbooks/merge.md) to bring in updates from Code Moto without replacing their history.
+Run `mise spawn Sundial` from this repository with the project's PascalCase name to create a sibling checkout with project configuration, generated environment files, and the `codemoto` remote. The name sets the directory, GitHub repository, and lowercased database name. The new project has no domain; set `domain` in its `config.json` before deploying it. Create its GitHub repository and review its configuration and credentials before using it. Repository registration and scheduling are handled separately by [Mr. Moto](https://github.com/grahamotte/MrMoto). Downstream projects use Mr. Moto's [merge runbook](https://github.com/grahamotte/MrMoto/blob/master/runbooks/merge.md) to bring in updates from Code Moto without replacing their history.
 
 ## Repository guide
 
