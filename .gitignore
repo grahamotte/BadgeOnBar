@@ -7,7 +7,7 @@
 .byebug_history
 .DS_Store
 .yarn-integrity
-/.bundle
+.bundle/
 /.build
 /app/assets/builds/*
 /config/master.key
