@@ -1,84 +1,72 @@
 # Badge On Bar
 
-Badge On Bar is a native macOS menu bar app that mirrors Dock badge counts into the menu bar.
-
 <p align="center">
-  <img src="assets/screenshot.png" alt="Badge on Bar screenshot">
+  <img src="assets/screenshot.png" alt="Badge On Bar screenshot">
 </p>
 
-Badge On Bar is a rewrite of the fantastic [Doll](https://github.com/xiaogdgenuine/Doll) project. It is built on [Code Moto](https://github.com/grahamotte/CodeMoto), a shared foundation for a Rails API, a React website, native Apple apps, and project tooling. This repository keeps its own Git history and configuration, and merges improvements from Code Moto as the foundation evolves. Components can be added or removed to suit the project.
+Badge On Bar is a small native macOS app that mirrors the badge counts from apps in your Dock into the menu bar, one menu bar item per app you choose. It is a rewrite of the fantastic [Doll](https://github.com/xiaogdgenuine/Doll) project.
 
 ## Install
-
-Install with Homebrew:
 
 ```sh
 brew install grahamotte/tap/badge-on-bar
 ```
 
-Update with `brew upgrade`. Each release also attaches the signed, notarized app to [GitHub Releases](https://github.com/grahamotte/BadgeOnBar/releases).
+Update with `brew upgrade`. To install by hand instead, download the latest zip from [Releases](https://github.com/grahamotte/BadgeOnBar/releases), unzip it, and move the app to `/Applications`. Builds are signed with a Developer ID and notarized by Apple.
+
+Badge On Bar requires macOS 26.2 or later.
+
+## Using Badge On Bar
+
+### First launch
+
+Badge On Bar reads badges from the Dock through the macOS Accessibility API, so it needs Accessibility access. On first launch macOS asks for it, and the Badge On Bar window shows **Accessibility Access Required**. Click **Open System Settings**, turn Badge On Bar on under Privacy & Security → Accessibility, and come back; the window switches to the settings view on its own. If you later turn access off, Badge On Bar stops reading badges until you turn it back on.
+
+Badge On Bar has no Dock icon. Closing its window leaves it running in the menu bar. To bring the window back, open Badge On Bar again, or right-click any of its menu bar items and choose **Settings…**.
+
+### Choosing apps
+
+The sidebar lists **Apps on Dock** (apps pinned to or running in the Dock) and, collapsed below them, **Other Apps** (apps in `/Applications`, `/System/Applications`, and `~/Applications`). Flip the switch next to an app, or select it and turn on **Show in Menu Bar**, to give it its own menu bar item. Badges are read from the Dock, so an app only shows a count while it is in the Dock.
+
+Until you pick any apps, Badge On Bar shows a single item with its own icon. Click it to open the settings window.
+
+### Menu bar items
+
+- **Click** an item to open or switch to that app.
+- **Option-click** an item to open Badge On Bar's settings.
+- **Right-click** an item for a **Settings…** menu.
+- Hover over an item to see the app's name and count.
+
+Counts update about once a second. Hold Command and drag to reorder the items; macOS remembers their positions.
+
+### Per-app options
+
+Select an app in the sidebar to change how its item looks:
+
+| Option | Choices |
+| --- | --- |
+| Display | **Badge**: a colored circle with the count over the icon, capped at 99. **Dot**: a small colored dot in the icon's corner. **Count**: the full number as text next to the icon. **Question block** (the last segment): the icon turns into a question block whenever the app has a badge. |
+| Badge Color | Red, green, blue, purple, black, or pink, used for the Badge and Dot displays |
+| Zero Behavior | What the item does when the count is zero: **Show** it as usual, **Greyscale** the app icon, or **Hide** the item until a badge appears |
+| Menu Bar Icon | The app's own icon, or one of a set of monochrome symbols |
+
+Some apps show a badge without a number. Badge On Bar shows those as a circle with a dot in Badge mode and as `·` in Count mode.
+
+### General settings
+
+Select **General** at the top of the sidebar for:
+
+- **Start at Login**: launch Badge On Bar when you sign in.
+- **Default Display**: the Display, Badge Color, and Zero Behavior that newly chosen apps start with. **Set All** applies a default to every app you have already chosen.
+- **Debug**: the number buttons show that badge on every menu bar item for three seconds (`-1` is a badge without a number), so you can preview your settings. **Reset Config** clears your chosen apps and restores every setting to its default.
+
+### Uninstall
+
+Badge On Bar has no Quit menu item, so quit it with `killall BadgeOnBar` or from Activity Monitor, then run `brew uninstall --zap badge-on-bar`, which also removes its preferences. If you installed it by hand, move it to the Trash and delete `~/Library/Preferences/com.grahamotte.badgeonbar2.plist`.
 
 ## Contributing
 
-Issues and PRs welcome.
-
-Tools:
-
-- `mise test` — run the complete app, web, deployment, and shared-gem test suite
-- `mise simulate macos` — build and launch the macOS app
-- `mise xcode` — open the Xcode project
-- the [publish runbook](runbooks/publish.md) — version, test, push, sign, notarize, and publish to GitHub Releases
-
-## Local development
-
-Install mise and PostgreSQL, and have PostgreSQL running locally. Apple app development and tests also require macOS with Xcode.
-
-1. Run `mise install` to install the tool versions pinned in `mise.toml`.
-2. Create `.env.development` and `.env.production` from `.env.default` and fill in the required values. Projects registered in Mr. Moto with 1Password references can generate them by running Mr. Moto's `mr secrets` in the checkout instead.
-3. Run `mise dependencies` to install project dependencies.
-4. Run `mise db:migrate` to prepare the development database.
-5. Run `mise start` to start the API, background jobs, and frontend sites. It prints the local URLs; the API runs at `http://localhost:3000`.
-
-Non-secret project settings live in `config.json`, including the domain, GitHub repository, database name, subdomains, and app release details. Application credentials live in the gitignored `.env.*` files. Linear, GitHub/Forgejo PR operations, and macOS release uploads use Mr. Moto's central commands; repository-local tokens are not supported.
-
-## Common commands
-
-| Command | Purpose |
-| --- | --- |
-| `mise test` | Run all test suites, including frontend type checking |
-| `mise tsc` | Type-check the frontend |
-| `mise console` | Open the Rails development console |
-| `mise simulate macos` | Build and launch the macOS app |
-| `mise xcode` | Open the Apple app project |
-| `mise keychain` | Restore keychain settings left by an interrupted signing run; `--repair` resets the login keychain |
-
-Deployment and publishing use the project-specific instructions in [runbooks](runbooks). Mr. Moto owns card tracking, enqueueing, the review workflow, and the Code Moto merge rollout. Badge On Bar is distributed as a signed and notarized GitHub release, not through the App Store.
-
-## What's included
-
-- **Backend:** Ruby on Rails with PostgreSQL and GoodJob background jobs.
-- **Frontend:** React, TypeScript, Vite, and Tailwind CSS, with separate sites for configured subdomains.
-- **Apps:** A Swift macOS menu bar app, with simulator and signed GitHub release publishing tools.
-- **Operations:** Server provisioning and deployment, backups, and shared Ruby gems.
-- **Agent workflow:** Linear cards are worked by coding agents in Git worktrees, dispatched by the sister repository [Mr. Moto](https://github.com/grahamotte/MrMoto).
-
-## Repository guide
-
-| Directory | Contents |
-| --- | --- |
-| `backend/` | Rails API and background jobs |
-| `frontend/` | React sites and shared frontend code |
-| `apps/` | Native apps and screenshots |
-| `gems/` | Shared Ruby libraries |
-| `deploy/` | Infrastructure and deployment tooling |
-| `publish/` | App versioning, simulation, and publishing |
-| `manager/` | Project creation and Code Moto merges |
-| `runbooks/` | Deployment and publishing instructions |
-| `scripts/` | Scripts behind mise tasks |
-
-See [Apple credentials](docs/apple-credentials.md) for publishing setup and [AGENTS.md](AGENTS.md) for contribution rules.
-
-New Code Moto projects are created with `mise spawn` from the Code Moto repository. This app brings in foundation updates with Mr. Moto's [merge runbook](https://github.com/grahamotte/MrMoto/blob/master/runbooks/merge.md) instead of replacing its history.
+Issues welcome.
 
 ## License
 
