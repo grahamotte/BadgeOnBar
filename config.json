@@ -38,6 +38,13 @@
   "apps": {
     "build": "0.6.1",
     "description": "Badge On Bar mirrors selected macOS Dock badge counts into separate menu bar items.",
+    "homebrew": {
+      "desc": "Mirror Dock badge counts in the menu bar",
+      "macos": "tahoe",
+      "zap": [
+        "~/Library/Preferences/com.grahamotte.badgeonbar2.plist"
+      ]
+    },
     "marketingUrl": "https://badgeonbar.com",
     "name": "Badge On Bar",
     "skip_app_stores": true,

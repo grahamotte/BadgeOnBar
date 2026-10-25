@@ -8,6 +8,16 @@ Badge On Bar is a native macOS menu bar app that mirrors Dock badge counts into 
 
 Badge On Bar is a rewrite of the fantastic [Doll](https://github.com/xiaogdgenuine/Doll) project. It is built on [Code Moto](https://github.com/grahamotte/CodeMoto), a shared foundation for a Rails API, a React website, native Apple apps, and project tooling. This repository keeps its own Git history and configuration, and merges improvements from Code Moto as the foundation evolves. Components can be added or removed to suit the project.
 
+## Install
+
+Install with Homebrew:
+
+```sh
+brew install grahamotte/tap/badge-on-bar
+```
+
+Update with `brew upgrade`. Each release also attaches the signed, notarized app to [GitHub Releases](https://github.com/grahamotte/BadgeOnBar/releases).
+
 ## Contributing
 
 Issues and PRs welcome.
