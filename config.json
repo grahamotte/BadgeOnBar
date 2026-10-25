@@ -45,10 +45,10 @@
         "~/Library/Preferences/com.grahamotte.badgeonbar2.plist"
       ]
     },
-    "marketingUrl": "https://badgeonbar.com",
+    "marketingUrl": "https://github.com/grahamotte/BadgeOnBar",
     "name": "Badge On Bar",
     "skip_app_stores": true,
-    "supportUrl": "https://badgeonbar.com",
+    "supportUrl": "https://github.com/grahamotte/BadgeOnBar",
     "targets": {
       "apple": {
         "macos": {
