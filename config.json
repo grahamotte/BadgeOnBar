@@ -53,6 +53,7 @@
     "primaryLocale": "en-US",
     "promotionalText": "Build momentum with focused coding sessions and keep a private record of completed work.",
     "releaseType": "AFTER_APPROVAL",
+    "subtitle": "Focus timer for developers",
     "supportUrl": "https://codemoto.org",
     "targets": {
       "apple": {
