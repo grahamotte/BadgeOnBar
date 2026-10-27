@@ -22,7 +22,7 @@ Badge On Bar requires macOS 26.2 or later.
 
 Badge On Bar reads badges from the Dock through the macOS Accessibility API, so it needs Accessibility access. On first launch macOS asks for it, and the Badge On Bar window shows **Accessibility Access Required**. Click **Open System Settings**, turn Badge On Bar on under Privacy & Security → Accessibility, and come back; the window switches to the settings view on its own. If you later turn access off, Badge On Bar stops reading badges until you turn it back on.
 
-Badge On Bar has no Dock icon. Closing its window leaves it running in the menu bar. To bring the window back, open Badge On Bar again, or right-click any of its menu bar items and choose **Settings…**.
+Badge On Bar shows a Dock icon only while its window is open. Closing its window removes the Dock icon and leaves it running in the menu bar. To bring the window back, open Badge On Bar again, or right-click any of its menu bar items and choose **Settings…**.
 
 ### Choosing apps
 
