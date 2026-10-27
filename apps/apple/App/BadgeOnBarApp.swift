@@ -9,18 +9,34 @@ struct BadgeOnBarApp: App {
 
     var body: some Scene {
         Window("Badge on Bar", id: configWindowID) {
-            ConfigurationView()
-                .environment(appDelegate.settings)
-                .environment(appDelegate.monitor)
+            ConfigurationWindow(appDelegate: appDelegate)
         }
         .windowResizability(.contentSize)
+        .defaultLaunchBehavior(.presented)
+    }
+}
+
+private struct ConfigurationWindow: View {
+    let appDelegate: AppDelegate
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        ConfigurationView()
+            .environment(appDelegate.settings)
+            .environment(appDelegate.monitor)
+            .onAppear {
+                appDelegate.openConfigWindow = { openWindow(id: configWindowID) }
+                appDelegate.setConfigWindowOpen(true)
+            }
+            .onDisappear { appDelegate.setConfigWindowOpen(false) }
     }
 }
 
 @MainActor
-final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate {
     let settings = AppSettings()
     let monitor = BadgeMonitor()
+    var openConfigWindow: (() -> Void)?
     private var statusBarManager: StatusBarManager?
 
     func applicationWillFinishLaunching(_ notification: Notification) {
@@ -32,7 +48,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         statusBarManager?.onShowConfig = { [weak self] in self?.showConfigWindow() }
         monitor.start()
         PermissionsManager.checkOrPrompt()
-        attachWindowDelegate()
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
@@ -48,25 +63,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         monitor.stop()
     }
 
-    func windowShouldClose(_ sender: NSWindow) -> Bool {
-        sender.orderOut(nil)
-        return false
+    func setConfigWindowOpen(_ isOpen: Bool) {
+        NSApp.setActivationPolicy(isOpen ? .regular : .accessory)
+        if isOpen { NSApp.activate() }
     }
 
     func showConfigWindow() {
-        NSApp.activate(ignoringOtherApps: true)
-        for window in NSApp.windows where window.identifier?.rawValue == configWindowID {
-            window.makeKeyAndOrderFront(nil)
-            return
-        }
-    }
-
-    private func attachWindowDelegate() {
-        for window in NSApp.windows where window.identifier?.rawValue == configWindowID {
-            window.delegate = self
-            window.isReleasedWhenClosed = false
-            showConfigWindow()
-            return
-        }
+        openConfigWindow?()
+        NSApp.activate()
     }
 }
