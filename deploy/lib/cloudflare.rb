@@ -45,7 +45,16 @@ class Cloudflare
     end
 
     def droplet_dns_records
-      current_dns_records.reject { |x| website_record?(x) }
+      current_dns_records.reject { |x| website_record?(x) || mail_record?(x) }
+    end
+
+    def mail_record?(record)
+      mail_dns_records.map { |x| fingerprint(x) }.include?(fingerprint(record))
+    end
+
+    def missing_mail_dns_records
+      current = current_dns_records.map { |x| fingerprint(x) }
+      mail_dns_records.reject { |x| current.include?(fingerprint(x)) }
     end
 
     def website_record?(record)
@@ -113,7 +122,11 @@ class Cloudflare
           proxied: false,
           ttl: 1,
         }
-      end + [
+      end
+    end
+
+    def mail_dns_records
+      [
         {
           type: "MX",
           name: Constants.domain,
