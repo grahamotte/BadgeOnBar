@@ -88,7 +88,7 @@ Run `mise tasks` to discover available tasks and their descriptions, including d
 
 This repository is deployed to codemoto.org with `mise deploy` and the [deploy runbook](runbooks/deploy.md).
 
-Every Code Moto downstream repository states deployment in its own Repo Specific section with one of these lines, and merges preserve it.:
+Every Code Moto downstream repository states deployment in its own Repo Specific section with one of these lines, and merges preserve it:
 
 - Not deployed: "This repository is not deployed. Do not run `mise deploy` or the [deploy runbook](runbooks/deploy.md). The `deploy/` tooling is inherited from Code Moto and unused."
 - Deployed: "This repository is deployed to <host or domain> with `mise deploy` and the [deploy runbook](runbooks/deploy.md)."
