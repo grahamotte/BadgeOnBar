@@ -50,7 +50,6 @@ frontend/dist
 DerivedData/
 *.xcscmblueprint
 *.xcuserstate
-xcuserdata/
 /*/tmp
 /*/tmp/*
 website/dist
