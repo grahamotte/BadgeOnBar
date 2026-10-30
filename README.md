@@ -8,6 +8,7 @@ Projects built on Code Moto keep their own Git history and configuration, and ca
 
 - **Backend:** Ruby on Rails with PostgreSQL and GoodJob background jobs.
 - **Frontend:** React, TypeScript, Vite, and Tailwind CSS, with separate sites for configured subdomains.
+- **Website:** Astro marketing site on Cloudflare Workers, served from the apex domain.
 - **Apps:** Swift apps targeting iOS, macOS, and tvOS, with simulator and App Store publishing tools.
 - **Operations:** Server provisioning and deployment, backups, and shared Ruby gems.
 
@@ -19,7 +20,7 @@ Install mise and PostgreSQL, and have PostgreSQL running locally. Apple app deve
 2. Create `.env.development` and `.env.production` from `.env.default` and fill in the required values. Projects registered in Mr. Moto with 1Password references can generate them by running Mr. Moto's `mr secrets` in the checkout instead.
 3. Run `mise dependencies` to install project dependencies.
 4. Run `mise db:migrate` to prepare the development database.
-5. Run `mise start` to start the API, background jobs, and frontend sites. It prints the local URLs; the API runs at `http://localhost:3000`.
+5. Run `mise start` to start the API, background jobs, frontend sites, and website configured in `config.json`. It prints the local URLs; the API runs at `https://api.<name>.localhost`.
 
 Non-secret project settings live in `config.json`, including the domain, GitHub repository, database name, subdomains, and app release details. Application credentials live in the gitignored `.env.*` files. Linear, GitHub/Forgejo PR operations, and macOS release uploads use Mr. Moto's central commands; repository-local tokens are not supported.
 
