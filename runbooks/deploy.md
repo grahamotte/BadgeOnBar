@@ -1,9 +1,9 @@
 # Deploy
 
-`mise deploy` fetches `origin` and deploys `origin/master` to the droplet, whatever is checked out locally. `mise deploy:website` builds the Astro website from `origin/master` and deploys it to Cloudflare Workers on the `website` subdomain hosts. Only merged changes are deployed.
+`mise deploy` fetches `origin` and deploys `origin/master` to the droplet, whatever is checked out locally. `mise deploy:website` builds the Astro website from `origin/master` and deploys it to Cloudflare Workers on the hosts of subdomains with `source` `website`. Only merged changes are deployed.
 
 1. Read the Repo Specific section of this repository's `AGENTS.md`. If it states that only the website is deployed, skip `mise deploy` and run only `mise deploy:website` in step 2. Otherwise continue only if it states that the repository is deployed. If it states that the repository is not deployed, or says nothing about deployment, do not run `mise deploy`: hand off Planned (or Review with "deploy not applicable" when the card only asked for a conditional deploy) and say the repository does not deploy. A missing or placeholder `DIGITAL_OCEAN_TOKEN` means the repository is not deployed; it is not an expired token.
-2. Run `mise deploy`. It takes several minutes. It prints `deploying origin/master <sha>`; record the SHA. Then, if `config.json` has a `website` subdomain, run `mise deploy:website`; it prints `deploying website origin/master <sha>`.
+2. Run `mise deploy`. It takes several minutes. It prints `deploying origin/master <sha>`; record the SHA. Then, if `config.json` has a subdomain with `source` `website`, run `mise deploy:website`; it prints `deploying website origin/master <sha>`.
 3. If it fails because of a trivial problem in the repository, fix it through a PR:
    - Work on the card branch when running for a card, otherwise on a new branch from `origin/master`.
    - Run `mise test` and deliver the fix through the supplied repository review instructions.

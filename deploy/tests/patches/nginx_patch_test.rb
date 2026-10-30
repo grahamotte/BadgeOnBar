@@ -4,7 +4,7 @@ class NginxPatchTest < Minitest::Test
   def test_nginx_config
     config = NginxPatch.send(:nginx_config)
 
-    assert_includes config, "server_name app.example.com api.example.com hc.example.com jobs.example.com;"
+    assert_includes config, "server_name app.example.com hc.example.com api.example.com jobs.example.com;"
     assert_includes config, "root /var/www/example.com/frontend/dist/app"
     assert_includes config, "root /var/www/example.com/frontend/dist/hc"
     refute_includes config, "location /api/"

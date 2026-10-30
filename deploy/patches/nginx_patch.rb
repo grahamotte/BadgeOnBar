@@ -64,10 +64,17 @@ class NginxPatch < BasePatch
             ssl_stapling on;
             ssl_stapling_verify on;
 
-            #{subdomain[:backend].present? ? proxy_location("/") : frontend_locations(subdomain)}
+            #{locations(subdomain)}
           }
         TEXT
       end.join("\n")
+    end
+
+    def locations(subdomain)
+      case subdomain.fetch(:source)
+      when "frontend" then frontend_locations(subdomain)
+      when "backend" then proxy_location("/")
+      end
     end
 
     def frontend_locations(subdomain)

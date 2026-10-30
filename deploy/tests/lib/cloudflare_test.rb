@@ -91,11 +91,11 @@ class CloudflareTest < Minitest::Test
 
     assert_equal 10, records.length
     assert_equal(
-      { type: "A", name: "api.example.com", content: "1.2.3.4", proxied: false, ttl: 1 },
+      { type: "A", name: "hc.example.com", content: "1.2.3.4", proxied: false, ttl: 1 },
       records[1],
     )
     assert_equal "app.example.com :: A :: 1.2.3.4", Cloudflare.fingerprint(records.first)
-    assert_equal "api.example.com :: A :: 1.2.3.4", Cloudflare.fingerprint(records[1])
+    assert_equal "hc.example.com :: A :: 1.2.3.4", Cloudflare.fingerprint(records[1])
     refute(records.any? { |x| x[:type] == "A" && [ "example.com", "www.example.com" ].include?(x[:name]) })
   end
 end

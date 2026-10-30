@@ -62,7 +62,7 @@ For card work, use Mr. Moto's `mr` CLI: run `mr card claim <CARD>` and follow it
 - `apps/` - Mobile apps for iOS and Android.
 - `assets/` - Shared images and media.
 - `backend/` - Ruby on Rails API server.
-- `config.json` - Non-secret configuration, including mobile app release (`apps`) and subdomain (`subdomains`) settings. Code reads it directly instead of `ENV`. Each subdomain entry is a frontend site (`directory`), a Rails host (`backend`), or the Astro website (`website`). The default layout puts the website at the apex and `www`, the React app at `app`, and the Rails API at `api`. A config with only a website entry needs no droplet.
+- `config.json` - Non-secret configuration, including mobile app release (`apps`) and subdomain (`subdomains`) settings. Code reads it directly instead of `ENV`. Each subdomain entry has a required `source`: `website` (the Astro site on Cloudflare Workers), `frontend` (a React site in `directory` served from the droplet), or `backend` (Rails on the droplet). The default layout puts the website at the apex and `www`, the React app at `app`, and the Rails API at `api`. A config with only `website` entries needs no droplet.
 - `deploy/` - Backend and frontend deployment tooling.
 - `docs/` - Project documentation in Markdown.
 - `frontend/` - React frontend sites served from the droplet.
@@ -88,7 +88,7 @@ Run `mise tasks` to discover available tasks and their descriptions, including d
 
 This repository is deployed to codemoto.org with `mise deploy` and the [deploy runbook](runbooks/deploy.md).
 
-Every Code Moto downstream repository states deployment in its own Repo Specific section with one of these lines, and merges preserve it. For deployed repositories, the deploy runbook also runs `mise deploy:website` when `config.json` has a `website` subdomain:
+Every Code Moto downstream repository states deployment in its own Repo Specific section with one of these lines, and merges preserve it. For deployed repositories, the deploy runbook also runs `mise deploy:website` when `config.json` has a subdomain with `source` `website`:
 
 - Not deployed: "This repository is not deployed. Do not run `mise deploy` or the [deploy runbook](runbooks/deploy.md). The `deploy/` tooling is inherited from Code Moto and unused."
 - Deployed: "This repository is deployed to <host or domain> with `mise deploy` and the [deploy runbook](runbooks/deploy.md)."

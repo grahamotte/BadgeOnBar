@@ -5,7 +5,7 @@ host=$(node -e '
   const fs = require("fs");
   const config = JSON.parse(fs.readFileSync("config.json"));
   const base = process.env.LOCAL_DOMAIN || config.domain.split(".")[0] || config.database;
-  const subdomain = config.subdomains.find(({ website }) => website);
+  const subdomain = config.subdomains.find(({ source }) => source === "website");
   const prefix = subdomain.subdomains.includes("") ? "" : `${subdomain.subdomains[0]}.`;
   console.log(`${prefix}${base}`);
 ')

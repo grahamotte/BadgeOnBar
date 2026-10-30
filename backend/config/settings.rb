@@ -20,7 +20,7 @@ class Settings
     def origins
       all
         .fetch(:subdomains)
-        .reject { |x| x[:backend].present? }
+        .reject { |x| x.fetch(:source) == "backend" }
         .flat_map { |x| x.fetch(:subdomains) }
         .map { |x| "https://#{[ x.presence, all.fetch(:domain) ].compact.join(".")}" }
     end

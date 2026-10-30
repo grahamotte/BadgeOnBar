@@ -9,10 +9,10 @@ class SubdomainsTest < Minitest::Test
   end
 
   def test_all_frontends_domains_and_dist
-    assert_equal [ "website", "app", "api", "hc", "jobs" ], Subdomains.all.map { |x| x[:name] }
+    assert_equal [ "website", "app", "hc", "api", "jobs" ], Subdomains.all.map { |x| x[:name] }
     assert_equal [ "app", "hc" ], Subdomains.frontends.map { |x| x[:name] }
     assert_equal(
-      [ "app.example.com", "api.example.com", "hc.example.com", "jobs.example.com" ],
+      [ "app.example.com", "hc.example.com", "api.example.com", "jobs.example.com" ],
       Subdomains.domains,
     )
     assert_equal "/var/www/example.com/frontend/dist/app", Subdomains.dist(Subdomains.frontends.first)
@@ -20,8 +20,24 @@ class SubdomainsTest < Minitest::Test
 
   def test_websites
     assert_equal [ "website" ], Subdomains.websites.map { |x| x[:name] }
-    assert_equal [ "app", "api", "hc", "jobs" ], Subdomains.droplet.map { |x| x[:name] }
+    assert_equal [ "app", "hc", "api", "jobs" ], Subdomains.droplet.map { |x| x[:name] }
     assert_equal [ "example.com", "www.example.com" ], Subdomains.website_domains
+  end
+
+  def test_from
+    assert_equal [ "api", "jobs" ], Subdomains.from("backend").map { |x| x[:name] }
+    assert_equal [ "app", "hc" ], Subdomains.from("frontend").map { |x| x[:name] }
+  end
+
+  def test_all_requires_known_source
+    File.write(
+      Constants.config_path,
+      JSON.generate(domain: "example.com", subdomains: [ { name: "app", subdomains: [ "app" ], directory: "frontend/subdomains/app" } ]),
+    )
+    Constants.instance_variable_set(:@config, nil)
+
+    error = assert_raises(RuntimeError) { Subdomains.all }
+    assert_equal "config.json subdomain app has unknown source nil", error.message
   end
 
   def test_url
@@ -33,7 +49,7 @@ class SubdomainsTest < Minitest::Test
     assert Subdomains.droplet?
     Subdomains.require_droplet!
 
-    Subdomains.instance_variable_set(:@all, [ { name: "website", subdomains: [ "" ], website: true } ])
+    Subdomains.instance_variable_set(:@all, [ { name: "website", subdomains: [ "" ], source: "website" } ])
 
     refute Subdomains.droplet?
     assert_raises(RuntimeError) { Subdomains.require_droplet! }

@@ -1,11 +1,19 @@
 class Subdomains
+  SOURCES = %w[website frontend backend].freeze
+
   class << self
     def all
-      @all ||= Constants.config.fetch(:subdomains)
+      @all ||= Constants.config.fetch(:subdomains).each do |subdomain|
+        raise "config.json subdomain #{subdomain[:name]} has unknown source #{subdomain[:source].inspect}" unless SOURCES.include?(subdomain[:source])
+      end
+    end
+
+    def from(source)
+      all.select { |subdomain| subdomain.fetch(:source) == source }
     end
 
     def droplet
-      all.reject { |subdomain| subdomain[:website].present? }
+      all.reject { |subdomain| subdomain.fetch(:source) == "website" }
     end
 
     def droplet?
@@ -17,7 +25,11 @@ class Subdomains
     end
 
     def websites
-      all.select { |subdomain| subdomain[:website].present? }
+      from("website")
+    end
+
+    def frontends
+      from("frontend")
     end
 
     def domains(subdomain = nil)
@@ -31,10 +43,6 @@ class Subdomains
 
     def url(name)
       "https://#{domains(all.find { |subdomain| subdomain.fetch(:name) == name }).first}"
-    end
-
-    def frontends
-      droplet.select { |subdomain| subdomain[:directory].present? }
     end
 
     def dist(subdomain)
