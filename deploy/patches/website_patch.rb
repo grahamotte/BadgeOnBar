@@ -15,6 +15,7 @@ class WebsitePatch < BasePatch
       File.write(File.join(Sources::Website.root, "wrangler.json"), JSON.pretty_generate(Sources::Website.wrangler_config))
 
       Cloudflare.create_zone if Cloudflare.zone_id.blank?
+      Cloudflare.enable_always_use_https
       Cloudflare.current_dns_records.select { |x| Sources::Website.droplet_record?(x) }.each do |record|
         Cloudflare.delete_dns_record(record[:id])
       end
@@ -22,6 +23,7 @@ class WebsitePatch < BasePatch
       ENV["CLOUDFLARE_API_TOKEN"] = Constants.cloudflare_token
       ENV["CLOUDFLARE_ACCOUNT_ID"] = Cloudflare.account_id
       Cmd.local("cd ? && pnpm exec wrangler deploy", Sources::Website.root)
+      Cmd.local("git worktree remove --force ?", Sources::Website.checkout)
     end
   end
 end

@@ -5,6 +5,7 @@ class Cloudflare
         .call(
           url: "https://api.cloudflare.com/client/v4/zones",
           headers: headers,
+          params: { name: Constants.domain },
           quiet: true,
         )
         .dig(:result)
@@ -20,6 +21,7 @@ class Cloudflare
         .call(
           url: "https://api.cloudflare.com/client/v4/zones",
           headers: headers,
+          params: { name: Constants.domain },
           quiet: true,
         )
         .dig(:result)
@@ -73,6 +75,16 @@ class Cloudflare
         headers: headers,
         quiet: true,
         payload: record,
+      )
+    end
+
+    def enable_always_use_https
+      Req.call(
+        method: :patch,
+        url: "https://api.cloudflare.com/client/v4/zones/#{zone_id}/settings/always_use_https",
+        headers: headers,
+        quiet: true,
+        payload: { value: "on" },
       )
     end
 

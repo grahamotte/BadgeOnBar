@@ -29,6 +29,7 @@ class WebsitePatchTest < Minitest::Test
         { id: "app", name: "app.example.com", type: "A", proxied: false },
       ])
     Req.expects(:call).with(has_entries(method: :delete, url: "https://api.cloudflare.com/client/v4/zones/zone/dns_records/apex"))
+    Req.expects(:call).with(has_entries(method: :patch, url: "https://api.cloudflare.com/client/v4/zones/zone/settings/always_use_https"))
     commands = sequence("commands")
     Cmd.expects(:local).with("git fetch origin master").in_sequence(commands)
     Cmd.expects(:local).with("git rev-parse origin/master").returns("abc123\n").in_sequence(commands)
@@ -37,6 +38,7 @@ class WebsitePatchTest < Minitest::Test
     Cmd.expects(:local).with("git worktree add --detach ? ?", @checkout, "abc123").in_sequence(commands)
     Cmd.expects(:local).with("cd ? && pnpm install --frozen-lockfile && pnpm exec astro build", root).in_sequence(commands)
     Cmd.expects(:local).with("cd ? && pnpm exec wrangler deploy", root).in_sequence(commands)
+    Cmd.expects(:local).with("git worktree remove --force ?", @checkout).in_sequence(commands)
 
     WebsitePatch.call
 
@@ -59,6 +61,7 @@ class WebsitePatchTest < Minitest::Test
       { result: [ { name: "example.com", id: "zone", account: { id: "account" } } ] },
     )
     Req.expects(:call).with(has_entries(method: :post, url: "https://api.cloudflare.com/client/v4/zones"))
+    Req.expects(:call).with(has_entries(method: :patch, url: "https://api.cloudflare.com/client/v4/zones/zone/settings/always_use_https"))
     Req.expects(:call).with(has_entry(:url, "https://api.cloudflare.com/client/v4/zones/zone/dns_records"))
       .returns(result: [])
 

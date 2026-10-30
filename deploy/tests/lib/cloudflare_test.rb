@@ -2,7 +2,8 @@ require_relative "../test_helper"
 
 class CloudflareTest < Minitest::Test
   def test_zone_lookup_and_create
-    Req.expects(:call).returns(result: [ { name: "other.com", id: "1" }, { name: "example.com", id: "2" } ])
+    Req.expects(:call).with(has_entry(:params, { name: "example.com" }))
+      .returns(result: [ { name: "other.com", id: "1" }, { name: "example.com", id: "2" } ])
     assert_equal "2", Cloudflare.zone_id
 
     Req.expects(:call).with(
@@ -48,7 +49,8 @@ class CloudflareTest < Minitest::Test
   end
 
   def test_account_id
-    Req.expects(:call).returns(result: [ { name: "example.com", id: "zone", account: { id: "account" } } ])
+    Req.expects(:call).with(has_entry(:params, { name: "example.com" }))
+      .returns(result: [ { name: "example.com", id: "zone", account: { id: "account" } } ])
 
     assert_equal "account", Cloudflare.account_id
   end
@@ -69,6 +71,19 @@ class CloudflareTest < Minitest::Test
       [ "example.com MX", "example.com TXT", "app.example.com A" ],
       Cloudflare.droplet_dns_records.map { |x| "#{x[:name]} #{x[:type]}" },
     )
+  end
+
+  def test_enable_always_use_https
+    Cloudflare.instance_variable_set(:@zone_id, "zone")
+    Req.expects(:call).with(
+      method: :patch,
+      url: "https://api.cloudflare.com/client/v4/zones/zone/settings/always_use_https",
+      headers: Cloudflare.headers,
+      quiet: true,
+      payload: { value: "on" },
+    )
+
+    Cloudflare.enable_always_use_https
   end
 
   def test_without_zone
