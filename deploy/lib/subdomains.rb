@@ -30,10 +30,6 @@ class Subdomains
       droplet.present?
     end
 
-    def require_droplet!
-      raise "config.json has no droplet subdomains; deploy the website with `mise deploy:website`" unless droplet?
-    end
-
     def websites
       from("website")
     end

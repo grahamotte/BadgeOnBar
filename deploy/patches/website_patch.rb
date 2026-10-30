@@ -1,8 +1,10 @@
 class WebsitePatch < BasePatch
   class << self
-    def always
-      raise "config.json has no website subdomain" if Subdomains.websites.blank?
+    def needed?
+      Subdomains.websites.present?
+    end
 
+    def apply
       Cmd.local("git fetch origin master")
       sha = Cmd.local("git rev-parse origin/master").strip
       puts "deploying website origin/master #{sha}"

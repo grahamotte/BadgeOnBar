@@ -258,19 +258,14 @@ depends = ["test:*"]
 #
 
 [tasks."deploy"]
-description = "Deploy origin/master to production; follow runbooks/deploy.md"
-depends = ["dependencies:deploy"]
+description = "Deploy origin/master to the droplet and the Cloudflare website configured in config.json; follow runbooks/deploy.md"
+depends = ["dependencies:deploy", "dependencies:website"]
 run = "set -a && source .env.production && cd deploy && ruby deploy.rb 2>&1 | tee log/$(date +%Y-%m-%d-%H-%M-%S)_deploy.log"
 
-[tasks."deploy:website"]
-description = "Build the Astro website and deploy it to Cloudflare Workers; follow runbooks/deploy.md"
-depends = ["dependencies:deploy", "dependencies:website"]
-run = "set -a && source .env.production && cd deploy && ruby website.rb 2>&1 | tee log/$(date +%Y-%m-%d-%H-%M-%S)_website.log"
-
 [tasks."deploy:quick"]
-description = "Update production code, secrets, and app services without full provisioning"
+description = "Update production code, secrets, app services, and the website without full provisioning"
 alias = ["quick"]
-depends = ["dependencies:deploy"]
+depends = ["dependencies:deploy", "dependencies:website"]
 run = "set -a && source .env.production && cd deploy && ruby quick.rb 2>&1 | tee log/$(date +%Y-%m-%d-%H-%M-%S)_quick.log"
 
 [tasks."deploy:patch"]

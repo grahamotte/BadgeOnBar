@@ -1,7 +1,9 @@
 require_relative "lib/require"
 
-Subdomains.require_droplet!
+if Subdomains.droplet?
+  GitDeploymentPatch.call
+  SecretsPatch.call
+  AppPatch.call
+end
 
-GitDeploymentPatch.call
-SecretsPatch.call
-AppPatch.call
+WebsitePatch.call

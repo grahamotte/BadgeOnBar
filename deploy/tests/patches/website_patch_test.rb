@@ -65,9 +65,17 @@ class WebsitePatchTest < Minitest::Test
     WebsitePatch.call
   end
 
-  def test_requires_website
+  def test_needed
+    assert WebsitePatch.needed?
+
     Subdomains.instance_variable_set(:@all, [ { name: "app", subdomains: [ "app" ], source: "frontend" } ])
 
-    assert_raises(RuntimeError) { WebsitePatch.call }
+    refute WebsitePatch.needed?
+  end
+
+  def test_call_skips_without_website
+    Subdomains.instance_variable_set(:@all, [ { name: "app", subdomains: [ "app" ], source: "frontend" } ])
+
+    WebsitePatch.call
   end
 end

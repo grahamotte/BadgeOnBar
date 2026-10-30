@@ -53,12 +53,10 @@ class SubdomainsTest < Minitest::Test
 
   def test_droplet
     assert Subdomains.droplet?
-    Subdomains.require_droplet!
 
     Subdomains.instance_variable_set(:@all, [ { name: "website", subdomains: [ "" ], source: "website" } ])
 
     refute Subdomains.droplet?
-    assert_raises(RuntimeError) { Subdomains.require_droplet! }
     assert_equal [], Subdomains.domains
   end
 end
