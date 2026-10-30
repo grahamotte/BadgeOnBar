@@ -6,8 +6,8 @@ class WebsitePatch < BasePatch
 
     def apply
       Cmd.local("git fetch origin master")
-      sha = Cmd.local("git rev-parse origin/master").strip
-      puts "deploying website origin/master #{sha}"
+      sha = Cmd.local("git rev-parse #{Shellwords.escape(Constants.deploy_ref)}").strip
+      puts "deploying website #{Constants.deploy_ref} #{sha}"
       Cmd.local("rm -rf ?", Sources::Website.checkout)
       Cmd.local("git worktree prune")
       Cmd.local("git worktree add --detach ? ?", Sources::Website.checkout, sha)
