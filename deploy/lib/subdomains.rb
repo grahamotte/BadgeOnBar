@@ -1,19 +1,29 @@
 class Subdomains
-  SOURCES = %w[website frontend backend].freeze
-
   class << self
+    def sources
+      {
+        "website" => Sources::Website,
+        "frontend" => Sources::Frontend,
+        "backend" => Sources::Backend,
+      }
+    end
+
     def all
       @all ||= Constants.config.fetch(:subdomains).each do |subdomain|
-        raise "config.json subdomain #{subdomain[:name]} has unknown source #{subdomain[:source].inspect}" unless SOURCES.include?(subdomain[:source])
+        raise "config.json subdomain #{subdomain[:name]} has unknown source #{subdomain[:source].inspect}" unless sources.key?(subdomain[:source])
       end
     end
 
-    def from(source)
-      all.select { |subdomain| subdomain.fetch(:source) == source }
+    def source(subdomain)
+      sources.fetch(subdomain.fetch(:source))
+    end
+
+    def from(name)
+      all.select { |subdomain| subdomain.fetch(:source) == name }
     end
 
     def droplet
-      all.reject { |subdomain| subdomain.fetch(:source) == "website" }
+      all.select { |subdomain| source(subdomain).droplet? }
     end
 
     def droplet?
@@ -43,10 +53,6 @@ class Subdomains
 
     def url(name)
       "https://#{domains(all.find { |subdomain| subdomain.fetch(:name) == name }).first}"
-    end
-
-    def dist(subdomain)
-      File.join(Constants.remote_root, "frontend", "dist", subdomain.fetch(:name))
     end
   end
 end

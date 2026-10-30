@@ -8,20 +8,26 @@ class SubdomainsTest < Minitest::Test
     )
   end
 
-  def test_all_frontends_domains_and_dist
+  def test_all_frontends_and_domains
     assert_equal [ "website", "app", "hc", "api", "jobs" ], Subdomains.all.map { |x| x[:name] }
     assert_equal [ "app", "hc" ], Subdomains.frontends.map { |x| x[:name] }
     assert_equal(
       [ "app.example.com", "hc.example.com", "api.example.com", "jobs.example.com" ],
       Subdomains.domains,
     )
-    assert_equal "/var/www/example.com/frontend/dist/app", Subdomains.dist(Subdomains.frontends.first)
   end
 
   def test_websites
     assert_equal [ "website" ], Subdomains.websites.map { |x| x[:name] }
     assert_equal [ "app", "hc", "api", "jobs" ], Subdomains.droplet.map { |x| x[:name] }
     assert_equal [ "example.com", "www.example.com" ], Subdomains.website_domains
+  end
+
+  def test_source
+    assert_equal(
+      [ Sources::Website, Sources::Frontend, Sources::Frontend, Sources::Backend, Sources::Backend ],
+      Subdomains.all.map { |x| Subdomains.source(x) },
+    )
   end
 
   def test_from

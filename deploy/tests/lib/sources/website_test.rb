@@ -1,39 +1,43 @@
-require_relative "../test_helper"
+require_relative "../../test_helper"
 
-class WebsiteTest < Minitest::Test
+class Sources::WebsiteTest < Minitest::Test
   def setup
     super
     @env = ENV.to_h.slice("CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID")
     @checkout = Dir.mktmpdir
-    Website.checkout = @checkout
+    Sources::Website.checkout = @checkout
   end
 
   def teardown
     %w[CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID].each { |key| ENV[key] = @env[key] }
     FileUtils.rm_rf(@checkout)
-    Website.checkout = nil
+    Sources::Website.checkout = nil
     super
   end
 
-  def test_paths
-    Website.checkout = nil
+  def test_droplet
+    refute Sources::Website.droplet?
+  end
 
-    assert_equal File.join(Constants.local_root, "deploy", "tmp", "website"), Website.checkout
-    assert_equal File.join(Constants.local_root, "deploy", "tmp", "website", "website"), Website.root
+  def test_paths
+    Sources::Website.checkout = nil
+
+    assert_equal File.join(Constants.local_root, "deploy", "tmp", "website"), Sources::Website.checkout
+    assert_equal File.join(Constants.local_root, "deploy", "tmp", "website", "website"), Sources::Website.root
   end
 
   def test_wrangler_config
     assert_equal(
       {
         name: "example-com",
-        compatibility_date: Website::COMPATIBILITY_DATE,
+        compatibility_date: Sources::Website::COMPATIBILITY_DATE,
         assets: { directory: "./dist", not_found_handling: "404-page" },
         routes: [
           { pattern: "example.com", custom_domain: true },
           { pattern: "www.example.com", custom_domain: true },
         ],
       },
-      Website.wrangler_config,
+      Sources::Website.wrangler_config,
     )
   end
 
@@ -60,18 +64,18 @@ class WebsiteTest < Minitest::Test
     Cmd.expects(:local).with("cd ? && pnpm install --frozen-lockfile && pnpm exec astro build", root).in_sequence(commands)
     Cmd.expects(:local).with("cd ? && pnpm exec wrangler deploy", root).in_sequence(commands)
 
-    Website.deploy
+    Sources::Website.deploy
 
     assert_equal "cloudflare-token", ENV["CLOUDFLARE_API_TOKEN"]
     assert_equal "account", ENV["CLOUDFLARE_ACCOUNT_ID"]
     assert_equal(
-      JSON.parse(JSON.generate(Website.wrangler_config)),
+      JSON.parse(JSON.generate(Sources::Website.wrangler_config)),
       JSON.parse(File.read(File.join(root, "wrangler.json"))),
     )
   end
 
   def test_deploy_creates_missing_zone
-    FileUtils.mkdir_p(Website.root)
+    FileUtils.mkdir_p(Sources::Website.root)
     Cmd.stubs(:local).returns("abc123\n")
     Req.expects(:call).with do |options|
       options[:url] == "https://api.cloudflare.com/client/v4/zones" && options[:method].blank?
@@ -84,12 +88,12 @@ class WebsiteTest < Minitest::Test
     Req.expects(:call).with(has_entry(:url, "https://api.cloudflare.com/client/v4/zones/zone/dns_records"))
       .returns(result: [])
 
-    Website.deploy
+    Sources::Website.deploy
   end
 
   def test_deploy_requires_website
     Subdomains.instance_variable_set(:@all, [ { name: "app", subdomains: [ "app" ], source: "frontend" } ])
 
-    assert_raises(RuntimeError) { Website.deploy }
+    assert_raises(RuntimeError) { Sources::Website.deploy }
   end
 end
