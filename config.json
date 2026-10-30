@@ -21,16 +21,14 @@
       "subdomains": [
         "app"
       ],
-      "source": "frontend",
-      "directory": "frontend/subdomains/app"
+      "source": "frontend"
     },
     {
       "name": "hc",
       "subdomains": [
         "hc"
       ],
-      "source": "frontend",
-      "directory": "frontend/subdomains/hc"
+      "source": "frontend"
     },
     {
       "name": "api",

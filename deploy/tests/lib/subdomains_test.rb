@@ -32,7 +32,7 @@ class SubdomainsTest < Minitest::Test
   def test_all_requires_known_source
     File.write(
       Constants.config_path,
-      JSON.generate(domain: "example.com", subdomains: [ { name: "app", subdomains: [ "app" ], directory: "frontend/subdomains/app" } ]),
+      JSON.generate(domain: "example.com", subdomains: [ { name: "app", subdomains: [ "app" ] } ]),
     )
     Constants.instance_variable_set(:@config, nil)
 

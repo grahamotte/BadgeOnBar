@@ -88,7 +88,7 @@ class WebsiteTest < Minitest::Test
   end
 
   def test_deploy_requires_website
-    Subdomains.instance_variable_set(:@all, [ { name: "app", subdomains: [ "app" ], source: "frontend", directory: "frontend/subdomains/app" } ])
+    Subdomains.instance_variable_set(:@all, [ { name: "app", subdomains: [ "app" ], source: "frontend" } ])
 
     assert_raises(RuntimeError) { Website.deploy }
   end

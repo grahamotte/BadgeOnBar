@@ -18,7 +18,7 @@ const localDomain = `${process.env.LOCAL_DOMAIN || config.domain.split(".")[0] |
 
 export default defineConfig(({ command }) => ({
   cacheDir: path.resolve(__dirname, "node_modules/.vite", subdomain.name),
-  root: path.resolve(__dirname, "..", subdomain.directory),
+  root: path.resolve(__dirname, "subdomains", subdomain.name),
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {

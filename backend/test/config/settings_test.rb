@@ -86,7 +86,7 @@ class SettingsTest < ActiveSupport::TestCase
         database: "sundial",
         subdomains: [
           { name: "website", subdomains: [ "", "www" ], source: "website" },
-          { name: "app", subdomains: [ "app" ], source: "frontend", directory: "frontend/subdomains/app" },
+          { name: "app", subdomains: [ "app" ], source: "frontend" },
           { name: "api", subdomains: [ "api" ], source: "backend" },
           { name: "jobs", subdomains: [ "jobs" ], source: "backend" },
         ],

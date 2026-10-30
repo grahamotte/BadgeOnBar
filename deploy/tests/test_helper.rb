@@ -80,8 +80,8 @@ module DeployTestIsolation
         instance: { region: "test-region", size: "test-size" },
         subdomains: [
           { name: "website", subdomains: [ "", "www" ], source: "website" },
-          { name: "app", subdomains: [ "app" ], source: "frontend", directory: "frontend/subdomains/app" },
-          { name: "hc", subdomains: [ "hc" ], source: "frontend", directory: "frontend/subdomains/hc" },
+          { name: "app", subdomains: [ "app" ], source: "frontend" },
+          { name: "hc", subdomains: [ "hc" ], source: "frontend" },
           { name: "api", subdomains: [ "api" ], source: "backend" },
           { name: "jobs", subdomains: [ "jobs" ], source: "backend" },
         ],
