@@ -68,7 +68,7 @@ class CloudflareTest < Minitest::Test
       ])
 
     assert_equal(
-      [ "example.com MX", "example.com TXT", "app.example.com A" ],
+      [ "example.com TXT", "app.example.com A" ],
       Cloudflare.droplet_dns_records.map { |x| "#{x[:name]} #{x[:type]}" },
     )
   end
@@ -104,7 +104,7 @@ class CloudflareTest < Minitest::Test
 
     records = Cloudflare.desired_dns_records
 
-    assert_equal 10, records.length
+    assert_equal 4, records.length
     assert_equal(
       { type: "A", name: "hc.example.com", content: "1.2.3.4", proxied: false, ttl: 1 },
       records[1],
@@ -112,5 +112,40 @@ class CloudflareTest < Minitest::Test
     assert_equal "app.example.com :: A :: 1.2.3.4", Cloudflare.fingerprint(records.first)
     assert_equal "hc.example.com :: A :: 1.2.3.4", Cloudflare.fingerprint(records[1])
     refute(records.any? { |x| x[:type] == "A" && [ "example.com", "www.example.com" ].include?(x[:name]) })
+  end
+
+  def test_mail_dns_records
+    records = Cloudflare.mail_dns_records
+
+    assert_equal [ "MX", "MX", "CNAME", "CNAME", "CNAME", "TXT" ], records.map { |x| x[:type] }
+    assert_equal "fm1._domainkey.example.com :: CNAME :: fm1.example.com.dkim.fmhosted.com", Cloudflare.fingerprint(records[2])
+    assert(records.all? { |x| x[:proxied] == false })
+  end
+
+  def test_mail_record
+    assert Cloudflare.mail_record?({ name: "example.com", type: "MX", content: "in2-smtp.messagingengine.com" })
+    assert Cloudflare.mail_record?({ name: "fm3._domainkey", type: "CNAME", content: "fm3.example.com.dkim.fmhosted.com" })
+    refute Cloudflare.mail_record?({ name: "example.com", type: "MX", content: "mx.example.net" })
+    refute Cloudflare.mail_record?({ name: "example.com", type: "TXT", content: "v=spf1 -all" })
+  end
+
+  def test_missing_mail_dns_records
+    Req.expects(:call).with(has_entry(:url, "https://api.cloudflare.com/client/v4/zones"))
+      .returns(result: [ { name: "example.com", id: "zone" } ])
+    Req.expects(:call).with(has_entry(:url, "https://api.cloudflare.com/client/v4/zones/zone/dns_records"))
+      .returns(result: [
+        { name: "example.com", type: "MX", content: "in1-smtp.messagingengine.com" },
+        { name: "fm1._domainkey.example.com", type: "CNAME", content: "fm1.example.com.dkim.fmhosted.com" },
+        { name: "example.com", type: "TXT", content: "v=spf1 include:spf.messagingengine.com ?all" },
+      ])
+
+    assert_equal(
+      [
+        "example.com :: MX :: in2-smtp.messagingengine.com",
+        "fm2._domainkey.example.com :: CNAME :: fm2.example.com.dkim.fmhosted.com",
+        "fm3._domainkey.example.com :: CNAME :: fm3.example.com.dkim.fmhosted.com",
+      ],
+      Cloudflare.missing_mail_dns_records.map { |x| Cloudflare.fingerprint(x) },
+    )
   end
 end
