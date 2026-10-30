@@ -62,11 +62,12 @@ For card work, use Mr. Moto's `mr` CLI: run `mr card claim <CARD>` and follow it
 - `apps/` - Mobile apps for iOS and Android.
 - `assets/` - Shared images and media.
 - `backend/` - Ruby on Rails API server.
-- `config.json` - Non-secret configuration, including mobile app release (`apps`) and website subdomain (`subdomains`) settings. Code reads it directly instead of `ENV`.
+- `config.json` - Non-secret configuration, including mobile app release (`apps`) and subdomain (`subdomains`) settings. Code reads it directly instead of `ENV`. Each subdomain entry is a frontend site (`directory`), a Rails host (`backend`), or the Astro website (`website`). The default layout puts the website at the apex and `www`, the React app at `app`, and the Rails API at `api`. A config with only a website entry needs no droplet.
 - `deploy/` - Backend and frontend deployment tooling.
 - `docs/` - Project documentation in Markdown.
-- `frontend/` - React website.
+- `frontend/` - React frontend sites served from the droplet.
 - `gems/` - Shared Ruby gems.
+- `website/` - Astro marketing website deployed to Cloudflare Workers with `mise deploy:website`.
 - `manager/` - Project tooling for spawning new apps and Code Moto merges.
 - `publish/` - Mobile app versioning, simulators, and App Store publishing. `mise keychain` restores the user keychain search list after a killed signing run and runs before `mise publish`; `mise keychain --repair` resets the login keychain, default keychain, and search list.
 - `scripts/` - General-purpose scripts. `scripts/mise/` holds the scripts behind multi-line `mise.toml` tasks.
@@ -76,7 +77,7 @@ For card work, use Mr. Moto's `mr` CLI: run `mr card claim <CARD>` and follow it
 
 Read the relevant runbook when asked to perform an operation:
 
-- [Deploy](runbooks/deploy.md) - Deploy `origin/master` to production.
+- [Deploy](runbooks/deploy.md) - Deploy `origin/master` to production and the website.
 - [Publish](runbooks/publish.md) - Version and publish configured Apple apps.
 
 Run `mise tasks` to discover available tasks and their descriptions, including development and production debugging tools.
@@ -87,7 +88,8 @@ Run `mise tasks` to discover available tasks and their descriptions, including d
 
 This repository is deployed to codemoto.org with `mise deploy` and the [deploy runbook](runbooks/deploy.md).
 
-Every Code Moto downstream repository states deployment in its own Repo Specific section with one of these lines, and merges preserve it:
+Every Code Moto downstream repository states deployment in its own Repo Specific section with one of these lines, and merges preserve it. For deployed repositories, the deploy runbook also runs `mise deploy:website` when `config.json` has a `website` subdomain:
 
 - Not deployed: "This repository is not deployed. Do not run `mise deploy` or the [deploy runbook](runbooks/deploy.md). The `deploy/` tooling is inherited from Code Moto and unused."
 - Deployed: "This repository is deployed to <host or domain> with `mise deploy` and the [deploy runbook](runbooks/deploy.md)."
+- Website only: "This repository's website is deployed to <domain> with `mise deploy:website` and the [deploy runbook](runbooks/deploy.md). It has no droplet; do not run `mise deploy`."

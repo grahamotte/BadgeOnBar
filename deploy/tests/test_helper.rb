@@ -16,7 +16,7 @@ module DeployTestMethods
   REQ_CALL = Req.method(:call)
 end
 
-[ BasePatch, Cloudflare, Instance ].each do |klass|
+[ BasePatch, Cloudflare, Instance, Website ].each do |klass|
   klass.define_singleton_method(:puts) { |*| }
 end
 
@@ -49,6 +49,7 @@ module DeployTestIsolation
     Constants.instance_variable_set(:@ssh_key_path, File.join(@deploy_test_dir, "id_rsa"))
     Instance.clear
     Cloudflare.instance_variable_set(:@zone_id, nil)
+    Cloudflare.instance_variable_set(:@account_id, nil)
     Subdomains.instance_variable_set(:@all, nil)
     DependenciesPatch.instance_variable_set(:@current_versions, nil)
     CertPatch.instance_variable_set(:@certificate, nil)
@@ -78,7 +79,9 @@ module DeployTestIsolation
         database: "app",
         instance: { region: "test-region", size: "test-size" },
         subdomains: [
-          { name: "www", subdomains: [ "", "www" ], directory: "frontend/subdomains/www" },
+          { name: "website", subdomains: [ "", "www" ], website: true },
+          { name: "app", subdomains: [ "app" ], directory: "frontend/subdomains/app" },
+          { name: "api", subdomains: [ "api" ], backend: true },
           { name: "hc", subdomains: [ "hc" ], directory: "frontend/subdomains/hc" },
           { name: "jobs", subdomains: [ "jobs" ], backend: true },
         ],

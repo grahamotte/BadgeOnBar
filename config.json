@@ -9,12 +9,26 @@
   },
   "subdomains": [
     {
-      "name": "www",
+      "name": "website",
       "subdomains": [
         "",
         "www"
       ],
-      "directory": "frontend/subdomains/www"
+      "website": true
+    },
+    {
+      "name": "app",
+      "subdomains": [
+        "app"
+      ],
+      "directory": "frontend/subdomains/app"
+    },
+    {
+      "name": "api",
+      "subdomains": [
+        "api"
+      ],
+      "backend": true
     },
     {
       "name": "hc",

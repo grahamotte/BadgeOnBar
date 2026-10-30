@@ -52,7 +52,7 @@ class NginxPatch < BasePatch
     end
 
     def subdomain_servers
-      Subdomains.all.map do |subdomain|
+      Subdomains.droplet.map do |subdomain|
         <<~TEXT
           server {
             server_name #{Subdomains.domains(subdomain).join(" ")};
@@ -83,8 +83,6 @@ class NginxPatch < BasePatch
           expires max;
           add_header Cache-Control "public, max-age=31536000, immutable";
         }
-
-        #{proxy_location("/api/")}
       TEXT
     end
 

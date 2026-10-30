@@ -31,7 +31,7 @@ class AppPatch < BasePatch
       # Cmd.local("rsync -av -e \"ssh -i #{Constants.ssh_key_path}\" #{Constants.local_root}/frontend/dist/ #{Constants.deploy_user}@#{Instance.ip}:#{Constants.remote_root}/frontend/dist/")
 
       begin
-        Req.call(method: :get, url: "https://#{Constants.domain}/api/noop/ping")
+        Req.call(method: :get, url: "#{Subdomains.url("api")}/noop/ping")
       rescue StandardError => e
         puts "#{e.message} - waiting for rails to start..."
         sleep 1

@@ -1,5 +1,7 @@
 require_relative "lib/require"
 
+Subdomains.require_droplet!
+
 InstanceCreatePatch.call
 DeployUserPatch.call
 SwapPatch.call
