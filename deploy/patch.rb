@@ -1,7 +1,5 @@
 require_relative "lib/require"
 
-Subdomains.require_droplet!
-
 name = ARGV.first
 path = File.join($root_dir, "patches", "#{name}_patch.rb")
 

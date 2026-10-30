@@ -16,7 +16,7 @@ module DeployTestMethods
   REQ_CALL = Req.method(:call)
 end
 
-[ BasePatch, Cloudflare, Instance, Sources::Website ].each do |klass|
+[ BasePatch, Cloudflare, Instance ].each do |klass|
   klass.define_singleton_method(:puts) { |*| }
 end
 
