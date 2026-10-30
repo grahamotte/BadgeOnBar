@@ -262,12 +262,6 @@ description = "Deploy origin/master to the droplet and the Cloudflare website co
 depends = ["dependencies:deploy", "dependencies:website"]
 run = "set -a && source .env.production && cd deploy && ruby deploy.rb 2>&1 | tee log/$(date +%Y-%m-%d-%H-%M-%S)_deploy.log"
 
-[tasks."deploy:quick"]
-description = "Update production code, secrets, app services, and the website without full provisioning"
-alias = ["quick"]
-depends = ["dependencies:deploy", "dependencies:website"]
-run = "set -a && source .env.production && cd deploy && ruby quick.rb 2>&1 | tee log/$(date +%Y-%m-%d-%H-%M-%S)_quick.log"
-
 [tasks."deploy:patch"]
 description = "Apply a named deployment patch to production"
 depends = ["dependencies:deploy"]
