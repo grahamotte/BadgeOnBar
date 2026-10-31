@@ -44,4 +44,15 @@ final class DebugCommandTests: XCTestCase {
         XCTAssertEqual(DebugCommand("undo"), .custom("undo", []))
         XCTAssertNil(DebugCommand(""))
     }
+
+    func testRequest() throws {
+        let request = DebugRequest(id: "1", command: "snap|/tmp/app.png")
+        XCTAssertEqual(try JSONDecoder().decode(DebugRequest.self, from: JSONEncoder().encode(request)), request)
+        XCTAssertThrowsError(try JSONDecoder().decode(DebugRequest.self, from: Data("snap|/tmp/app.png".utf8)))
+    }
+
+    func testReply() throws {
+        XCTAssertEqual(try JSONSerialization.jsonObject(with: JSONEncoder().encode(DebugReply(id: "1", error: nil))) as? [String: String], ["id": "1"])
+        XCTAssertEqual(try JSONSerialization.jsonObject(with: JSONEncoder().encode(DebugReply(id: "1", error: "no main window"))) as? [String: String], ["id": "1", "error": "no main window"])
+    }
 }
