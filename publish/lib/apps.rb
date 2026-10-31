@@ -60,6 +60,14 @@ module Apps
       repository
     end
 
+    def latest_released_version
+      Cmd.local("git ls-remote --tags --refs origin 'v*'")
+        .lines(chomp: true)
+        .filter_map { |line| line[%r{\trefs/tags/v(\S+)\z}, 1] }
+        .select { |version| Gem::Version.correct?(version) }
+        .max_by { |version| Gem::Version.new(version) }
+    end
+
     def mr_installed? = ENV["PATH"].to_s.split(File::PATH_SEPARATOR).any? { |directory| File.executable?(File.join(directory, "mr")) }
 
     def project_path(target)

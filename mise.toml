@@ -345,7 +345,7 @@ description = "Prepare Apple App Store versions and builds without submitting th
 depends = ["publish stop_before_submit"]
 
 [tasks."publish:approved_version"]
-description = "Print the latest approved App Store version across configured Apple targets"
+description = "Print the latest approved App Store version across configured Apple targets, or the latest repository release when skipping App Stores"
 depends = ["dependencies:publish"]
 run = "set -a && source .env.production && cd publish && ruby approved_version.rb"
 
