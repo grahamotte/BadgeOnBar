@@ -13,7 +13,7 @@ The "Repo Specific" section blow contains rules specific to this repo only.
 1. Do not introduce bugs or regressions.
 2. Before writing code, find analogous code in the repository and follow its established patterns.
 3. Do not add comments to code. Preserve existing comments unless they are incorrect or obsolete.
-4. Lint, type-check, and test code changes using the tasks defined in the root `mise.toml`.
+4. Check code changes with `mise test`, which runs every test suite and type check. There is no lint task or linter config, so do not run linters such as RuboCop or ESLint.
 5. Use root `mise` tasks instead of invoking underlying tools directly when an applicable task exists.
 6. Give every task in the root `mise.toml` a `description` so `mise tasks` lists what it does.
 7. Do not create a canvas or visualization unless the user specifically requests one.
