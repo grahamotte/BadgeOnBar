@@ -8,14 +8,15 @@ let package = Package(
         .target(
             name: "BadgeOnBarCore",
             path: "App",
-            sources: ["AppSettings.swift"],
-            swiftSettings: [.swiftLanguageMode(.v5)],
+            sources: ["AppSettings.swift", "DebugCommand.swift"],
+            swiftSettings: [.define("APP_DEV"), .swiftLanguageMode(.v5)],
         ),
         .testTarget(
             name: "BadgeOnBarCoreTests",
             dependencies: ["BadgeOnBarCore"],
             path: "Tests",
             exclude: ["Package.swift"],
+            swiftSettings: [.swiftLanguageMode(.v5)],
         ),
     ]
 )

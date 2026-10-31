@@ -44,6 +44,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        #if APP_DEV
+        DebugHooks.install()
+        #endif
         statusBarManager = StatusBarManager(settings: settings, monitor: monitor)
         statusBarManager?.onShowConfig = { [weak self] in self?.showConfigWindow() }
         monitor.start()
