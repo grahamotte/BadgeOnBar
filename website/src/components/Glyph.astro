@@ -1,0 +1,38 @@
+---
+const { name, class: className } = Astro.props as { name: string; class?: string };
+---
+
+<svg viewBox="0 0 24 24" class={className} fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  {name === "mail" && (
+    <>
+      <rect x="3.5" y="6" width="17" height="12" rx="2" />
+      <path d="m4.5 7.5 7.5 5.5 7.5-5.5" />
+    </>
+  )}
+  {name === "chat" && <path d="M12 5c4.7 0 8 2.9 8 6.3s-3.3 6.2-8 6.2c-.8 0-1.6-.1-2.3-.3L6 19l.6-3.1C5 14.8 4 13.2 4 11.3 4 7.9 7.3 5 12 5Z" />}
+  {name === "tasks" && (
+    <>
+      <path d="m4.5 7.5 1.5 1.5 2.5-3" />
+      <path d="m4.5 15.5 1.5 1.5 2.5-3" />
+      <path d="M12 7.5h7.5M12 15.5h7.5" />
+    </>
+  )}
+  {name === "hash" && <path d="M9.5 4.5 8 19.5M16 4.5l-1.5 15M5 9h15M4 15h15" />}
+  {name === "folder" && <path d="M4 7.5c0-.8.7-1.5 1.5-1.5h4l2 2h7c.8 0 1.5.7 1.5 1.5v7c0 .8-.7 1.5-1.5 1.5h-13c-.8 0-1.5-.7-1.5-1.5Z" />}
+  {name === "note" && <path d="M7 4.5h10c.8 0 1.5.7 1.5 1.5v12c0 .8-.7 1.5-1.5 1.5H7c-.8 0-1.5-.7-1.5-1.5V6c0-.8.7-1.5 1.5-1.5ZM9 9h6M9 12.5h6M9 16h3.5" />}
+  {name === "wifi" && (
+    <>
+      <path d="M3.5 9.5a12 12 0 0 1 17 0" />
+      <path d="M6.5 12.75a7.75 7.75 0 0 1 11 0" />
+      <path d="M9.5 16a3.5 3.5 0 0 1 5 0" />
+      <circle cx="12" cy="19" r=".5" fill="currentColor" />
+    </>
+  )}
+  {name === "battery" && (
+    <>
+      <rect x="2.5" y="7.5" width="17" height="9" rx="2.5" />
+      <rect x="4.5" y="9.5" width="10" height="5" rx="1" fill="currentColor" stroke="none" />
+      <path d="M21.5 10.5v3" />
+    </>
+  )}
+</svg>

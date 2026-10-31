@@ -1,0 +1,43 @@
+---
+import { apps, type AppKey } from "../apps";
+import AppTile from "./AppTile.astro";
+
+type Mode = "badge" | "dot" | "count" | "question";
+type Zero = "show" | "greyscale" | "hide";
+
+const {
+  app,
+  count,
+  mode = "badge",
+  zero = "show",
+  color = "var(--color-badge)",
+} = Astro.props as { app: AppKey; count: number; mode?: Mode; zero?: Zero; color?: string };
+
+const label = count > 0 ? `${apps[app].name}: ${count}` : apps[app].name;
+const hidden = count === 0 && zero === "hide";
+const question = mode === "question" && count > 0;
+---
+
+{
+  !hidden && (
+    <span class="relative flex h-full items-center px-[0.4em]" title={label}>
+      {question ? (
+        <img src="/question.png" alt="" class="size-[1em]" />
+      ) : (
+        <AppTile app={app} grey={count === 0 && zero === "greyscale"} class="size-[1em]" />
+      )}
+      {mode === "badge" && count > 0 && (
+        <span
+          class="absolute top-1/2 left-[1.8em] flex h-[1.45em] min-w-[1.45em] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full px-[0.3em] text-[0.5em] leading-none font-bold text-white"
+          style={`background: ${color}`}
+        >
+          {Math.min(count, 99)}
+        </span>
+      )}
+      {mode === "dot" && count > 0 && (
+        <span class="absolute top-[0.25em] left-[0.95em] size-[0.45em] rounded-full" style={`background: ${color}`} />
+      )}
+      {mode === "count" && count > 0 && <span class="pl-[0.3em] text-[0.875em] tabular-nums">{count}</span>}
+    </span>
+  )
+}

@@ -1,0 +1,58 @@
+---
+import { apps, type AppKey } from "../apps";
+import AppTile from "./AppTile.astro";
+import BarItem from "./BarItem.astro";
+import Glyph from "./Glyph.astro";
+
+const dock: { app: AppKey; count: number }[] = [
+  { app: "files", count: 0 },
+  { app: "mail", count: 3 },
+  { app: "chat", count: 12 },
+  { app: "tasks", count: 0 },
+  { app: "team", count: 1 },
+  { app: "notes", count: 0 },
+];
+---
+
+<figure class="text-[13px] sm:text-[17px] md:text-[20px]">
+  <div class="overflow-hidden rounded-[0.9em] border border-line bg-desk" role="img" aria-label="A Mac desktop. The Dock shows badges of 3 on Mail, 12 on Chat, and 1 on Team. The menu bar shows the same counts as their own items, with Tasks greyed out at zero.">
+    <div class="flex h-[1.5em] items-center justify-between bg-bar pr-[0.4em] pl-[0.9em] backdrop-blur" aria-hidden="true">
+      <div class="hidden items-center gap-[1.1em] text-[0.68em] sm:flex">
+        <span class="font-semibold">Mail</span>
+        <span>File</span>
+        <span>Edit</span>
+        <span>View</span>
+        <span>Window</span>
+      </div>
+      <div class="ml-auto flex h-full items-center">
+        <BarItem app="mail" count={3} />
+        <BarItem app="chat" count={12} />
+        <BarItem app="tasks" count={0} zero="greyscale" />
+        <BarItem app="team" count={1} mode="dot" />
+        <span class="ml-[0.5em] flex h-full items-center gap-[0.7em] px-[0.4em] text-ink">
+          <Glyph name="wifi" class="size-[0.95em]" />
+          <Glyph name="battery" class="size-[1.15em]" />
+          <span class="text-[0.68em] tabular-nums">Sat 9:41</span>
+        </span>
+      </div>
+    </div>
+    <div class="h-[8em] sm:h-[9em]"></div>
+    <div class="flex justify-center pb-[0.5em]" aria-hidden="true">
+      <div class="flex gap-[0.45em] rounded-[1.1em] border border-line bg-dock p-[0.4em] backdrop-blur">
+        {
+          dock.map(({ app, count }) => (
+            <span class="relative" title={apps[app].name}>
+              <AppTile app={app} class="size-[2.6em]" />
+              {count > 0 && (
+                <span class="absolute -top-[0.4em] -right-[0.4em] flex h-[1.5em] min-w-[1.5em] items-center justify-center rounded-full bg-badge px-[0.4em] text-[0.62em] font-medium text-white tabular-nums">
+                  {count}
+                </span>
+              )}
+            </span>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+  <figcaption class="mt-4 text-center text-sm text-ink-2">The same counts, in both places. Tasks has nothing new, so it's greyed out.</figcaption>
+</figure>

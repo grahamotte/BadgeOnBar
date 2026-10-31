@@ -1,0 +1,27 @@
+# Badge On Bar
+
+> Badge On Bar is a small native macOS menu bar app that mirrors the badge counts from apps in your Dock into the menu bar, one menu bar item per app you choose. It is free and open source (MIT), requires macOS 26.2 or later, and is a rewrite of Doll.
+
+Install with Homebrew: `brew install grahamotte/tap/badge-on-bar`, and update with `brew upgrade`. Or download the latest zip from GitHub Releases, unzip it, and move the app to `/Applications`. Builds are signed with a Developer ID and notarized by Apple. Badge On Bar is not on the App Store.
+
+Features:
+
+- Reads Dock badges through the macOS Accessibility API, so it asks for Accessibility access on first launch. Counts update about once a second.
+- Each chosen app gets its own menu bar item. Click to open or switch to the app; Option-click or right-click for settings. Command-drag to reorder.
+- Display modes per app: Badge (a colored circle with the count over the icon, capped at 99), Dot, Count (the full number as text), and Question block.
+- Badge colors: red, green, blue, purple, black, or pink.
+- Zero behavior per app: Show, Greyscale, or Hide the item until a badge appears.
+- Menu bar icon per app: the app's own icon or one of a set of monochrome symbols.
+- Start at Login, defaults for newly chosen apps, and no Dock icon unless the settings window is open.
+- No accounts, analytics, or network requests.
+
+## Docs
+
+- [README](https://raw.githubusercontent.com/grahamotte/BadgeOnBar/master/README.md): Installation, usage, per-app options, and uninstalling.
+- [Privacy Policy](https://badgeonbar.com/privacy): Badge On Bar collects no personal information.
+
+## Optional
+
+- [Source code](https://github.com/grahamotte/BadgeOnBar): The Badge On Bar repository on GitHub.
+- [Releases](https://github.com/grahamotte/BadgeOnBar/releases): Signed and notarized downloads and release notes.
+- [Issues](https://github.com/grahamotte/BadgeOnBar/issues): Bug reports and questions.
