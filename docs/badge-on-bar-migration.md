@@ -43,7 +43,6 @@ The migrated icon catalog, bundled question image, shared assets, and privacy po
 | `mise.toml` | `mise.toml` | The Code Moto task graph remains authoritative. `mise simulate macos` replaces the old build/start flow, `$publish` replaces its release tasks, and `mise xcode` opens the migrated project. |
 | `.agents/skills/publish/SKILL.md` | `.agents/skills/publish/SKILL.md` | Replaced by Code Moto's resumable Developer ID, notarization, and GitHub workflow and branded for Badge On Bar's repository-only distribution. |
 | `.agents/skills/version-bump/SKILL.md` | `.agents/skills/publish/SKILL.md` | Semantic-version analysis is part of Code Moto's publish skill and `deploy:set-version` implementation. |
-| `scripts/generate-assets.sh` | `scripts/generate-assets.sh` | Preserved with its icon catalog destination updated to `apps/apple/App`; exposed as `mise app:generate-assets`. |
 
 ## Retired source-only infrastructure
 
@@ -106,10 +105,10 @@ The source Git index was re-audited after migration rather than relying on the m
 | `assets/question.png` | Byte-identical root asset retained. |
 | `assets/screenshot.png` | Byte-identical root asset retained. |
 | `docs/privacy_policy.md` | Byte-identical as `docs/privacy-policy.md`; filename normalized. |
-| `mise.toml` | Merged into Code Moto's task graph; the asset generator is exposed as `app:generate-assets`. |
+| `mise.toml` | Merged into Code Moto's task graph. |
 | `scripts/ExportOptions-DeveloperID.plist` | Replaced by dynamically generated Developer ID export options in the revision patch. |
 | `scripts/build.sh` | Replaced by `mise simulate macos` locally and Code Moto's archive patch for releases. |
-| `scripts/generate-assets.sh` | Preserved with the new icon catalog path. |
+| `scripts/generate-assets.sh` | Retired; the icons it generated remain in `apps/apple/App/Assets.xcassets/AppIcon.appiconset`. |
 | `scripts/publish.sh` | Replaced by `$publish` and `mise deploy:publish`, including signing, notarization, stapling, and dual-host upload. |
 | `scripts/start.sh` | Replaced by `mise simulate macos`, which stops, builds, and launches the app. |
 
