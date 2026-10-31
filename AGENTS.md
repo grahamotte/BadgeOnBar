@@ -101,7 +101,7 @@ Badge On Bar reads other apps' Dock badge counts through the macOS Accessibility
 - `StatusBarManager` owns `NSStatusItem` lifecycle, click handling, icons, and badge rendering.
 - `ConfigurationView` consumes `AppSettings` and `BadgeMonitor` through SwiftUI environment observation.
 - `BadgeOnBarApp` and `AppDelegate` own activation policy, the configuration window, permissions startup, and lifecycle glue.
-- SwiftUI owns the configuration `Window`; do not replace its window delegate or hide it instead of closing it. `ConfigurationWindow` reports the window opening and closing through `AppDelegate.setConfigWindowOpen`, which makes the app a regular Dock app only while the window is open, and stores the `openWindow` action that `AppDelegate.showConfigWindow` uses to reopen it. `.defaultLaunchBehavior(.presented)` opens the window at every launch so that action is always captured.
+- SwiftUI owns the configuration `Window`; do not replace its window delegate or hide it instead of closing it. `ConfigurationWindow` reports the window opening and closing through `AppDelegate.setConfigWindowOpen`, which makes the app a regular Dock app only while the window is open, and stores the `openWindow` action that `AppDelegate.showConfigWindow` uses to reopen it. `showConfigWindow` also moves the window to the active Space and orders it front regardless of activation, because cooperative activation from a status item menu can leave it hidden behind other apps or on another Space. `.defaultLaunchBehavior(.presented)` opens the window at every launch so that action is always captured.
 - Keep AppKit and Accessibility work on `@MainActor`. Use callbacks between AppKit managers and observable state.
 
 ### Monitoring and Display Behavior

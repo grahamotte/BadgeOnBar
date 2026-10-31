@@ -69,7 +69,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func showConfigWindow() {
+        let window = NSApp.windows.first { $0.identifier?.rawValue == configWindowID }
+        window?.collectionBehavior.insert(.moveToActiveSpace)
         openConfigWindow?()
         NSApp.activate()
+        window?.orderFrontRegardless()
     }
 }
