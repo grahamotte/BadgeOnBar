@@ -3,7 +3,7 @@ import AppKit
 let config = try JSONSerialization.jsonObject(with: Data(contentsOf: URL(filePath: "config.json"))) as! [String: Any]
 let targets = (config["apps"] as! [String: Any])["targets"] as! [String: Any]
 let macos = (targets["apple"] as! [String: Any])["macos"] as! [String: Any]
-let bundleIdentifier = macos["bundleIdentifier"] as! String
+let bundleIdentifier = "\(macos["bundleIdentifier"] as! String).debug"
 
 func fail(_ message: String) -> Never {
     FileHandle.standardError.write(Data("app:debug: \(message)\n".utf8))
