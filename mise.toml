@@ -34,7 +34,7 @@ run = "cd website && mkdir -p log && pnpm install"
 
 [tasks."dependencies:deploy"]
 description = "Install deployment tooling Ruby dependencies"
-run = "cd deploy && mkdir -p log && bundle install"
+run = "cd deploy && mkdir -p log && bundle install >&2"
 
 [tasks."dependencies:manager"]
 description = "Install project creation and merge Ruby dependencies"
