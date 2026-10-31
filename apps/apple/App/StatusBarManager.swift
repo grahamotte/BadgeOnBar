@@ -110,7 +110,7 @@ final class StatusBarManager {
         guard let (id, _) = items.first(where: { $0.value.button == sender }) else { return }
         if let event = NSApp.currentEvent, event.type == .rightMouseUp {
             let menu = NSMenu()
-            let item = NSMenuItem(title: "Settings…", action: #selector(openSettings), keyEquivalent: ",")
+            let item = NSMenuItem(title: "Settings…", action: #selector(openSettings), keyEquivalent: "")
             item.target = self
             menu.addItem(item)
             NSMenu.popUpContextMenu(menu, with: event, for: sender)
