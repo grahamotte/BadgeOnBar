@@ -1,5 +1,5 @@
 import XCTest
-@testable import App
+@testable import AppCore
 
 final class FocusTimerTests: XCTestCase {
     func testSessionControls() async {
