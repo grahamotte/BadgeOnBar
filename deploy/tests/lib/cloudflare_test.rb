@@ -74,7 +74,7 @@ class CloudflareTest < Minitest::Test
   end
 
   def test_enable_always_use_https
-    Cloudflare.instance_variable_set(:@zone_id, "zone")
+    Cloudflare.instance_variable_set(:@zone_ids, { "example.com" => "zone" })
     Req.expects(:call).with(
       method: :patch,
       url: "https://api.cloudflare.com/client/v4/zones/zone/settings/always_use_https",
@@ -147,5 +147,118 @@ class CloudflareTest < Minitest::Test
       ],
       Cloudflare.missing_mail_dns_records.map { |x| Cloudflare.fingerprint(x) },
     )
+  end
+
+  def test_mail_dns_records_for_other_domain
+    records = Cloudflare.mail_dns_records("example.net")
+
+    assert_equal [ "example.net", "example.net" ], records.first(2).map { |x| x[:name] }
+    assert_equal "fm2.example.net.dkim.fmhosted.com", records[3][:content]
+  end
+
+  def test_redirect_dns_records
+    assert_equal(
+      [
+        { type: "A", name: "example.net", content: "192.0.2.1", proxied: true, ttl: 1 },
+        { type: "A", name: "www.example.net", content: "192.0.2.1", proxied: true, ttl: 1 },
+      ],
+      Cloudflare.redirect_dns_records("example.net"),
+    )
+  end
+
+  def test_missing_redirect_dns_records
+    stub_zone("example.net")
+    Req.expects(:call).with(has_entry(:url, "https://api.cloudflare.com/client/v4/zones/zone/dns_records"))
+      .returns(result: [
+        { name: "example.net", type: "A", content: "192.0.2.1" },
+        { name: "www.example.com", type: "A", content: "192.0.2.1" },
+      ])
+
+    assert_equal [ "www.example.net" ], Cloudflare.missing_redirect_dns_records("example.net").map { |x| x[:name] }
+  end
+
+  def test_redirect_rule
+    rule = Cloudflare.redirect_rule("example.net")
+
+    assert_equal "(http.host in {\"example.net\" \"www.example.net\"})", rule[:expression]
+    assert_equal "redirect", rule[:action]
+    assert_equal(
+      {
+        target_url: { expression: "concat(\"https://example.com\", http.request.uri.path)" },
+        status_code: 301,
+        preserve_query_string: true,
+      },
+      rule.dig(:action_parameters, :from_value),
+    )
+  end
+
+  def test_redirect_rule_current
+    stub_zone("example.net")
+    stub_rulesets([ { id: "other", kind: "managed", phase: Cloudflare::REDIRECT_PHASE }, { id: "redirects", kind: "zone", phase: Cloudflare::REDIRECT_PHASE } ])
+    Req.expects(:call).with(has_entry(:url, "https://api.cloudflare.com/client/v4/zones/zone/rulesets/redirects"))
+      .returns(result: { rules: [ Cloudflare.redirect_rule("example.net").merge(id: "rule", version: "1") ] })
+
+    assert Cloudflare.redirect_rule_current?("example.net")
+  end
+
+  def test_redirect_rule_not_current
+    stub_zone("example.net")
+    stub_rulesets([ { id: "redirects", kind: "zone", phase: Cloudflare::REDIRECT_PHASE } ])
+    Req.expects(:call).with(has_entry(:url, "https://api.cloudflare.com/client/v4/zones/zone/rulesets/redirects"))
+      .returns(result: { rules: [ Cloudflare.redirect_rule("example.org") ] })
+
+    refute Cloudflare.redirect_rule_current?("example.net")
+  end
+
+  def test_redirect_rule_without_ruleset
+    stub_zone("example.net")
+    stub_rulesets([])
+
+    refute Cloudflare.redirect_rule_current?("example.net")
+  end
+
+  def test_write_redirect_rule_creates_ruleset
+    stub_zone("example.net")
+    stub_rulesets([])
+    Req.expects(:call).with(
+      method: :post,
+      url: "https://api.cloudflare.com/client/v4/zones/zone/rulesets",
+      headers: Cloudflare.headers,
+      quiet: true,
+      payload: {
+        name: "Redirect example.net to example.com",
+        kind: "zone",
+        phase: Cloudflare::REDIRECT_PHASE,
+        rules: [ Cloudflare.redirect_rule("example.net") ],
+      },
+    )
+
+    Cloudflare.write_redirect_rule("example.net")
+  end
+
+  def test_write_redirect_rule_replaces_rules
+    stub_zone("example.net")
+    stub_rulesets([ { id: "redirects", kind: "zone", phase: Cloudflare::REDIRECT_PHASE } ])
+    Req.expects(:call).with(
+      method: :put,
+      url: "https://api.cloudflare.com/client/v4/zones/zone/rulesets/redirects",
+      headers: Cloudflare.headers,
+      quiet: true,
+      payload: { rules: [ Cloudflare.redirect_rule("example.net") ] },
+    )
+
+    Cloudflare.write_redirect_rule("example.net")
+  end
+
+  private
+
+  def stub_zone(domain)
+    Req.expects(:call).with(has_entry(:params, { name: domain }))
+      .returns(result: [ { name: domain, id: "zone" } ])
+  end
+
+  def stub_rulesets(rulesets)
+    Req.expects(:call).with { |options| options[:url] == "https://api.cloudflare.com/client/v4/zones/zone/rulesets" && options[:method].blank? }
+      .returns(result: rulesets)
   end
 end

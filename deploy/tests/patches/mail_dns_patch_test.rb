@@ -40,4 +40,19 @@ class MailDnsPatchTest < Minitest::Test
 
     MailDnsPatch.apply
   end
+
+  def test_apply_includes_redirect_domains
+    File.write(Constants.config_path, JSON.generate(domain: "example.com", redirectDomains: [ "example.net" ]))
+    Constants.instance_variable_set(:@config, nil)
+    Cloudflare.instance_variable_set(:@zone_ids, { "example.com" => "zone", "example.net" => "net-zone" })
+    Req.expects(:call).with(has_entry(:url, "https://api.cloudflare.com/client/v4/zones/zone/dns_records"))
+      .twice.returns(result: Cloudflare.mail_dns_records)
+    Req.expects(:call).with(has_entry(:url, "https://api.cloudflare.com/client/v4/zones/net-zone/dns_records"))
+      .twice.returns(result: [])
+    Req.expects(:call).with(has_entries(method: :post, url: "https://api.cloudflare.com/client/v4/zones/net-zone/dns_records"))
+      .times(6)
+
+    assert MailDnsPatch.needed?
+    MailDnsPatch.apply
+  end
 end
