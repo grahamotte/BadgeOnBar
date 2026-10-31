@@ -48,6 +48,12 @@ The "Repo Specific" section blow contains rules specific to this repo only.
 - After every code change, run the whole suite with `mise test`.
 - Do not write integration tests.
 
+## Apple Workflow
+
+- `mise test` runs the Apple app package tests in `apps/apple/Tests`, which compile the non-UI files listed in `Tests/Package.swift`. Add new business-logic files to its `sources` and app-only files to its `exclude`.
+- Use `mise simulate macos` to build and launch the Debug app and `mise xcode` to open the project.
+- Screen capture is not available to agents. To check UI, run the macOS Debug build and use `mise app:debug` with the `DebugHooks` commands, for example `mise app:debug "snap|/tmp/app.png"`, then read the PNG. Debug builds compile with `APP_DEV` and may write under `/tmp`. Commands do not activate the app or order windows front. Pass `DebugHooks.install` a closure to handle app-specific commands. `DebugHooks` is macOS only; for iOS and tvOS simulators, use `xcrun simctl io booted screenshot /tmp/app.png`.
+
 ## Session instructions
 
 Use `origin` as the sole workflow repository remote, preserving its hosting provider and actual default branch. A Code Moto basis remote named `codemoto` and an optional `deployment` remote may also be present. Do not add mirrors or alternate origin names. Fetch before updating default branches, use fast-forward-only pulls, and never force-push a default branch.
