@@ -37,12 +37,15 @@ Rails.application.configure do
   # Make template changes take effect immediately.
   config.action_mailer.perform_caching = false
 
-  app_url = URI.parse(Settings.development_url("api"))
-  config.action_mailer.default_url_options = {
-    host: app_url.host,
-    port: app_url.port,
-    protocol: app_url.scheme,
-  }
+  app_url = Settings.development_url("api")
+  if app_url.present?
+    app_url = URI.parse(app_url)
+    config.action_mailer.default_url_options = {
+      host: app_url.host,
+      port: app_url.port,
+      protocol: app_url.scheme,
+    }
+  end
 
   # Print deprecation notices to the Rails logger.
   config.active_support.deprecation = :log
