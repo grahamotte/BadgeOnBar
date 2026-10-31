@@ -6,6 +6,8 @@
 
 Badge On Bar is a small native macOS app that mirrors the badge counts from apps in your Dock into the menu bar, one menu bar item per app you choose. It is a rewrite of the fantastic [Doll](https://github.com/xiaogdgenuine/Doll) project.
 
+Learn more at [badgeonbar.com](https://badgeonbar.com).
+
 ## Install
 
 ```sh
