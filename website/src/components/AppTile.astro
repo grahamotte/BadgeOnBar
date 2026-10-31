@@ -1,0 +1,14 @@
+---
+import { apps, type AppKey } from "../apps";
+import Glyph from "./Glyph.astro";
+
+const { app, grey = false, class: className } = Astro.props as { app: AppKey; grey?: boolean; class?: string };
+const { tile, glyph } = apps[app];
+---
+
+<span
+  class:list={["flex shrink-0 items-center justify-center rounded-[24%] text-white shadow-[inset_0_0_0_0.5px_rgb(0_0_0/0.12)]", grey && "grayscale", className]}
+  style={`background: ${tile}`}
+>
+  <Glyph name={glyph} class="size-[66%]" />
+</span>
