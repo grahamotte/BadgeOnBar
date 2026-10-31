@@ -9,7 +9,7 @@ module Apps
     attr_writer :root, :prepare_for_review, :submit_for_review, :tmp_root, :host_keychain_home
 
     def root = @root || File.join(Constants.local_root, "apps")
-    def tmp_root = @tmp_root || File.join(Constants.local_root, "publish", "tmp", "apps")
+    def tmp_root = @tmp_root || File.join(Constants.local_root, "publish", "tmp", "apps.noindex")
     def config = @config ||= read_json(Constants.config_path).fetch(:apps)
     def version = config.fetch(:version)
     def build = config.fetch(:build)
