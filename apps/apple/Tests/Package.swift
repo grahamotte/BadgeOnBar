@@ -6,12 +6,18 @@ let package = Package(
     platforms: [.macOS(.v15)],
     targets: [
         .target(
-            name: "App",
+            name: "AppCore",
             path: "App",
             exclude: ["App.swift", "AppView.swift", "Assets.xcassets", "Config", "DebugHooks.swift"],
             sources: ["DebugCommand.swift", "FocusTimer.swift"],
-            swiftSettings: [.define("APP_DEV")],
+            swiftSettings: [.define("APP_DEV"), .swiftLanguageMode(.v5)],
         ),
-        .testTarget(name: "AppTests", dependencies: ["App"], path: "Tests", exclude: ["Package.swift"]),
+        .testTarget(
+            name: "AppCoreTests",
+            dependencies: ["AppCore"],
+            path: "Tests",
+            exclude: ["Package.swift"],
+            swiftSettings: [.swiftLanguageMode(.v5)],
+        ),
     ]
 )
