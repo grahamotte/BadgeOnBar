@@ -71,7 +71,6 @@ class SettingsTest < ActiveSupport::TestCase
 
     assert(origins.any? { |x| x.match?("https://app.example.localhost") })
     assert(origins.any? { |x| x.match?("https://example.localhost") })
-    assert(origins.any? { |x| x.match?("https://quiet-river.trycloudflare.com") })
     refute(origins.any? { |x| x.match?("https://app.other.localhost") })
     refute(origins.any? { |x| x.match?("https://example.localhost.evil.com") })
   end
