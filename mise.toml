@@ -363,7 +363,7 @@ usage = 'arg "<target>" help="Device to launch" choices "iphone" "phone" "ipad" 
 run = 'cd publish && ruby simulate.rb "$usage_target"'
 
 [tasks."app:debug"]
-description = "Send a DebugHooks command to the running Debug macOS app, such as snap|/tmp/app.png (snap|PATH|TITLE for another window), frame|W|H, action|selector:, key|CODE|MODS|CHARS (modifiers c/s/o/t), type|TEXT, or an app-specific command"
+description = "Send a DebugHooks command to the running Debug macOS app, such as snap|/tmp/app.png (snap|PATH|TITLE for another window), frame|W|H, action|selector:, key|CODE|MODS|CHARS (modifiers c/s/o/t), type|TEXT, or an app-specific command, and wait for it to finish, exiting nonzero with the app's error on failure"
 usage = 'arg "<command>" help="Debug command for DebugHooks"'
 run = 'swift scripts/mise/app_debug.swift "$usage_command"'
 

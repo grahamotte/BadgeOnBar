@@ -1,6 +1,16 @@
 #if APP_DEV
 import Foundation
 
+struct DebugRequest: Codable, Equatable {
+    let id: String
+    let command: String
+}
+
+struct DebugReply: Codable, Equatable {
+    let id: String
+    let error: String?
+}
+
 enum DebugCommand: Equatable {
     enum Modifier: Character {
         case command = "c"
