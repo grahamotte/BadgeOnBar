@@ -9,6 +9,7 @@ class InstanceDestroyPatchTest < Minitest::Test
     Req.expects(:call).with(has_entries(method: :delete, url: "https://api.cloudflare.com/client/v4/accounts/account/workers/domains/worker_domain"))
     Req.expects(:call).with(has_entries(method: :delete, url: "https://api.cloudflare.com/client/v4/zones/zone/dns_records/one"))
     Req.expects(:call).with(has_entries(method: :delete, url: "https://api.cloudflare.com/client/v4/zones/zone/dns_records/two"))
+    Req.expects(:call).with(has_entries(method: :delete, url: "https://api.cloudflare.com/client/v4/accounts/account/workers/scripts/example-com"))
     Req.expects(:call).with(has_entries(method: :get, url: "https://api.digitalocean.com/v2/droplets"))
       .returns(droplets: [ { name: "example.com", id: 3 } ])
     Req.expects(:call).with(has_entries(method: :delete, url: "https://api.digitalocean.com/v2/droplets/3"))

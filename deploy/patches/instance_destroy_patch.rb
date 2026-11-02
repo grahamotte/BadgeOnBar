@@ -8,6 +8,7 @@ class InstanceDestroyPatch < BasePatch
       records.each do |record|
         Cloudflare.delete_dns_record(record[:id])
       end
+      Cloudflare.delete_worker(Sources::Website.worker_name)
       Instance.destroy
     end
   end
