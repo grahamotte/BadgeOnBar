@@ -16,6 +16,15 @@ class NginxPatchTest < Minitest::Test
     assert_equal [ "proxy_set_header X-Request-Id $request_id;" ] * 2, config.scan(/proxy_set_header X-Request-Id [^;]+;/)
   end
 
+  def test_enables_http2_with_its_own_directive
+    config = NginxPatch.send(:nginx_config)
+    servers = config.scan(/listen 443 ssl;\s+http2 on;/).size
+
+    assert_operator servers, :>, 0
+    assert_equal servers, config.scan("listen 443").size
+    refute_match(/listen [^;]*http2/, config)
+  end
+
   def test_logs_to_journal
     config = NginxPatch.send(:nginx_config)
 

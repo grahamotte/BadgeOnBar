@@ -59,7 +59,8 @@ class NginxPatch < BasePatch
         <<~TEXT
           server {
             server_name #{Subdomains.domains(subdomain).join(" ")};
-            listen 443 ssl http2;
+            listen 443 ssl;
+            http2 on;
             include /etc/letsencrypt/options-ssl-nginx.conf;
             ssl_certificate /etc/letsencrypt/live/#{Constants.domain}/fullchain.pem;
             ssl_certificate_key /etc/letsencrypt/live/#{Constants.domain}/privkey.pem;
