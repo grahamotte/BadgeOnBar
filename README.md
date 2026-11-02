@@ -17,7 +17,7 @@ Projects built on Code Moto keep their own Git history and configuration, and ca
 Install mise and PostgreSQL, and have PostgreSQL running locally. Apple app development and tests also require macOS with Xcode.
 
 1. Run `mise install` to install the tool versions pinned in `mise.toml`.
-2. Create `.env.development` and `.env.production` from `.env.default` and fill in the required values. Projects registered in Mr. Moto with 1Password references can generate them by running Mr. Moto's `mr secrets` in the checkout instead.
+2. Create `.env.development` and `.env.production` with the keys in `.env.template`, filling in the values its hints call for. Projects registered in Mr. Moto with 1Password references can generate them by running Mr. Moto's `mr secrets` in the checkout instead.
 3. Run `mise dependencies` to install project dependencies.
 4. Run `mise db:migrate` to prepare the development database.
 5. Run `mise start` to start the API, background jobs, frontend sites, and website configured in `config.json`. It prints the local URLs; the API runs at `https://api.<name>.localhost`.
