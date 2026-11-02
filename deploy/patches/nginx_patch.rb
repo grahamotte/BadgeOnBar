@@ -43,6 +43,15 @@ class NginxPatch < BasePatch
           }
 
           server {
+            listen 80 default_server;
+            listen [::]:80 default_server;
+            listen 443 ssl default_server;
+            http2 on;
+            ssl_reject_handshake on;
+            return 444;
+          }
+
+          server {
             listen 80;
             listen [::]:80;
             server_name #{Subdomains.domains.join(" ")};
