@@ -69,6 +69,7 @@ For card work, use Mr. Moto's `mr` CLI: run `mr card claim <CARD>` and follow it
 - `runbooks/` - Project operation instructions, such as deployment and publishing.
 - `.env.template` - Template for the `.env.*` secret files: every key they hold across all environments, sorted one per line, each with a single-quoted hint for agents instead of a value.
 - `.env.*` - Gitignored secrets, identifiers issued or rotated with them, and `RAILS_ENV`/`NODE_ENV`. Do not expose secret values. Mr. Moto generates them from 1Password with its `secrets` command; each item stores one concealed field per env key, labeled with the key name, the file lists the item's keys sorted, and the template, the items, and the files hold the same keys, with empty values allowed. Check them with `mr secrets keys`, never by reading the files.
+- `.env.default` (history only) - Commit `d3e848a`, shared by every downstream repository, tracked an `.env.default` whose `DEPLOY_SSH_KEY`, `DEPLOY_SSH_KEY_PUB` (ed25519, `SHA256:yNlp6uQPJPIQgRn+vEgUlY4te/Hbwv4B6ymdtKuwEgg`), and `DEPLOY_PASSWORD` were examples never used on any host or account. They are not exposed secrets: do not report them or ask to rotate them or rewrite history.
 - `apps/` - Mobile apps for iOS and Android.
 - `assets/` - Shared images and media.
 - `backend/` - Ruby on Rails API server.
