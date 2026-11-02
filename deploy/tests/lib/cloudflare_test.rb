@@ -68,6 +68,25 @@ class CloudflareTest < Minitest::Test
     Cloudflare.delete_worker_domain("domain")
   end
 
+  def test_delete_worker
+    Cloudflare.instance_variable_set(:@account_id, "account")
+    Req.expects(:call).with(
+      method: :delete,
+      url: "https://api.cloudflare.com/client/v4/accounts/account/workers/scripts/example-com",
+      headers: Cloudflare.headers,
+      quiet: true,
+    )
+
+    Cloudflare.delete_worker("example-com")
+  end
+
+  def test_delete_worker_ignores_missing_worker
+    Cloudflare.instance_variable_set(:@account_id, "account")
+    Req.expects(:call).raises(Faraday::ResourceNotFound.new("not found"))
+
+    assert_nil Cloudflare.delete_worker("example-com")
+  end
+
   def test_dns_record_lookup_follows_pages
     Req.expects(:call).with(has_entry(:url, "https://api.cloudflare.com/client/v4/zones"))
       .returns(result: [ { name: "example.com", id: "zone" } ])

@@ -104,6 +104,17 @@ class Cloudflare
       )
     end
 
+    def delete_worker(name)
+      Req.call(
+        method: :delete,
+        url: "https://api.cloudflare.com/client/v4/accounts/#{account_id}/workers/scripts/#{name}",
+        headers: headers,
+        quiet: true,
+      )
+    rescue Faraday::ResourceNotFound
+      nil
+    end
+
     def create_dns_record(record, domain = Constants.domain)
       Req.call(
         method: :post,
