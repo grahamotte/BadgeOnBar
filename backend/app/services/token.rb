@@ -3,10 +3,7 @@ class Token
 
   class << self
     def make(email, password)
-      user = User.find_by(email:)
-      return if user.blank? || password.blank? || !user.authenticate(password)
-
-      generate_for_user(user)
+      generate_for_user(User.authenticate_by(email:, password:))
     end
 
     def generate_for_user(user)
