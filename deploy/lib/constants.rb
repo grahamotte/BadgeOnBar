@@ -22,6 +22,7 @@ class Constants
     end
     def redirect_domains = config.fetch(:redirectDomains, [])
     def mail_domains = [ domain, *redirect_domains ]
+    def resend_domains = config.fetch(:resendDomains, [])
     def deploy_ref = ENV["DEPLOY_REF"].blank? ? "origin/master" : ENV["DEPLOY_REF"]
     def instance_region = config.dig(:instance, :region)
     def instance_size = config.dig(:instance, :size)

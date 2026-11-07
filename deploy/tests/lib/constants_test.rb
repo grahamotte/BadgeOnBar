@@ -86,6 +86,15 @@ class ConstantsTest < Minitest::Test
     assert_equal [ "example.com", "example.net" ], Constants.mail_domains
   end
 
+  def test_resend_domains
+    assert_equal [], Constants.resend_domains
+
+    File.write(Constants.config_path, JSON.generate(domain: "example.com", resendDomains: [ { domain: "example.com", region: "us-east-1", dkimPublicKey: "p=KEY" } ]))
+    Constants.instance_variable_set(:@config, nil)
+
+    assert_equal [ { domain: "example.com", region: "us-east-1", dkimPublicKey: "p=KEY" } ], Constants.resend_domains
+  end
+
   def test_deploy_ref
     previous = ENV.delete("DEPLOY_REF")
     assert_equal "origin/master", Constants.deploy_ref
