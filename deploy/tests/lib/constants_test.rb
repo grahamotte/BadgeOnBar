@@ -5,6 +5,13 @@ class ConstantsTest < Minitest::Test
     assert_equal "/var/www/example.com", Constants.remote_root
     assert_equal "/home/deploy", Constants.remote_home_dir
     assert_equal "/home/deploy/example.com.git", Constants.remote_git_dir
+    assert_equal "app", Constants.app_user
+    assert_equal "/home/app", Constants.app_home_dir
+    assert_equal "/home/deploy/.local/share/mise", Constants.remote_mise_data_dir
+    assert_equal(
+      %w[/var/www/example.com/backend/tmp /var/www/example.com/backend/storage /var/www/example.com/backend/log],
+      Constants.app_writable_dirs,
+    )
     assert_equal "/var/www/example.com/.env", Constants.remote_env_path
     assert_equal "/var/www/example.com/.env.production", Constants.remote_env_prod_path
     assert_equal File.join(@deploy_test_dir, ".env.production"), Constants.local_env_path
