@@ -1,6 +1,4 @@
 class Constants
-  OPERATOR_ONLY_ENV_KEYS = %w[APPLE_* CLOUDFLARE_TOKEN DEPLOY_PASSWORD DEPLOY_SSH_KEY_* DIGITAL_OCEAN_TOKEN].freeze
-
   class << self
     attr_writer :config_path, :local_env_path
 
@@ -30,7 +28,7 @@ class Constants
     def remote_env_path = File.join(remote_root, ".env")
     def remote_env_prod_path = File.join(remote_root, ".env.production")
     def local_env_path = @local_env_path || File.join(local_root, ".env.production")
-    def operator_only_env_keys = OPERATOR_ONLY_ENV_KEYS + config.fetch(:operatorOnlyEnvKeys, [])
+    def operator_only_env_keys = config.fetch(:operatorOnlyEnvKeys)
     def server_env
       File.read(local_env_path).lines.reject do |line|
         key = line[/\A\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)=/, 1]

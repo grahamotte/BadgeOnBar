@@ -2,6 +2,13 @@
   "domain": "codemoto.org",
   "githubRepo": "git@github.com:grahamotte/CodeMoto.git",
   "database": "codemoto",
+  "operatorOnlyEnvKeys": [
+    "APPLE_*",
+    "CLOUDFLARE_TOKEN",
+    "DEPLOY_PASSWORD",
+    "DEPLOY_SSH_KEY_*",
+    "DIGITAL_OCEAN_TOKEN"
+  ],
   "site": {
     "title": "Code Moto",
     "description": "code moto is the base for other projects",

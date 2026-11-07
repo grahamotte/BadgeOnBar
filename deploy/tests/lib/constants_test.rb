@@ -36,14 +36,22 @@ class ConstantsTest < Minitest::Test
     )
   end
 
-  def test_server_env_drops_operator_only_keys_from_config
+  def test_server_env_uses_the_config_list_of_operator_only_keys
     config = JSON.parse(File.read(Constants.config_path)).merge("operatorOnlyEnvKeys" => [ "PUBLISH_*", "RAILS_ENV" ])
     File.write(Constants.config_path, JSON.generate(config))
     Constants.instance_variable_set(:@config, nil)
     File.write(Constants.local_env_path, "APPLE_TEAM_ID=team\nNODE_ENV=production\nPUBLISH_TOKEN=token\nRAILS_ENV=production\n")
 
-    assert_equal [ *Constants::OPERATOR_ONLY_ENV_KEYS, "PUBLISH_*", "RAILS_ENV" ], Constants.operator_only_env_keys
-    assert_equal "NODE_ENV=production\n", Constants.server_env
+    assert_equal [ "PUBLISH_*", "RAILS_ENV" ], Constants.operator_only_env_keys
+    assert_equal "APPLE_TEAM_ID=team\nNODE_ENV=production\n", Constants.server_env
+  end
+
+  def test_server_env_requires_the_config_list_of_operator_only_keys
+    config = JSON.parse(File.read(Constants.config_path)).except("operatorOnlyEnvKeys")
+    File.write(Constants.config_path, JSON.generate(config))
+    Constants.instance_variable_set(:@config, nil)
+
+    assert_raises(KeyError) { Constants.server_env }
   end
 
   def test_ssh_key_decodes_its_base64_value
