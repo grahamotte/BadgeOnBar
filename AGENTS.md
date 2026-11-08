@@ -98,7 +98,7 @@ For card work, use Mr. Moto's `mr` CLI: run `mr card claim <CARD>` and follow it
 Read the relevant runbook when asked to perform an operation:
 
 - [Deploy](runbooks/deploy.md) - Deploy `origin/master` to production and the website.
-- [Publish](runbooks/publish.md) - Version and publish configured Apple apps.
+- [Publish](runbooks/publish.md) - Version and publish configured Apple apps, only when a release is requested.
 
 Run `mise tasks` to discover available tasks and their descriptions, including development and production debugging tools.
 
