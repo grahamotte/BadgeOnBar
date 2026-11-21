@@ -10,7 +10,7 @@ module Types
 
     field :create_api_token, String, null: false, access: :user, description: "Create or replace the signed-in user's API token. It does not expire, is deleted when the password changes or the user's tokens are revoked, and works like a JWT in \"Authorization: Bearer <token>\". It is returned only once; only a hash is stored."
     field :revoke_api_token, Boolean, null: false, access: :user, description: "Delete the signed-in user's API token."
-    field :trigger_error, Boolean, null: false, access: :public, description: "Raise a test backend error."
+    field :trigger_error, Boolean, null: false, access: :public, description: "Raise a test backend error. Limited to 5 calls a minute per IP."
 
     def create_token(email:, password:)
       request = context[:request]
@@ -33,6 +33,10 @@ module Types
     end
 
     def trigger_error
+      if RateLimit.exceeded?("trigger_error", by: context[:request].remote_ip, to: 5, within: 1.minute)
+        raise GraphQL::ExecutionError.new("too many requests", extensions: { code: "RATE_LIMITED" })
+      end
+
       raise "Test backend error"
     end
   end
